@@ -1,0 +1,2092 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Net Worth Planner</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'none'; font-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="description" content="A private net worth and retirement planner that runs entirely on your device.">
+<meta name="theme-color" content="#2B6B7E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Net Worth">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+:root{
+  color-scheme: light;
+  --bg:#F3F6F7; --surface:#FFFFFF; --well:#F6F9FA;
+  --ink:#26333A; --muted:#66757D; --line:#E1E8EB;
+  --teal:#7FB8CC; --teal-soft:#D3EAF2; --teal-deep:#2B6B7E;
+  --green:#6FCF97; --green-soft:#D5F1E0; --green-deep:#22704A;
+  --coral:#EB5757; --coral-soft:#FADCD9; --coral-deep:#A63A3A;
+  --amber:#F6E3A1; --amber-deep:#7A5C0E;
+  --r-lg:18px; --r:10px; --r-sm:7px;
+  --shadow:0 1px 2px rgba(38,51,58,.05),0 10px 28px rgba(38,51,58,.07);
+  --font:"Avenir Next","Avenir","Segoe UI Variable Text","Segoe UI","Helvetica Neue",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--font);-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--teal-deep);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* Header */
+.top{max-width:1440px;margin:0 auto;padding:18px 28px 14px;display:flex;gap:16px 24px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap}
+.top h1{margin:0;font-size:1.6rem;font-weight:650;letter-spacing:-.015em;line-height:1.2}
+.trust{margin:2px 0 0;color:var(--muted);font-size:.86rem}
+.file-actions{display:flex;gap:8px}
+.tool{position:relative;display:inline-grid;place-items:center;width:42px;height:42px;border:0;border-radius:12px;background:var(--surface);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line);cursor:pointer;transition:background .15s,color .15s}
+.tool svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tool:hover{background:var(--teal-soft);color:var(--teal-deep)}
+.tool.primary{background:var(--teal-deep);color:#fff;box-shadow:none}
+.tool.primary:hover{background:#225767}
+.tool.armed{background:var(--coral-deep);color:#fff;box-shadow:none}
+.tool .lbl{display:none}
+.tool::after{content:attr(data-tip);position:absolute;top:calc(100% + 8px);right:0;white-space:nowrap;background:var(--ink);color:#fff;font-size:.78rem;font-weight:500;padding:5px 9px;border-radius:7px;opacity:0;pointer-events:none;transform:translateY(-3px);transition:opacity .12s,transform .12s;z-index:20}
+.tool:hover::after,.tool:focus-visible::after,.tool.armed::after{opacity:1;transform:none}
+@media (hover:none){
+  .tool{width:auto;min-width:54px;height:auto;padding:7px 8px 5px;gap:2px}
+  .tool .lbl{display:block;font-size:.7rem;font-weight:600}
+  .col-left .col-head .file-actions .tool{width:auto;height:auto;min-width:56px;padding:7px 8px 5px}
+  .col-left .col-head{flex-wrap:wrap}
+  .col-left .col-head .file-actions{width:100%;display:grid;grid-template-columns:repeat(4,1fr)}
+  .tool:hover::after,.tool:focus-visible::after{opacity:0}
+}
+.btn{border:0;border-radius:999px;padding:8px 16px;background:var(--teal-deep);color:#fff;font-weight:600;font-size:.88rem;cursor:pointer;transition:background .15s}
+.btn:hover{background:#225767}
+.btn.ghost{background:var(--surface);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
+.btn.ghost:hover{background:var(--well)}
+.btn.warn{background:var(--coral-deep);color:#fff}
+.notice{max-width:1392px;margin:0 auto 14px;padding:10px 16px;border-radius:var(--r);background:var(--teal-soft);font-size:.9rem}
+.notice.error{background:var(--coral-soft);color:var(--coral-deep)}
+.notice-wrap{padding:0 28px}
+
+/* Layout */
+.layout{display:grid;grid-template-columns:minmax(340px,400px) minmax(0,1fr);gap:32px;padding:4px 28px 48px;max-width:1360px;margin:0 auto;align-items:start}
+.col-head{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;margin-bottom:14px}
+.seg button{white-space:nowrap}
+.col-head{flex-wrap:wrap}
+.col-head h2{white-space:nowrap;margin:0;font-size:1.2rem;font-weight:600;letter-spacing:-.01em;line-height:1.3}
+.col-left{position:sticky;top:16px;height:calc(100vh - 32px);display:flex;flex-direction:column;min-width:0}
+.card{background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--shadow);padding:20px 22px}
+.results>.card,.results>.hero,.results>.warnings:not(:empty){margin-top:0;margin-bottom:20px}
+.inputs{flex:1;min-height:0;overflow:auto;background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--shadow);overscroll-behavior:contain}
+.inputs-head{padding:14px 22px 12px;position:sticky;top:0;z-index:6;background:var(--surface);border-bottom:1px solid var(--line)}
+.inputs-head p{margin:0;color:var(--muted);font-size:.82rem}
+.inputs-head p b{color:var(--ink);font-weight:600}
+.file-actions .tool{width:36px;height:36px;border-radius:10px}
+.file-actions .tool svg{width:19px;height:19px}
+
+/* Sections */
+details.sec{border-top:1px solid var(--line)}
+details.sec:first-of-type{border-top:0}
+details.sec>summary{list-style:none;cursor:pointer;display:flex;align-items:baseline;gap:10px;padding:16px 22px;user-select:none}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary::before{content:"";width:7px;height:7px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(-45deg) translateY(-2px);transition:transform .15s;flex:none;align-self:center}
+details.sec[open]>summary::before{transform:rotate(45deg) translateY(-3px)}
+summary h3{margin:0;font-size:.98rem;font-weight:600}
+summary .sum{margin-left:auto;color:var(--muted);font-size:.86rem;white-space:nowrap}
+.sec-body{padding:0 22px 20px}
+.hint{color:var(--muted);font-size:.82rem;margin:0 0 12px}
+.fld.has-info{position:relative}
+.lrow{display:flex;align-items:center;gap:5px;margin:0 0 3px}
+.lrow label{margin:0}
+.info{flex:none;width:17px;height:17px;border-radius:50%;border:0;padding:0;background:var(--teal-soft);color:var(--teal-deep);font-size:11px;font-weight:700;line-height:17px;text-align:center;cursor:help}
+.info:hover,.info[aria-expanded="true"]{background:var(--teal-deep);color:#fff}
+.info-pop{display:none;position:absolute;right:0;bottom:calc(100% + 6px);pointer-events:none;z-index:10;width:min(290px,86vw);background:var(--ink);color:#fff;border-radius:var(--r);padding:11px 13px;font-size:.8rem;line-height:1.45;box-shadow:var(--shadow)}
+.info-pop p{margin:0 0 6px}.info-pop p:last-child{margin:0}
+.info[aria-expanded="true"]~.info-pop{display:block}
+@media (hover:hover){.info:hover~.info-pop,.info:focus-visible~.info-pop{display:block}}
+.sub{font-size:.86rem;font-weight:600;margin:18px 0 8px}
+
+/* Fields */
+.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:10px}
+.s12{grid-column:span 12}.s8{grid-column:span 8}.s6{grid-column:span 6}.s5{grid-column:span 5}.s4{grid-column:span 4}.s3{grid-column:span 3}
+.fld label{display:block;font-size:.76rem;color:var(--muted);margin:0 0 3px}
+.inp{display:flex;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);height:36px;padding:0 10px;transition:border-color .15s}
+.inp:focus-within{border-color:var(--teal-deep)}
+.inp input{border:0;outline:0;background:transparent;width:100%;min-width:0;height:100%;padding:0}
+.inp .pre,.inp .suf{color:var(--muted);font-size:.86rem}
+.inp .pre{margin-right:3px}.inp .suf{margin-left:4px;white-space:nowrap}
+.inp:has(input:disabled){background:var(--well)}
+select{width:100%;height:36px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface);padding:0 8px}
+select:focus{border-color:var(--teal-deep)}
+.check{display:flex;gap:8px;align-items:center;font-size:.9rem;cursor:pointer;margin:6px 0}
+.check input{accent-color:var(--teal-deep);width:16px;height:16px}
+.row{position:relative;background:var(--well);border-radius:var(--r);padding:12px;margin-bottom:10px}
+.row .grid{padding-right:0}
+.row .first{padding-right:34px}
+.rm{position:absolute;top:10px;right:10px;width:26px;height:26px;border-radius:50%;border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:18px;line-height:1}
+.rm:hover{background:var(--coral-soft);color:var(--coral-deep)}
+.add{border:1px dashed #C3D0D6;background:transparent;border-radius:var(--r);width:100%;padding:9px;color:var(--teal-deep);font-weight:600;font-size:.88rem;cursor:pointer}
+.add:hover{background:var(--teal-soft);border-color:var(--teal)}
+.totals{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.84rem;color:var(--muted);margin-top:4px}
+.totals b{color:var(--ink);font-weight:600}
+.person{margin-bottom:14px}
+.person-name{font-size:.86rem;font-weight:600;margin:0 0 8px}
+
+/* Results */
+.results{min-width:0}
+.chart-summary{border-top:1px solid var(--line);margin-top:10px;padding:14px 4px 0}
+.chart-summary:has(.verdict:empty){display:none}
+.verdict{margin:0 0 4px;font-size:1rem;line-height:1.5;font-weight:500;max-width:52em;text-wrap:pretty}
+.verdict-sub{margin:0;font-size:.9rem;color:var(--muted);max-width:52em}
+mark{color:inherit;padding:0 .08em;border-radius:2px;background:linear-gradient(transparent 58%,var(--teal-soft) 58%)}
+mark.good{background:linear-gradient(transparent 58%,var(--green-soft) 58%)}
+mark.warn{background:linear-gradient(transparent 58%,var(--amber) 58%)}
+mark.bad{background:linear-gradient(transparent 58%,var(--coral-soft) 58%)}
+.warnings{list-style:none;padding:0;margin:0;display:grid;gap:6px}
+.warnings li{background:#FBF3D6;color:var(--amber-deep);border-radius:var(--r-sm);padding:7px 12px;font-size:.86rem}
+.warnings:empty{display:none}
+
+.chart-card{padding:20px 22px 14px}
+.chart-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.84rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:18px;height:0;border-top:3px solid;display:inline-block;border-radius:2px}
+.sw.band{height:10px;border:0;background:var(--teal-soft);border-radius:3px}
+.sw.dash{border-top-style:dashed;border-top-width:2px}
+.chart-tools{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.check.small{font-size:.82rem;color:var(--muted);margin:0}
+.seg{display:inline-flex;background:var(--well);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;border-radius:999px;padding:5px 12px;font-size:.82rem;cursor:pointer;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(38,51,58,.12)}
+.chart{position:relative;width:100%}
+.chart svg{display:block;width:100%;height:auto;touch-action:pan-y}
+.chart .grid-l{stroke:var(--line);stroke-width:1}
+.chart .zero{stroke:#B9C6CC;stroke-width:1}
+.chart text{font-family:var(--font);fill:var(--muted);font-size:11.5px}
+.chart .ylab{text-anchor:end}
+.chart .xyear{text-anchor:middle;fill:var(--ink)}
+.chart .xage{text-anchor:middle}
+.chart .mk{stroke:#9FB1B9;stroke-dasharray:3 4;stroke-width:1}
+.chart .mkl{text-anchor:middle;fill:var(--ink);font-size:11.5px}
+.chart-empty{display:grid;place-items:center;text-align:center;min-height:260px;color:var(--muted);padding:24px}
+.chart-empty strong{display:block;color:var(--ink);font-size:1.05rem;margin-bottom:4px}
+.tip{position:absolute;top:10px;pointer-events:none;background:rgba(255,255,255,.97);box-shadow:var(--shadow);border:1px solid var(--line);border-radius:var(--r);padding:9px 12px;font-size:.82rem;min-width:170px;z-index:2}
+.tip h4{margin:0 0 4px;font-size:.84rem}
+.tip .tr{display:flex;justify-content:space-between;gap:14px}
+.tip .tr span:first-child{color:var(--muted)}
+.chart-note{color:var(--muted);font-size:.8rem;margin:6px 4px 0}
+
+.block h2{font-size:1.05rem;font-weight:600;margin:0 0 4px}
+.card .scroll{box-shadow:none;border:1px solid var(--line);border-radius:12px}
+.yby>summary{list-style:none;display:flex;align-items:baseline;justify-content:space-between;gap:10px;pointer-events:none}
+.yby>summary::-webkit-details-marker{display:none}
+.yby-tap{display:none}
+.save-row{display:flex;gap:8px;margin:10px 0 12px;flex-wrap:wrap}
+.save-row .inp{flex:1 1 240px;max-width:420px}
+.sc-table,.proj{width:100%;border-collapse:collapse;font-size:.88rem}
+.sc-table th,.proj th{text-align:left;font-weight:600;color:var(--muted);font-size:.78rem;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+.sc-table td,.proj td{padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+.sc-table td.n,.sc-table th.n,.proj td.n,.proj th.n{text-align:right}
+.sc-table{table-layout:auto}
+.sc-table caption{caption-side:top;text-align:left;padding:10px 10px 2px;color:var(--muted);font-size:.78rem}
+.sc-table th{white-space:normal;vertical-align:bottom;line-height:1.3}
+.sc-table td.sc-n{white-space:normal;min-width:110px}
+.sc-table td.acts{width:1%;text-align:right;padding-left:4px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.dot{background:var(--c)}
+.dot.off{background:transparent;box-shadow:inset 0 0 0 2px var(--c)}
+.icon-btn{display:inline-grid;place-items:center;width:32px;height:32px;border:0;border-radius:8px;background:transparent;color:var(--muted);cursor:pointer;vertical-align:middle}
+.icon-btn:hover{background:var(--teal-soft);color:var(--teal-deep)}
+.icon-btn[aria-pressed="true"]{color:var(--teal-deep)}
+.icon-btn.danger:hover{background:var(--coral-soft);color:var(--coral-deep)}
+@media (max-width:600px){
+  .sc-table,.sc-table tbody{display:block}
+  .sc-table caption{display:block;padding:12px 14px 4px}
+  .sc-table thead{display:none}
+  .sc-table tr{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;padding:12px 14px;border-bottom:1px solid var(--line)}
+  .sc-table tr:last-child{border-bottom:0}
+  .sc-table td{display:block;border:0;padding:0;white-space:normal}
+  .sc-table td.n{text-align:left}
+  .sc-table td[data-l]::before{content:attr(data-l);display:block;color:var(--muted);font-size:.74rem}
+  .sc-table td.sc-n{grid-column:1;min-width:0;align-self:center}
+  .sc-table td.acts{grid-column:2;grid-row:1;width:auto;justify-self:end}
+}
+.sc-name{display:inline-flex;align-items:center;gap:8px;font-weight:600}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
+.link{border:0;background:none;color:var(--teal-deep);font-weight:600;cursor:pointer;padding:2px 6px;border-radius:5px;font-size:.84rem}
+.link:hover{background:var(--teal-soft)}
+.link.danger{color:var(--coral-deep)}
+.link.danger:hover{background:var(--coral-soft)}
+.tag{display:inline-block;padding:1px 8px;border-radius:999px;font-size:.78rem;font-weight:600}
+.tag.good{background:var(--green-soft);color:var(--green-deep)}
+.tag.warn{background:#FBF0C9;color:var(--amber-deep)}
+.tag.bad{background:var(--coral-soft);color:var(--coral-deep)}
+.scroll{overflow:auto;background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--shadow)}
+.table-scroll{max-height:560px}
+.proj th{white-space:normal;vertical-align:bottom;line-height:1.3}
+.proj thead th{position:sticky;top:0;background:var(--surface);z-index:1}
+.proj tr.ret td{background:#EEF7FA}
+.proj td.neg{color:var(--coral-deep)}
+.proj td.notes{color:var(--muted);font-size:.8rem;white-space:normal;min-width:150px}
+.proj td.mid{font-weight:600}
+.how{color:var(--muted);font-size:.86rem;padding:16px 22px}
+.how p{max-width:60em}
+.how summary{cursor:pointer;color:var(--ink);font-weight:600}
+.how p{margin:8px 0}
+
+.foot{text-align:center;color:var(--muted);font-size:.86rem;padding:8px 16px 32px}
+.foot a{color:var(--teal-deep)}
+.modal{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:rgba(38,51,58,.35);padding:16px}
+.modal[hidden]{display:none}
+.modal-card{background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--shadow);padding:20px 22px;width:min(420px,100%)}
+.modal-card h3{margin:0 0 12px;font-size:1.05rem}
+.modal-card .hint{margin:10px 0 0}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.mobilebar{display:none}
+@media (max-width:960px){
+  .top{padding:18px 16px 14px}
+  .notice-wrap{padding:0 16px}
+  .layout{grid-template-columns:minmax(0,1fr);padding:0 16px 32px;gap:22px}
+  .foot{padding-bottom:calc(88px + env(safe-area-inset-bottom,0px))}
+  .col-left{position:static;height:auto;display:block}
+  .inputs{overflow:visible}
+  .inputs-head{position:static}
+  .results{order:-1}
+  .mobilebar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:5;gap:12px;align-items:center;justify-content:space-between;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:rgba(255,255,255,.96);border-top:1px solid var(--line);font-size:.84rem}
+  .mobilebar b{font-weight:700}
+}
+@media (max-width:960px){
+  .inp input,select,#scName{font-size:16px} /* stops iOS zooming into fields */
+  .tip{max-width:calc(100% - 8px)}
+}
+@media (max-width:520px){
+  .top h1{font-size:1.35rem}
+  .top{align-items:flex-start}
+  .card{padding:16px}
+  .chart-card{padding:14px 10px 10px}
+  .chart-summary{padding:12px 6px 0}
+  .yby>summary{pointer-events:auto;cursor:pointer}
+  .yby-tap{display:inline-flex;align-items:center;gap:6px;color:var(--teal-deep);font-weight:600;font-size:.84rem}
+  .yby-tap::after{content:"";width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg) translateY(-2px)}
+  .yby-tap::before{content:"Show each year"}
+  .yby[open] .yby-tap::before{content:"Hide"}
+  .yby[open] .yby-tap::after{transform:rotate(-135deg) translateY(-2px)}
+  .yby:not([open])>summary h2{margin:0}
+  .yby .hint{margin-top:8px}
+  .chart-head{flex-direction:column;align-items:flex-start}
+  .verdict{font-size:1.02rem}
+  .sec-body,.inputs-head{padding-left:16px;padding-right:16px}
+  details.sec>summary{padding:16px}
+  .row{padding:10px}
+  .grid{gap:8px}
+  .s4{grid-column:span 6}
+  .s3{grid-column:span 6}
+  .s8{grid-column:span 12}
+  .save-row .btn{width:100%}
+  .mobilebar{font-size:.8rem;gap:8px}
+  .mobilebar .tag,.mobilebar .link{white-space:nowrap}
+}
+
+/* ---------- Install ---------- */
+.btn.install{align-self:center}
+.ios-tip{max-width:1392px;margin:0 auto 14px;display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 16px;border-radius:var(--r);background:var(--green-soft);font-size:.88rem}
+
+/* ---------- Estimated chip ---------- */
+.row:has(> .est){padding-top:34px}
+.est{position:absolute;top:10px;left:12px;background:#FBF0C9;color:var(--amber-deep);font-size:.7rem;font-weight:600;padding:1px 8px;border-radius:999px;cursor:help}
+
+/* ---------- Plan progress ---------- */
+.pp{margin-top:10px}
+.pp-bar{height:6px;border-radius:99px;background:var(--well);overflow:hidden}
+.pp-bar span{display:block;height:100%;background:linear-gradient(90deg,var(--teal),var(--green));border-radius:99px;transition:width .5s ease}
+.pp-text{display:flex;flex-wrap:wrap;gap:2px 8px;align-items:center;margin-top:6px;font-size:.8rem;color:var(--muted)}
+.pp-text b{color:var(--ink)}
+.pp-text .link{padding:0;font-size:.8rem;text-align:left}
+
+/* ---------- Hero ---------- */
+.hero{position:relative;overflow:hidden;border-radius:var(--r-lg);padding:24px 26px;margin:0;box-shadow:var(--shadow);background:linear-gradient(135deg,#DDEFF5 0%,#E3F4EA 100%);display:grid;grid-template-columns:auto 1fr;gap:6px 26px;align-items:center}
+.hero:empty{display:none}
+.hero .big{display:flex;flex-direction:column}
+.hero .kicker{font-size:.86rem;font-weight:600;color:var(--teal-deep)}
+.hero .num{font-size:clamp(3.4rem,2.6rem + 3vw,5rem);font-weight:700;line-height:1;letter-spacing:-.03em;color:var(--ink)}
+.hero .num small{font-size:.32em;font-weight:600;letter-spacing:0;margin-left:6px;color:var(--muted)}
+.hero .say{margin:0;font-size:1.02rem;line-height:1.5}
+.hero .say .good{color:var(--green-deep);font-weight:600}
+.hero .say .later{color:var(--amber-deep);font-weight:600}
+.hero .meta{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;margin-top:10px;font-size:.84rem;color:var(--muted)}
+.hero .meta .link{padding:3px 8px}
+.hero .def{font-size:.78rem;color:var(--muted);margin-top:6px}
+@media (max-width:620px){.hero{grid-template-columns:1fr;padding:18px}}
+
+/* ---------- Play panel ---------- */
+.play{border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:14px}
+.play-top{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;margin-bottom:10px}
+.play h3{margin:0;font-size:1rem;font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:0;border-radius:999px;padding:5px 12px;font-size:.8rem;background:var(--well);color:var(--ink);cursor:pointer;box-shadow:inset 0 0 0 1px var(--line)}
+.chip:hover{background:var(--teal-soft)}
+.chip[aria-pressed="true"]{background:var(--teal-deep);color:#fff;box-shadow:none}
+.sliders{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 22px}
+.sl label{display:flex;justify-content:space-between;gap:8px;font-size:.82rem;color:var(--muted);margin-bottom:2px}
+.sl output{color:var(--ink);font-weight:600;white-space:nowrap}
+.sl input[type=range]{width:100%;accent-color:var(--teal-deep);height:28px;margin:0}
+.play-result{margin-top:12px;padding:10px 14px;border-radius:var(--r);background:#FBF3DC;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;justify-content:space-between;font-size:.88rem}
+.play-result .delta{font-size:.78rem;font-weight:600;margin-left:4px}
+.play-result .delta.good{color:var(--green-deep)}
+.play-result .delta.bad{color:var(--coral-deep)}
+.pr-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.btn.small{padding:6px 12px;font-size:.8rem}
+.chart .ms{font-size:15px;text-anchor:middle;cursor:default}
+@media (max-width:760px){.sliders{grid-template-columns:1fr}}
+
+/* ---------- Quick start ---------- */
+body.qs-open{overflow:hidden}
+body.qs-open .mobilebar{display:none}
+.qs{position:fixed;inset:0;z-index:40;background:var(--bg);display:grid;place-items:center;padding:16px;overflow:auto}
+.qs[hidden]{display:none}
+.qs-card{background:var(--surface);border-radius:22px;box-shadow:var(--shadow);width:min(560px,100%);padding:22px 28px 22px;display:flex;flex-direction:column;min-height:min(560px,calc(100vh - 32px))}
+.qs-top{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.qs-progress{flex:1;height:6px;background:var(--well);border-radius:99px;overflow:hidden}
+.qs-progress span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--green));transition:width .35s ease}
+.qs-close{position:static}
+.qs-body{flex:1;animation:qsIn .3s ease}
+@keyframes qsIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.qs-body h2{margin:0 0 6px;font-size:1.5rem;font-weight:650;letter-spacing:-.015em;line-height:1.25}
+.qs-body p{margin:0 0 16px;color:var(--muted)}
+.qs-emoji{font-size:3rem;line-height:1;margin:6px 0 14px}
+.qs-private{background:var(--green-soft);color:var(--green-deep);padding:10px 14px;border-radius:var(--r);font-size:.9rem}
+.qs-body .fld{margin-bottom:14px}
+.qs-body .fld label{font-size:.86rem}
+.qs-body .inp{height:48px;font-size:1.1rem}
+.qs-body .inp input{font-size:1.1rem}
+.qs-body .hint2{font-size:.8rem;color:var(--muted);margin-top:4px}
+.qs-grid{display:grid;grid-template-columns:2fr 1fr;gap:12px}
+.qs-toggle{display:flex;gap:8px;margin:4px 0 16px;flex-wrap:wrap}
+.qs-toggle button{flex:1;min-width:120px;border:0;border-radius:12px;padding:12px;font-weight:600;background:var(--well);box-shadow:inset 0 0 0 1px var(--line);cursor:pointer}
+.qs-toggle button[aria-pressed="true"]{background:var(--teal-soft);box-shadow:inset 0 0 0 2px var(--teal-deep);color:var(--teal-deep)}
+.qs-big{font-size:4.2rem;font-weight:700;letter-spacing:-.03em;text-align:center;line-height:1.1;margin:10px 0 0}
+.qs-big small{display:block;font-size:.9rem;font-weight:500;letter-spacing:0;color:var(--muted)}
+.qs-range{width:100%;accent-color:var(--teal-deep);height:36px}
+.qs-kids{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.kid{display:inline-flex;align-items:center;gap:6px;background:var(--well);border-radius:12px;padding:6px 6px 6px 12px;font-size:.9rem}
+.kid input{width:52px;height:34px;border:1px solid var(--line);border-radius:8px;padding:0 8px;font-size:1rem}
+.kid .rm{position:static}
+.qs-alt{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:18px}
+.qs-nav{display:flex;justify-content:space-between;gap:10px;margin-top:18px}
+.qs-nav .btn{padding:12px 22px;font-size:.95rem}
+.qs-nav .btn[hidden]{display:none}
+@media (max-width:600px){
+  .qs{padding:0;place-items:stretch}
+  .qs-card{border-radius:0;min-height:100%;padding:calc(16px + env(safe-area-inset-top,0px)) 20px calc(16px + env(safe-area-inset-bottom,0px))}
+  .qs-body h2{font-size:1.3rem}
+  .qs-grid{grid-template-columns:1fr 1fr}
+  .qs-nav .btn{flex:1}
+}
+#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:60}
+</style>
+</head>
+<body>
+<header class="top">
+  <div>
+    <h1>Net Worth Planner</h1>
+    <p class="trust">Your confidential companion 🤫 You can run me without wifi.</p>
+  </div>
+  <button type="button" class="btn install" id="btnInstall" hidden>Install app</button>
+</header>
+<div class="notice-wrap">
+  <div id="notice" class="notice" role="status" hidden></div>
+  <div id="iosTip" class="ios-tip" hidden>
+    <span><b>Keep it on your iPhone:</b> tap the Share button <span aria-hidden="true">⎋</span>, then <b>Add to Home Screen</b>. It opens like an app, works offline, and keeps your plan safe on this phone.</span>
+    <button type="button" class="link" id="iosTipClose">Got it</button>
+  </div>
+</div>
+
+<main class="layout">
+  <aside class="col col-left" aria-label="Your inputs">
+    <div class="col-head">
+      <h2>Your plan</h2>
+      <div class="file-actions" role="toolbar" aria-label="Backups and exports">
+          <button id="btnOpen" class="tool" type="button" aria-label="Open a saved copy" data-tip="Open a saved copy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7V18a1.5 1.5 0 0 0 1.5 1.5h14a1.5 1.5 0 0 0 1.5-1.5V9.5A1.5 1.5 0 0 0 19 8h-7l-2-2.5H5A1.5 1.5 0 0 0 3.5 7z"/><path d="M12 16.5v-5M9.8 13.5 12 11.3l2.2 2.2"/></svg><span class="lbl">Open</span></button>
+          <button id="btnSave" class="tool primary" type="button" aria-label="Save a copy" data-tip="Save a copy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v10.5M7.8 10.3 12 14.5l4.2-4.2M4.5 15.5v4h15v-4"/></svg><span class="lbl">Copy</span></button>
+          <button id="btnExport" class="tool" type="button" aria-label="Export projections as CSV" data-tip="Export projections (CSV)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9.5h16M4 14.8h16M10 9.5V20"/></svg><span class="lbl">Export</span></button>
+          <button id="btnReset" class="tool" type="button" aria-label="Start blank" data-tip="Start blank"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.8 12a7.2 7.2 0 1 0 2.1-5.1M4.8 4.6v3.7h3.7"/></svg><span class="lbl">Reset</span></button>
+          <input type="file" id="fileIn" accept=".csv,text/csv" hidden>
+        </div>
+    </div>
+    <div class="inputs" id="inputs">
+      <div class="inputs-head">
+        <p id="fileLabel"></p>
+        <div id="planProgress"></div>
+      </div>
+      <div id="inputsBody"></div>
+    </div>
+  </aside>
+
+  <section class="col results" id="results" aria-label="Projection">
+    <div class="col-head">
+      <h2>Your Projections</h2>
+      <div class="seg" role="group" aria-label="Dollar view">
+        <button type="button" data-mode="real" aria-pressed="true">Today's dollars</button>
+        <button type="button" data-mode="nominal" aria-pressed="false">Future dollars</button>
+      </div>
+    </div>
+    <ul class="warnings" id="warnings"></ul>
+    <div class="hero" id="hero"></div>
+
+    <div class="card chart-card">
+      <div class="play" id="play">
+        <div class="play-top">
+          <h3>Play with it</h3>
+          <div class="chips" id="playChips"></div>
+        </div>
+        <div class="sliders">
+          <div class="sl"><label for="plRetire">Retire at <output id="plRetireOut"></output></label><input type="range" id="plRetire" min="30" max="80" step="1"></div>
+          <div class="sl"><label for="plSpend">Yearly spending <output id="plSpendOut"></output></label><input type="range" id="plSpend" min="-30" max="30" step="5" value="0"></div>
+          <div class="sl"><label for="plRet">Market returns <output id="plRetOut"></output></label><input type="range" id="plRet" min="-3" max="2" step="0.5" value="0"></div>
+        </div>
+        <div class="play-result" id="playResult" hidden></div>
+      </div>
+      <div class="chart-head">
+        <div class="legend" id="legend"></div>
+      </div>
+      <div class="chart" id="chart"></div>
+      <div class="chart-summary">
+        <p class="verdict" id="verdict"></p>
+        <p class="verdict-sub" id="verdictSub"></p>
+      </div>
+      <p class="chart-note" id="chartNote"></p>
+    </div>
+
+    <div class="card block">
+      <h2>Scenarios</h2>
+      <p class="hint">Save your current inputs, change something, then compare. Scenarios are saved with your plan.</p>
+      <div class="save-row">
+        <div class="inp"><input id="scName" type="text" placeholder="Name this scenario, e.g. Retire at 60" aria-label="Scenario name" autocomplete="off"></div>
+        <button id="btnScSave" class="btn" type="button">Save scenario</button>
+      </div>
+      <div class="scroll" id="scWrap"></div>
+    </div>
+
+    <details class="card block yby" id="yby" open>
+      <summary><h2>Year by year</h2><span class="yby-tap" aria-hidden="true"></span></summary>
+      <p class="hint" id="tableHint"></p>
+      <div class="scroll table-scroll"><table class="proj" id="table"></table></div>
+    </details>
+
+    <details class="card how">
+      <summary>How the projection works</summary>
+      <p>The first row is today. Each row after that is a full year: account balances grow by that year's return, then the year's money in and out is added or taken at year end. Salaries grow at your salary growth rate and stop at retirement age. Everything else you enter in today's dollars (spending, benefits, purchases) rises with inflation, and college costs rise with college cost inflation.</p>
+      <p>Retirement contributions go into retirement accounts while their owner is working. Whatever is left over after spending, debt payments, college and purchases is added to non-retirement savings. When there's a shortfall, it comes out of non-retirement savings first, then retirement accounts, with your withdrawal tax rate added on top. Home and other assets grow but are never sold to cover spending.</p>
+      <p>Loans are paid down month by month: each month interest is added at the yearly rate divided by 12, then the monthly payment is taken off, so payoff dates match a normal amortization schedule. If you give a paid-off year without a payment, the planner calculates the payment that clears the loan that year.</p>
+      <p>To get best, mid and worst cases, the planner simulates 1,000 market paths every time an input changes. In each path, every year gets a random return drawn around your typical return, spread out by the market ups and downs you set (the same draw applies to retirement and non-retirement accounts, since they're in the same market). For each year it then ranks the 1,000 net worths: the best case is the 90th percentile, the mid case is the median, and the worst case is the 10th percentile. The random numbers use a fixed seed, so the same inputs always give the same answer, which keeps scenario comparisons fair.</p>
+      <p><b>Privacy.</b> Your plan is saved automatically in this browser's storage on this device, and nowhere else. The page carries a security rule that tells the browser to block any attempt to send data over the network, so even the planner itself couldn't upload your numbers if it tried. Use Save a copy to keep a backup file or move your plan to another device.</p>
+      <p><b>Work-optional age</b> is the earliest age at which your savings would last the whole plan in at least 85 of 100 simulated markets, if you stopped working then (partners shift by the same number of years). Items marked Estimated are starting guesses from quick start; edit them to make them yours. The Social Security guess is very rough, so look up your real estimate at ssa.gov.</p>
+      <p>"Savings last" means there was always enough in savings and retirement accounts to cover the year. This is a simplified model for planning conversations, not tax or investment advice.</p>
+    </details>
+  </section>
+</main>
+<footer class="foot">Built with love ❤️ - contact: <a href="mailto:momtrepreneur@hugsybugsybooks.com">momtrepreneur@hugsybugsybooks.com</a></footer>
+<div class="mobilebar" id="mobilebar"></div>
+<div class="qs" id="qs" hidden>
+  <div class="qs-card" role="dialog" aria-modal="true" aria-labelledby="qsTitle">
+    <div class="qs-top">
+      <div class="qs-progress" aria-hidden="true"><span id="qsBar"></span></div>
+      <button type="button" class="rm qs-close" id="qsClose" aria-label="Close quick start" hidden>×</button>
+    </div>
+    <div class="qs-body" id="qsBody"></div>
+    <div class="qs-nav">
+      <button type="button" class="btn ghost" id="qsBack">Back</button>
+      <button type="button" class="btn" id="qsNext">Continue</button>
+    </div>
+  </div>
+</div>
+<canvas id="confetti" aria-hidden="true"></canvas>
+<div class="modal" id="nameDlg" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="nameDlgTitle">
+    <h3 id="nameDlgTitle">Save a copy</h3>
+    <div class="fld"><label for="nameDlgInput">File name</label><div class="inp"><input id="nameDlgInput" type="text" autocomplete="off"><span class="suf">.csv</span></div></div>
+    <p class="hint">Your browser saves the file to its downloads folder. To pick a folder every time, turn on "Ask where to save each file" in your browser's download settings.</p>
+    <div class="modal-actions"><button type="button" class="btn ghost" id="nameDlgCancel">Cancel</button><button type="button" class="btn" id="nameDlgOk">Save</button></div>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+
+const Y0 = new Date().getFullYear();
+const RUNS = 1000;
+const SC_COLORS = ['#5E7A8A', '#C0902A', '#3F8F86', '#9A7B63'];
+const PLAY_COLOR = '#B86E1F';
+
+/* ---------- Data ---------- */
+const EXAMPLE = () => ({
+  people: {
+    p1: { name: 'Sam', age: 42, retireAge: 62, planToAge: 95 },
+    p2: { enabled: true, name: 'Jordan', age: 40, retireAge: 62, planToAge: 95 }
+  },
+  dependents: [
+    { name: 'Maya', age: 10, college: true, collegeCost: 40000, collegeStartAge: 18, collegeYears: 4 },
+    { name: 'Leo', age: 7, college: true, collegeCost: 40000, collegeStartAge: 18, collegeYears: 4 }
+  ],
+  assets: [
+    { label: "Sam's 401(k)", kind: 'retirement', owner: 'p1', balance: 420000, contribution: 30000 },
+    { label: "Jordan's 401(k)", kind: 'retirement', owner: 'p2', balance: 260000, contribution: 26000 },
+    { label: 'Roth IRAs', kind: 'retirement', owner: 'joint', balance: 90000, contribution: 14000 },
+    { label: 'Brokerage account', kind: 'nonretirement', owner: 'joint', balance: 150000, contribution: 0 },
+    { label: 'Savings', kind: 'nonretirement', owner: 'joint', balance: 60000, contribution: 0 },
+    { label: 'Home', kind: 'other', owner: 'joint', balance: 1400000, contribution: 0 }
+  ],
+  liabilities: [
+    { label: 'Mortgage', balance: 780000, rate: 3, monthlyPayment: null, endYear: Y0 + 25 },
+    { label: 'Car loan', balance: 18000, rate: 5, monthlyPayment: 600, endYear: null }
+  ],
+  income: [
+    { label: "Sam's salary", type: 'salary', owner: 'p1', amount: 185000, startAge: null, endAge: null },
+    { label: "Jordan's salary", type: 'salary', owner: 'p2', amount: 135000, startAge: null, endAge: null },
+    { label: "Sam's Social Security", type: 'benefit', owner: 'p1', amount: 40000, startAge: 67, endAge: null },
+    { label: "Jordan's Social Security", type: 'benefit', owner: 'p2', amount: 30000, startAge: 67, endAge: null }
+  ],
+  spending: [
+    { label: 'Home upkeep, property tax and insurance', category: 'home', when: 'always', amount: 32000, fromAge: null, toAge: null },
+    { label: 'Groceries and dining', category: 'food', when: 'always', amount: 30000, fromAge: null, toAge: null },
+    { label: 'Health care', category: 'health', when: 'pre', amount: 9000, fromAge: null, toAge: null },
+    { label: 'Health insurance before Medicare', category: 'health', when: 'ages', amount: 22000, fromAge: 64, toAge: 66 },
+    { label: 'Health care in retirement', category: 'health', when: 'ret', amount: 15000, fromAge: null, toAge: null },
+    { label: 'Kids activities and childcare', category: 'kids', when: 'ages', amount: 30000, fromAge: null, toAge: 53 },
+    { label: 'Cars and transportation', category: 'transport', when: 'always', amount: 15000, fromAge: null, toAge: null },
+    { label: 'Travel and fun', category: 'travel', when: 'pre', amount: 25000, fromAge: null, toAge: null },
+    { label: 'Travel in early retirement', category: 'travel', when: 'ages', amount: 40000, fromAge: 64, toAge: 80 },
+    { label: 'Everything else', category: 'other', when: 'always', amount: 58000, fromAge: null, toAge: null }
+  ],
+  purchases: [
+    { label: 'Kitchen remodel', year: Y0 + 1, amount: 80000, repeatEvery: null, until: null },
+    { label: 'Replace a car', year: Y0 + 3, amount: 45000, repeatEvery: 8, until: Y0 + 35 }
+  ],
+  assumptions: { retReturn: 6.5, nonReturn: 5, otherGrowth: 3.5, inflation: 2.5, earningsGrowth: 3.5, eduInflation: 4.5, withdrawalTax: 18, volatility: 12 }
+});
+
+const BLANK = () => ({
+  people: {
+    p1: { name: '', age: 40, retireAge: 65, planToAge: 95 },
+    p2: { enabled: false, name: '', age: 40, retireAge: 65, planToAge: 95 }
+  },
+  dependents: [], assets: [], liabilities: [], income: [],
+  spending: [],
+  purchases: [],
+  assumptions: { retReturn: 6, nonReturn: 5, otherGrowth: 3, inflation: 2.5, earningsGrowth: 3, eduInflation: 4.5, withdrawalTax: 15, volatility: 12 }
+});
+
+const NEW = {
+  dependents: () => ({ name: '', age: 5, college: true, collegeCost: 35000, collegeStartAge: 18, collegeYears: 4 }),
+  assets: () => ({ label: '', kind: 'retirement', owner: 'p1', balance: 0, contribution: 0 }),
+  liabilities: () => ({ label: '', balance: 0, rate: 5, monthlyPayment: null, endYear: null }),
+  income: () => ({ label: '', type: 'salary', owner: 'p1', amount: 0, startAge: null, endAge: null }),
+  purchases: () => ({ label: '', year: Y0 + 2, amount: 0, repeatEvery: null, until: null }),
+  spending: () => ({ label: '', category: 'other', when: 'always', amount: 0, fromAge: null, toAge: null })
+};
+const SPEND_CATS = [['home', 'Home'], ['food', 'Food'], ['health', 'Health'], ['transport', 'Transportation'], ['kids', 'Kids'], ['travel', 'Travel and fun'], ['insurance', 'Insurance'], ['giving', 'Giving'], ['other', 'Other']];
+const WHEN_OPTS = [['always', 'Every year'], ['pre', 'Before retirement'], ['ret', 'In retirement'], ['ages', 'Between ages']];
+
+let state = EXAMPLE();
+let playRes = null;          // projection for the 'Play with it' what-if
+let scenarios = [];      // {name, state, show, res}
+let current = null;      // projection result for current inputs
+let mode = 'real';       // 'real' = today's dollars, 'nominal' = future dollars
+let dirty = false;
+let isExample = true;
+const closedSections = new Set();
+
+/* ---------- Helpers ---------- */
+const $ = s => document.querySelector(s);
+const n = v => { const x = +v; return Number.isFinite(x) ? x : 0; };
+const has = v => v !== null && v !== undefined && v !== '' && Number.isFinite(+v);
+const clone = o => JSON.parse(JSON.stringify(o));
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const getPath = (o, p) => p.split('.').reduce((a, k) => (a == null ? a : a[k]), o);
+function setPath(o, p, v) { const ks = p.split('.'); let x = o; for (let i = 0; i < ks.length - 1; i++) x = x[ks[i]]; x[ks[ks.length - 1]] = v; }
+const nameOf = (s, p) => (s.people[p].name || '').trim() || (p === 'p1' ? 'Partner 1' : 'Partner 2');
+const nm = p => nameOf(state, p);
+
+function money(v) {
+  const a = Math.abs(v), sg = v < -0.5 ? '−' : '';
+  if (a >= 1e9) return sg + '$' + (a / 1e9).toFixed(2) + 'B';
+  if (a >= 1e6) return sg + '$' + (a / 1e6).toFixed(a >= 1e7 ? 1 : 2) + 'M';
+  if (a >= 1e3) return sg + '$' + Math.round(a / 1e3) + 'k';
+  return sg + '$' + Math.round(a);
+}
+function axisMoney(v) {
+  const a = Math.abs(v), sg = v < 0 ? '−' : '';
+  if (a >= 1e6) return sg + '$' + (a / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+  if (a >= 1e3) return sg + '$' + Math.round(a / 1e3) + 'k';
+  return sg + '$' + Math.round(a);
+}
+const disp = (v, t, res) => mode === 'real' ? v / Math.pow(1 + res.infl, t) : v;
+
+/* ---------- Projection model ---------- */
+// Monthly payment: the one entered, or (if blank) the payment that pays the loan off by its end year.
+function loanPayment(l) {
+  if (has(l.monthlyPayment) && n(l.monthlyPayment) > 0) return n(l.monthlyPayment);
+  const B = n(l.balance), i = n(l.rate) / 1200;
+  if (!has(l.endYear) || B <= 0) return 0;
+  const m = Math.max(12, (n(l.endYear) - Y0) * 12);
+  return i === 0 ? B / m : B * i / (1 - Math.pow(1 + i, -m));
+}
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+function project(s, NR = RUNS) {
+  const A = s.assumptions, p1 = s.people.p1, p2 = s.people.p2, two = !!p2.enabled;
+  const a1 = n(p1.age), a2 = n(p2.age);
+  const H = Math.max(1, Math.min(100, Math.max(n(p1.planToAge) - a1, two ? n(p2.planToAge) - a2 : 0)));
+  const W = H + 1;
+  const infl = n(A.inflation) / 100, eg = n(A.earningsGrowth) / 100, edu = n(A.eduInflation) / 100;
+
+  const working = (o, t) => {
+    if (o === 'p2') return two && a2 + t < n(p2.retireAge);
+    if (o === 'p1') return a1 + t < n(p1.retireAge);
+    return a1 + t < n(p1.retireAge) || (two && a2 + t < n(p2.retireAge));
+  };
+  const allRetired = t => !working('joint', t);
+  const ageNow = o => (o === 'p2' ? a2 : a1);
+
+  function incomeActive(i, t) {
+    const own = i.owner || 'p1';
+    if (own === 'p2' && !two) return false;
+    const who = own === 'p2' ? p2 : p1;
+    const age = ageNow(own) + t;
+    if (has(i.startAge) && age < n(i.startAge)) return false;
+    if (own !== 'joint' && age > n(who.planToAge)) return false;
+    if (has(i.endAge)) return age <= n(i.endAge);
+    if (i.type === 'salary') return working(own, t);
+    return true;
+  }
+
+  // Spending items: 'always', 'pre' (before everyone has retired), 'ret' (after), or 'ages' (Partner 1's ages)
+  function spendActive(x, t) {
+    const w = x.when || 'always';
+    if (w === 'pre') return !allRetired(t);
+    if (w === 'ret') return allRetired(t);
+    if (w === 'ages') { const a = a1 + t; return !(has(x.fromAge) && a < n(x.fromAge)) && !(has(x.toAge) && a > n(x.toAge)); }
+    return true;
+  }
+  const catSpend = {};
+  const inc = new Float64Array(W), spend = new Float64Array(W), debtPay = new Float64Array(W),
+    special = new Float64Array(W), contrib = new Float64Array(W), debtBal = new Float64Array(W);
+  const events = Array.from({ length: W }, () => []);
+
+  const debts = s.liabilities.map(l => ({ label: l.label || 'Loan', bal: n(l.balance), r: n(l.rate) / 100, pay: loanPayment(l), endT: has(l.endYear) ? Math.max(1, n(l.endYear) - Y0) : Infinity }));
+  debtBal[0] = debts.reduce((x, d) => x + d.bal, 0);
+
+  // Retirement and benefit-start events
+  const tr1 = n(p1.retireAge) - a1, tr2 = two ? n(p2.retireAge) - a2 : -1;
+  if (two && tr1 === tr2 && tr1 >= 1 && tr1 <= H) events[tr1].push('Both retire');
+  else {
+    if (tr1 >= 1 && tr1 <= H) events[tr1].push(`${nameOf(s, 'p1')} retires`);
+    if (tr2 >= 1 && tr2 <= H) events[tr2].push(`${nameOf(s, 'p2')} retires`);
+  }
+  for (const i of s.income) {
+    if (i.type === 'salary' || !has(i.startAge)) continue;
+    if ((i.owner === 'p2') && !two) continue;
+    const t = n(i.startAge) - ageNow(i.owner || 'p1');
+    if (t >= 1 && t <= H) events[t].push(`${i.label || 'Income'} begins`);
+  }
+
+  // Purchases
+  const purch = new Float64Array(W);
+  for (const p of s.purchases) {
+    if (!has(p.year)) continue;
+    const step = Math.max(0, Math.round(n(p.repeatEvery)));
+    const until = has(p.until) ? n(p.until) : Y0 + H;
+    let y = n(p.year), guard = 0;
+    do {
+      const t = Math.max(1, y - Y0);
+      if (t <= H) { purch[t] += n(p.amount) * Math.pow(1 + infl, t); events[t].push(p.label || 'Purchase'); }
+      y += step;
+    } while (step > 0 && y <= until && ++guard < 200);
+  }
+
+  for (let t = 1; t < W; t++) {
+    const f = Math.pow(1 + infl, t);
+    for (const i of s.income) if (incomeActive(i, t)) inc[t] += n(i.amount) * (i.type === 'salary' ? Math.pow(1 + eg, t) : f);
+    for (const x of s.spending) {
+      if (!spendActive(x, t)) continue;
+      const v = n(x.amount) * f, c = x.category || 'other';
+      spend[t] += v;
+      (catSpend[c] || (catSpend[c] = new Float64Array(W)))[t] += v;
+    }
+    for (const a of s.assets) if (a.kind === 'retirement' && working(a.owner || 'p1', t)) contrib[t] += n(a.contribution) * f;
+    let db = 0;
+    for (const d of debts) {
+      if (d.bal > 0.5) {
+        // Standard monthly amortization: interest accrues monthly at rate/12, then the payment is applied.
+        let paid = 0;
+        for (let m = 0; m < 12 && d.bal > 0.005; m++) {
+          const due = d.bal * (1 + d.r / 12), pay = Math.min(d.pay, due);
+          d.bal = due - pay; paid += pay;
+        }
+        let lump = false;
+        if (t >= d.endT && d.bal > 0.5) { paid += d.bal; d.bal = 0; lump = true; } // anything left by the end year is paid in full
+        debtPay[t] += paid;
+        if (d.bal <= 0.5) { d.bal = 0; events[t].push(lump && paid > d.pay * 13 ? `${d.label} paid off with a lump sum` : `${d.label} paid off`); }
+      }
+      db += d.bal;
+    }
+    debtBal[t] = db;
+    for (const d of s.dependents) {
+      if (!d.college) continue;
+      const da = n(d.age) + t, st = n(d.collegeStartAge), yrs = n(d.collegeYears);
+      if (da >= st && da < st + yrs) {
+        special[t] += n(d.collegeCost) * Math.pow(1 + edu, t);
+        if (da === st) events[t].push(`${d.name || 'Dependent'} starts college`);
+      }
+    }
+    special[t] += purch[t];
+  }
+
+  let retireT = null;
+  for (let t = 0; t <= H; t++) if (allRetired(t)) { retireT = t; break; }
+
+  // Monte Carlo
+  let R0 = 0, N0 = 0, O0 = 0;
+  for (const a of s.assets) {
+    if (a.kind === 'retirement') R0 += n(a.balance);
+    else if (a.kind === 'nonretirement') N0 += n(a.balance);
+    else O0 += n(a.balance);
+  }
+  const rr = n(A.retReturn) / 100, rn = n(A.nonReturn) / 100, og = n(A.otherGrowth) / 100,
+    vol = Math.max(0, n(A.volatility)) / 100, tax = Math.min(0.9, Math.max(0, n(A.withdrawalTax) / 100));
+  const muR = Math.log(Math.max(0.01, 1 + rr)), muN = Math.log(Math.max(0.01, 1 + rn));
+  const t0 = performance.now();
+  const rand = mulberry32(20240611);
+  let spare = null;
+  const gauss = () => {
+    if (spare !== null) { const v = spare; spare = null; return v; }
+    let u = 0; while (u === 0) u = rand();
+    const v = rand(), m = Math.sqrt(-2 * Math.log(u));
+    spare = m * Math.sin(2 * Math.PI * v);
+    return m * Math.cos(2 * Math.PI * v);
+  };
+
+  const nw = new Float64Array(NR * W), liq = new Float64Array(NR * W), depl = new Float64Array(NR);
+  for (let r = 0; r < NR; r++) {
+    let R = R0, N = N0, O = O0, dep = Infinity;
+    const b = r * W;
+    nw[b] = R + N + O - debtBal[0]; liq[b] = R + N;
+    for (let t = 1; t < W; t++) {
+      const z = gauss();
+      R *= Math.exp(muR + vol * z);
+      N *= Math.exp(muN + vol * z);
+      O *= 1 + og;
+      R += contrib[t];
+      const net = inc[t] - spend[t] - debtPay[t] - special[t];
+      if (net >= 0) N += net;
+      else {
+        let need = -net;
+        const fromN = Math.min(Math.max(N, 0), need); N -= fromN; need -= fromN;
+        if (need > 0) {
+          const gross = need / (1 - tax);
+          if (R >= gross) R -= gross;
+          else { R = 0; if (dep === Infinity) dep = t; }
+        }
+      }
+      nw[b + t] = R + N + O - debtBal[t]; liq[b + t] = R + N;
+    }
+    depl[r] = dep;
+  }
+  const ms = performance.now() - t0;
+  const spendAt = t => s.spending.reduce((x, it) => x + (spendActive(it, t) ? n(it.amount) : 0), 0);
+  const spendNow = spendAt(0), spendRet = retireT === null ? null : spendAt(Math.max(retireT, 1));
+  let incNow = 0;
+  for (const i of s.income) if (incomeActive(i, 0)) incNow += n(i.amount);
+
+  const p10 = new Float64Array(W), p50 = new Float64Array(W), p90 = new Float64Array(W), liq50 = new Float64Array(W);
+  const col = new Float64Array(NR), i10 = Math.floor(0.1 * (NR - 1)), i50 = Math.round(0.5 * (NR - 1)), i90 = Math.ceil(0.9 * (NR - 1));
+  for (let t = 0; t < W; t++) {
+    for (let r = 0; r < NR; r++) col[r] = nw[r * W + t];
+    col.sort(); p10[t] = col[i10]; p50[t] = col[i50]; p90[t] = col[i90];
+    for (let r = 0; r < NR; r++) col[r] = liq[r * W + t];
+    col.sort(); liq50[t] = col[i50];
+  }
+  let ok = 0; for (let r = 0; r < NR; r++) if (depl[r] === Infinity) ok++;
+  const ds = Float64Array.from(depl).sort();
+
+  return {
+    H, infl, two, a1, a2, retireT,
+    names: [nameOf(s, 'p1'), nameOf(s, 'p2')],
+    inc, spend, debtPay, special, debtBal, events,
+    p10, p50, p90, liq50,
+    success: ok / NR, deplMid: ds[i50], deplWorst: ds[i10],
+    empty: s.assets.length === 0 && s.income.length === 0,
+    retire1: tr1, retire2: tr2, ms, incNow, spendNow, spendRet, catSpend
+  };
+}
+
+/* ---------- Inputs rendering ---------- */
+const inputsEl = $('#inputs');
+
+function fmtInput(v, kind) {
+  if (v === null || v === undefined || v === '') return '';
+  if (kind === 'money') return Math.round(n(v)).toLocaleString('en-US');
+  return String(v);
+}
+function fld(path, label, kind = 'text', o = {}) {
+  const v = getPath(state, path), id = 'f_' + path.replace(/\./g, '_');
+  const cls = o.cls || 's12';
+  if (kind === 'select') {
+    const opts = o.options.map(([val, txt]) => `<option value="${esc(val)}"${val === v ? ' selected' : ''}>${esc(txt)}</option>`).join('');
+    return `<div class="fld ${cls}"><label for="${id}">${esc(label)}</label><select id="${id}" data-path="${path}" data-kind="select"${o.rerender ? ' data-rerender' : ''}>${opts}</select></div>`;
+  }
+  if (kind === 'check') {
+    return `<label class="check ${cls}"><input type="checkbox" data-path="${path}" data-kind="check"${v ? ' checked' : ''}${o.rerender ? ' data-rerender' : ''}> <span>${o.html || esc(label)}</span></label>`;
+  }
+  const pre = kind === 'money' ? '<span class="pre">$</span>' : '';
+  const suf = kind === 'pct' ? '<span class="suf">%</span>' : (o.suf ? `<span class="suf">${esc(o.suf)}</span>` : '');
+  const lab = o.info
+    ? `<div class="lrow"><label for="${id}">${esc(label)}</label><button type="button" class="info" aria-label="About ${esc(label)}" aria-expanded="false" aria-controls="${id}_tip">i</button><div class="info-pop" role="tooltip" id="${id}_tip">${o.info}</div></div>`
+    : `<label for="${id}">${esc(label)}</label>`;
+  return `<div class="fld ${cls}${o.info ? ' has-info' : ''}">${lab}<div class="inp">${pre}<input id="${id}" type="text" inputmode="${kind === 'text' ? 'text' : 'decimal'}" data-path="${path}" data-kind="${kind}" value="${esc(fmtInput(v, kind))}" placeholder="${esc(o.ph || '')}" autocomplete="off"${o.disabled ? ' disabled' : ''}>${suf}</div></div>`;
+}
+// Default labels built from household names
+const whoName = o => o === 'joint' ? null : nm(o);
+function incomeLabel(i) {
+  const w = whoName(i.owner || 'p1');
+  const kind = { salary: 'salary', benefit: 'Social Security', other: 'other income' }[i.type] || 'income';
+  return w ? `${w}'s ${kind}` : ({ salary: 'Household salary', benefit: 'Household pension', other: 'Household income' }[i.type] || 'Household income');
+}
+function assetLabel(a) {
+  if (a.kind === 'nonretirement') return 'Savings';
+  if (a.kind === 'other') return 'Other asset';
+  const w = whoName(a.owner || 'p1');
+  return w ? `${w}'s retirement account` : 'Joint retirement account';
+}
+const LABEL_FN = { income: incomeLabel, assets: assetLabel };
+const reEsc = x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+// Swap an old display name for a new one in every label (whole words only)
+function renameEverywhere(oldName, newName) {
+  if (!oldName || oldName === newName) return;
+  const re = new RegExp('(^|[^A-Za-z0-9])' + reEsc(oldName) + '(?=$|[^A-Za-z0-9])', 'g');
+  for (const key of ['assets', 'liabilities', 'income', 'spending', 'purchases'])
+    for (const it of state[key]) if (typeof it.label === 'string') it.label = it.label.replace(re, (m, pre) => pre + newName);
+  inputsEl.querySelectorAll('input[data-path$=".label"]').forEach(el => { el.value = getPath(state, el.dataset.path) || ''; });
+}
+const payPh = l => (!(has(l.monthlyPayment) && n(l.monthlyPayment) > 0) && has(l.endYear) && n(l.balance) > 0) ? `${Math.round(loanPayment({ ...l, monthlyPayment: null })).toLocaleString('en-US')} calculated` : '';
+const VOL_INFO = `<p>How much returns swing from year to year (volatility). At 12%, about two years in three land within roughly 12 points of your typical return.</p><p>Rough guide: mostly stocks 15 to 18%, a 60/40 mix 10 to 12%, mostly bonds 5 to 7%. Higher numbers widen the gap between best and worst case.</p>`;
+const estChip = (key, i, it) => it && it.est ? `<span class="est" data-est="${key}.${i}" title="A starting guess from quick start. Edit it to make it yours.">Estimated</span>` : '';
+function clearEst(path) {
+  const m = path.match(/^(\w+)\.(\d+)\./);
+  if (!m || !Array.isArray(state[m[1]])) return;
+  const it = state[m[1]][+m[2]];
+  if (it && it.est) { delete it.est; const el = document.querySelector(`[data-est="${m[1]}.${m[2]}"]`); if (el) el.remove(); }
+}
+const rmBtn = (key, i, what) => `<button type="button" class="rm" data-remove="${key}.${i}" aria-label="Remove ${esc(what)}">×</button>`;
+const addBtn = (key, txt) => `<button type="button" class="add" data-add="${key}">${esc(txt)}</button>`;
+
+function ownerOptions(sel) {
+  const two = state.people.p2.enabled;
+  const o = [['p1', nm('p1')]];
+  if (two || sel === 'p2') o.push(['p2', two ? nm('p2') : nm('p2') + ' (not included)']);
+  o.push(['joint', two ? 'Joint' : 'Household']);
+  return o;
+}
+
+function section(id, title, body) {
+  return `<details class="sec" data-sec="${id}"${closedSections.has(id) ? '' : ' open'}><summary><h3>${esc(title)}</h3><span class="sum" id="sum-${id}"></span></summary><div class="sec-body">${body}</div></details>`;
+}
+
+function renderInputs() {
+  const st = inputsEl.scrollTop;
+  const s = state, two = s.people.p2.enabled;
+
+  const person = p => `<div class="person"><div class="grid">
+      ${fld(`people.${p}.name`, 'Name', 'text', { ph: p === 'p1' ? 'e.g. Sam' : 'e.g. Jordan', cls: 's12' })}
+      ${fld(`people.${p}.age`, 'Age now', 'int', { cls: 's4' })}
+      ${fld(`people.${p}.retireAge`, 'Retire at age', 'int', { cls: 's4' })}
+      ${fld(`people.${p}.planToAge`, 'Plan until age', 'int', { cls: 's4' })}
+    </div></div>`;
+
+  const household = `
+    <p class="person-name">You</p>${person('p1')}
+    ${fld('people.p2.enabled', 'Include a partner', 'check', { rerender: true })}
+    ${two ? `<p class="person-name" style="margin-top:8px">Partner</p>${person('p2')}` : ''}
+    <p class="sub">Dependents</p>
+    <div data-list="dependents">${s.dependents.map((d, i) => `<div class="row">${rmBtn('dependents', i, d.name || 'dependent')}${estChip('dependents', i, d)}<div class="grid first">
+        ${fld(`dependents.${i}.name`, 'Name', 'text', { ph: 'e.g. Maya', cls: 's8' })}
+        ${fld(`dependents.${i}.age`, 'Age now', 'int', { cls: 's4' })}
+      </div></div>`).join('')}</div>
+    ${addBtn('dependents', 'Add a dependent')}`;
+
+  const kindOpts = [['retirement', 'Retirement'], ['nonretirement', 'Non-retirement'], ['other', 'Home or other']];
+  const assets = `
+    <p class="hint">Retirement: 401(k), IRA, Roth. Non-retirement: brokerage, savings, cash. Home or other: property, cars, anything you won't sell to fund retirement.</p>
+    <div data-list="assets">${s.assets.map((a, i) => {
+      const ret = a.kind === 'retirement';
+      return `<div class="row">${rmBtn('assets', i, a.label || 'asset')}${estChip('assets', i, a)}<div class="grid">
+        <div class="s12 first">${fld(`assets.${i}.label`, 'Name', 'text', { ph: 'e.g. 401(k)', cls: '' })}</div>
+        ${fld(`assets.${i}.kind`, 'Type', 'select', { options: kindOpts, rerender: true, cls: 's6' })}
+        ${ret ? fld(`assets.${i}.owner`, 'Owner', 'select', { options: ownerOptions(a.owner), cls: 's6' }) : ''}
+        ${fld(`assets.${i}.balance`, 'Balance now', 'money', { cls: 's6' })}
+        ${ret ? fld(`assets.${i}.contribution`, 'Added per year', 'money', { cls: 's6' }) : ''}
+      </div></div>`;
+    }).join('')}</div>
+    ${addBtn('assets', 'Add an asset')}
+    <div class="totals" id="assetTotals"></div>`;
+
+  const liabilities = `
+    <p class="hint">Principal and interest only; put property tax and insurance in spending. Leave the monthly payment blank to calculate it from the paid-off year. If you enter both, whatever is left in that year is paid as a lump sum.</p>
+    <div data-list="liabilities">${s.liabilities.map((l, i) => `<div class="row">${rmBtn('liabilities', i, l.label || 'loan')}${estChip('liabilities', i, l)}<div class="grid">
+        <div class="s12 first">${fld(`liabilities.${i}.label`, 'Name', 'text', { ph: 'e.g. Mortgage', cls: '' })}</div>
+        ${fld(`liabilities.${i}.balance`, 'Balance', 'money', { cls: 's6' })}
+        ${fld(`liabilities.${i}.rate`, 'Interest', 'pct', { cls: 's6' })}
+        ${fld(`liabilities.${i}.monthlyPayment`, 'Monthly payment', 'money', { cls: 's6', ph: payPh(l) })}
+        ${fld(`liabilities.${i}.endYear`, 'Paid off by', 'int', { cls: 's6', ph: 'e.g. ' + (Y0 + 25) })}
+      </div></div>`).join('')}</div>
+    ${addBtn('liabilities', 'Add a loan or debt')}`;
+
+  const typeOpts = [['salary', 'Salary'], ['benefit', 'Social Security or pension'], ['other', 'Other income']];
+  const income = `
+    <p class="hint">Enter take-home pay after taxes and retirement contributions. Salaries stop at retirement unless you set an end age. Other income is in today's dollars and keeps up with inflation.</p>
+    <div data-list="income">${s.income.map((i, k) => {
+      const sal = i.type === 'salary';
+      return `<div class="row">${rmBtn('income', k, i.label || 'income')}${estChip('income', k, i)}<div class="grid">
+        <div class="s12 first">${fld(`income.${k}.label`, 'Name', 'text', { ph: 'e.g. Salary', cls: '' })}</div>
+        ${fld(`income.${k}.type`, 'Type', 'select', { options: typeOpts, rerender: true, cls: 's6' })}
+        ${fld(`income.${k}.owner`, 'Whose', 'select', { options: ownerOptions(i.owner), cls: 's6' })}
+        ${fld(`income.${k}.amount`, 'Per year', 'money', { cls: 's4' })}
+        ${fld(`income.${k}.startAge`, 'From age', 'int', { ph: sal ? 'now' : 'e.g. 67', cls: 's4' })}
+        ${fld(`income.${k}.endAge`, 'Until age', 'int', { ph: sal ? 'retirement' : 'for life', cls: 's4' })}
+      </div></div>`;
+    }).join('')}</div>
+    ${addBtn('income', 'Add income')}`;
+
+  const spending = `
+    <p class="hint">Yearly amounts in today's dollars, not counting debt payments, college or big purchases. Retirement starts once ${two ? 'you have both' : 'you have'} retired. "Between ages" uses <span data-p1name>${esc(nm('p1'))}</span>'s age.</p>
+    <div data-list="spending">${s.spending.map((x, i) => {
+      const ages = x.when === 'ages';
+      return `<div class="row">${rmBtn('spending', i, x.label || 'spending')}${estChip('spending', i, x)}<div class="grid">
+        <div class="s12 first">${fld(`spending.${i}.label`, 'Name', 'text', { ph: 'e.g. Groceries', cls: '' })}</div>
+        ${fld(`spending.${i}.category`, 'Category', 'select', { options: SPEND_CATS, cls: 's6' })}
+        ${fld(`spending.${i}.when`, 'When', 'select', { options: WHEN_OPTS, rerender: true, cls: 's6' })}
+        ${fld(`spending.${i}.amount`, 'Per year', 'money', { cls: ages ? 's6' : 's12' })}
+        ${ages ? fld(`spending.${i}.fromAge`, 'From age', 'int', { ph: 'now', cls: 's3' }) + fld(`spending.${i}.toAge`, 'Until age', 'int', { ph: 'end', cls: 's3' }) : ''}
+      </div></div>`;
+    }).join('')}</div>
+    ${addBtn('spending', 'Add spending')}
+    <div class="totals" id="spendTotals"></div>`;
+
+  const college = s.dependents.length
+    ? s.dependents.map((d, i) => `<div class="row">
+        ${fld(`dependents.${i}.college`, '', 'check', { html: `Save for <span data-depname="${i}">${esc(d.name || 'this dependent')}</span>'s college`, rerender: true, cls: '' })}
+        ${d.college ? `<div class="grid" style="margin-top:8px">
+          ${fld(`dependents.${i}.collegeCost`, 'Cost per year', 'money', { cls: 's6' })}
+          ${fld(`dependents.${i}.collegeStartAge`, 'Starts at age', 'int', { cls: 's3' })}
+          ${fld(`dependents.${i}.collegeYears`, 'Years', 'int', { cls: 's3' })}
+        </div>` : ''}</div>`).join('')
+    : `<p class="hint">Add a dependent under Household to plan for college.</p>`;
+
+  const special = `
+    <p class="sub" style="margin-top:0">College</p>
+    <p class="hint">Cost per year in today's dollars. It rises with college cost inflation.</p>
+    ${college}
+    <p class="sub">Purchases</p>
+    <p class="hint">One-time or repeating costs in today's dollars, like a car every 8 years.</p>
+    <div data-list="purchases">${s.purchases.map((p, i) => `<div class="row">${rmBtn('purchases', i, p.label || 'purchase')}${estChip('purchases', i, p)}<div class="grid">
+        <div class="s12 first">${fld(`purchases.${i}.label`, 'Name', 'text', { ph: 'e.g. New car', cls: '' })}</div>
+        ${fld(`purchases.${i}.year`, 'Year', 'int', { cls: 's4' })}
+        ${fld(`purchases.${i}.amount`, 'Cost', 'money', { cls: 's8' })}
+        ${fld(`purchases.${i}.repeatEvery`, 'Repeat every', 'int', { ph: 'once', suf: 'years', cls: 's6' })}
+        ${fld(`purchases.${i}.until`, 'Until year', 'int', { ph: 'end of plan', cls: 's6' })}
+      </div></div>`).join('')}</div>
+    ${addBtn('purchases', 'Add a purchase')}`;
+
+  const assumptions = `
+    <p class="hint">Returns and growth are typical yearly rates before inflation is taken out. The mid case compounds at about these rates.</p>
+    <div class="grid">
+      ${fld('assumptions.retReturn', 'Retirement account return', 'pct', { cls: 's6' })}
+      ${fld('assumptions.nonReturn', 'Non-retirement return', 'pct', { cls: 's6' })}
+      ${fld('assumptions.otherGrowth', 'Home and other growth', 'pct', { cls: 's6' })}
+      ${fld('assumptions.volatility', 'Market ups and downs', 'pct', { cls: 's6', info: VOL_INFO })}
+      ${fld('assumptions.inflation', 'Inflation', 'pct', { cls: 's6' })}
+      ${fld('assumptions.earningsGrowth', 'Salary growth', 'pct', { cls: 's6' })}
+      ${fld('assumptions.eduInflation', 'College cost inflation', 'pct', { cls: 's6' })}
+      ${fld('assumptions.withdrawalTax', 'Tax on retirement withdrawals', 'pct', { cls: 's6' })}
+    </div>
+`;
+
+  $('#inputsBody').innerHTML = `
+    ${section('household', 'Household', household)}
+    ${section('assets', 'Assets', assets)}
+    ${section('liabilities', 'Liabilities', liabilities)}
+    ${section('income', 'Income', income)}
+    ${section('spending', 'Spending', spending)}
+    ${section('special', 'Special withdrawals', special)}
+    ${section('assumptions', 'Assumptions', assumptions)}`;
+  inputsEl.scrollTop = st;
+  renderSummaries();
+}
+
+function renderSummaries() {
+  const s = state, set = (id, t) => { const e = document.getElementById(id); if (e) e.textContent = t; };
+  const tot = k => s.assets.filter(a => a.kind === k).reduce((x, a) => x + n(a.balance), 0);
+  const all = tot('retirement') + tot('nonretirement') + tot('other');
+  set('sum-household', `${s.people.p2.enabled ? 2 : 1} adult${s.people.p2.enabled ? 's' : ''}${s.dependents.length ? `, ${s.dependents.length} dependent${s.dependents.length > 1 ? 's' : ''}` : ''}`);
+  set('sum-assets', s.assets.length ? money(all) : 'None yet');
+  const lt = s.liabilities.reduce((x, l) => x + n(l.balance), 0);
+  set('sum-liabilities', s.liabilities.length ? money(lt) : 'None');
+  const it = current ? current.incNow : 0;
+  set('sum-income', s.income.length ? `${money(it)} a year now` : 'None yet');
+  set('sum-spending', s.spending.length ? `${money(current ? current.spendNow : 0)} a year now` : 'None yet');
+  const stt = document.getElementById('spendTotals');
+  if (stt && current && s.spending.length) {
+    stt.innerHTML = `<span>Now <b>${money(current.spendNow)}</b> a year</span>${current.spendRet !== null ? `<span>First year of retirement <b>${money(current.spendRet)}</b></span>` : ''}`;
+  }
+  const cc = s.dependents.filter(d => d.college).length, pc = s.purchases.length;
+  set('sum-special', [cc ? `${cc} college` : '', pc ? `${pc} purchase${pc > 1 ? 's' : ''}` : ''].filter(Boolean).join(', ') || 'None');
+  set('sum-assumptions', `${n(s.assumptions.retReturn)}% return, ${n(s.assumptions.inflation)}% inflation`);
+  const at = document.getElementById('assetTotals');
+  if (at && s.assets.length) at.innerHTML = `<span>Retirement <b>${money(tot('retirement'))}</b></span><span>Non-retirement <b>${money(tot('nonretirement'))}</b></span><span>Home and other <b>${money(tot('other'))}</b></span>`;
+}
+
+function refreshNames() {
+  inputsEl.querySelectorAll('option[value="p1"]').forEach(o => { o.textContent = nm('p1'); });
+  inputsEl.querySelectorAll('option[value="p2"]').forEach(o => { o.textContent = state.people.p2.enabled ? nm('p2') : nm('p2') + ' (not included)'; });
+  inputsEl.querySelectorAll('[data-p1name]').forEach(e => { e.textContent = nm('p1'); });
+  inputsEl.querySelectorAll('[data-depname]').forEach(e => { e.textContent = state.dependents[+e.dataset.depname]?.name || 'this dependent'; });
+}
+
+/* ---------- Input events ---------- */
+let timer = null;
+function touched() { const was = dirty; dirty = true; if (!was) renderFileLabel(); clearTimeout(timer); timer = setTimeout(recompute, 160); }
+
+inputsEl.addEventListener('input', e => {
+  const el = e.target, path = el.dataset && el.dataset.path;
+  if (!path) return;
+  const k = el.dataset.kind;
+  if (k === 'check' || k === 'select') return;
+  let v;
+  if (k === 'text') v = el.value;
+  else {
+    const raw = el.value.replace(/[^0-9.\-]/g, '');
+    v = (raw === '' || raw === '-' || raw === '.') ? null : parseFloat(raw);
+    if (!Number.isFinite(v)) v = null;
+  }
+  setPath(state, path, v);
+  clearEst(path);
+  const lm = path.match(/^liabilities\.(\d+)\./);
+  if (lm) { const pi = document.getElementById(`f_liabilities_${lm[1]}_monthlyPayment`); if (pi) pi.placeholder = payPh(state.liabilities[+lm[1]]); }
+  if (/^people\.p[12]\.name$/.test(path) || /^dependents\.\d+\.name$/.test(path)) refreshNames();
+  touched();
+});
+inputsEl.addEventListener('change', e => {
+  const el = e.target, path = el.dataset && el.dataset.path;
+  if (!path) return;
+  const k = el.dataset.kind;
+  const lm = path.match(/^(income|assets)\.(\d+)\.(owner|type|kind)$/);
+  const item = lm ? state[lm[1]][+lm[2]] : null, prevAuto = item ? LABEL_FN[lm[1]](item) : null;
+  if (k === 'check') setPath(state, path, el.checked);
+  else if (k === 'select') setPath(state, path, el.value);
+  else return;
+  clearEst(path);
+  if (item && (!item.label || item.label === prevAuto)) {
+    item.label = LABEL_FN[lm[1]](item);
+    const li = document.getElementById(`f_${lm[1]}_${lm[2]}_label`); if (li) li.value = item.label;
+  }
+  touched();
+  if (el.hasAttribute('data-rerender')) renderInputs();
+});
+inputsEl.addEventListener('focusin', e => {
+  const el = e.target;
+  if (el.dataset && /^people\.p[12]\.name$/.test(el.dataset.path || '')) el.dataset.prevName = nm(el.dataset.path.split('.')[1]);
+});
+inputsEl.addEventListener('focusout', e => {
+  const el = e.target;
+  if (el.dataset && el.dataset.prevName !== undefined) {
+    const who = el.dataset.path.split('.')[1], before = el.dataset.prevName, after = nm(who);
+    delete el.dataset.prevName;
+    if (before !== after) { renameEverywhere(before, after); touched(); }
+  }
+  if (el.dataset && el.dataset.kind === 'money') el.value = fmtInput(getPath(state, el.dataset.path), 'money');
+});
+inputsEl.addEventListener('toggle', e => {
+  const d = e.target;
+  if (d.dataset && d.dataset.sec) { if (d.open) closedSections.delete(d.dataset.sec); else closedSections.add(d.dataset.sec); }
+}, true);
+function closeInfo(except) { inputsEl.querySelectorAll('.info[aria-expanded="true"]').forEach(b => { if (b !== except) b.setAttribute('aria-expanded', 'false'); }); }
+document.addEventListener('pointerdown', e => { if (!e.target.closest('.info')) closeInfo(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeInfo(); });
+inputsEl.addEventListener('click', e => {
+  const info = e.target.closest('.info');
+  if (info) { closeInfo(info); info.setAttribute('aria-expanded', String(info.getAttribute('aria-expanded') !== 'true')); return; }
+  const add = e.target.closest('[data-add]');
+  if (add) {
+    const key = add.dataset.add;
+    const item = NEW[key]();
+    if (LABEL_FN[key]) item.label = LABEL_FN[key](item);
+    state[key].push(item);
+    touched(); renderInputs();
+    const rows = inputsEl.querySelectorAll(`[data-list="${key}"] .row`);
+    const inp = rows[rows.length - 1] && rows[rows.length - 1].querySelector('input');
+    if (inp) inp.focus();
+    return;
+  }
+  const rm = e.target.closest('[data-remove]');
+  if (rm) {
+    const [key, idx] = rm.dataset.remove.split('.');
+    state[key].splice(+idx, 1);
+    touched(); renderInputs();
+  }
+});
+
+/* ---------- Results ---------- */
+function pctClass(p) { return p >= 0.85 ? 'good' : p >= 0.7 ? 'warn' : 'bad'; }
+function lastsText(res, t) { return t === Infinity ? 'Whole plan' : `Until ${res.names[0]} is ${res.a1 + t}`; }
+
+function renderVerdict() {
+  const res = current, v = $('#verdict'), sub = $('#verdictSub');
+  if (res.empty) {
+    v.textContent = 'Add what you own, what you earn and what you spend, and your projection will show up here.';
+    sub.textContent = 'Start with Household, then Assets and Income. Everything stays on this device.';
+    return;
+  }
+  const [n1, n2] = res.names, rt = res.retireT;
+  let lead;
+  if (rt === null) lead = `Within this plan, ${res.two ? `${esc(n1)} and ${esc(n2)} don't both` : `${esc(n1)} doesn't`} reach retirement age, so the mid case ends at <mark>${money(disp(res.p50[res.H], res.H, res))}</mark>.`;
+  else if (rt === 0) lead = `You're retired now, with a net worth of <mark>${money(disp(res.p50[0], 0, res))}</mark>.`;
+  else lead = `In ${Y0 + rt}, when ${res.two ? `${esc(n1)} and ${esc(n2)} are both retired` : `${esc(n1)} retires`}, the mid case puts your net worth at <mark>${money(disp(res.p50[rt], rt, res))}</mark>.`;
+  const endAge = res.a1 + res.H;
+  const mid = res.deplMid === Infinity
+    ? ` Savings last through ${Y0 + res.H}, the end of the plan${res.two ? ` (${esc(n1)} ${endAge}, ${esc(n2)} ${res.a2 + res.H})` : ''}.`
+    : ` Savings run out in ${Y0 + res.deplMid}, when ${esc(n1)} is <mark class="bad">${res.a1 + res.deplMid}</mark>.`;
+  v.innerHTML = lead + mid;
+  const pc = Math.round(res.success * 100);
+  const worst = res.deplWorst === Infinity ? 'even the worst case lasts the whole plan' : `in the worst case savings run out when ${esc(n1)} is ${res.a1 + res.deplWorst}`;
+  sub.innerHTML = `Across 1,000 simulated markets, the money lasts the whole plan <mark class="${pctClass(res.success)}">${pc}% of the time</mark>, and ${worst}.`;
+}
+
+function renderWarnings() {
+  const s = state, w = [];
+  const p1 = s.people.p1, p2 = s.people.p2;
+  if (n(p1.retireAge) < n(p1.age)) w.push(`${nm('p1')}'s retirement age is below their current age, so they're treated as already retired.`);
+  if (p2.enabled && n(p2.retireAge) < n(p2.age)) w.push(`${nm('p2')}'s retirement age is below their current age, so they're treated as already retired.`);
+  for (const l of s.liabilities) {
+    if (n(l.balance) <= 0) continue;
+    const pay = loanPayment(l);
+    if (pay <= 0) w.push(`${l.label || 'A loan'}: add a monthly payment or a paid-off year.`);
+    else if (!has(l.endYear) && pay <= n(l.balance) * n(l.rate) / 1200) w.push(`${l.label || 'A loan'}: the monthly payment doesn't cover the interest, so the balance keeps growing.`);
+  }
+  if (n(s.assumptions.volatility) === 0) w.push('Market ups and downs is 0%, so best, mid and worst case are the same line.');
+  $('#warnings').innerHTML = w.map(x => `<li>${esc(x)}</li>`).join('');
+}
+
+function renderLegend() {
+  const items = [
+    `<span><i class="sw" style="border-color:var(--green-deep)"></i>Best case</span>`,
+    `<span><i class="sw" style="border-color:var(--teal-deep)"></i>Mid case</span>`,
+    `<span><i class="sw" style="border-color:var(--coral)"></i>Worst case</span>`
+  ];
+  scenarios.forEach((sc, i) => { if (sc.show) items.push(`<span><i class="sw dash" style="border-color:${SC_COLORS[i % 4]}"></i>${esc(sc.name)}</span>`); });
+  if (playRes) items.push(`<span><i class="sw" style="border-color:${PLAY_COLOR}"></i>What-if</span>`);
+  $('#legend').innerHTML = current.empty ? '' : items.join('');
+}
+
+function niceTicks(lo, hi, count) {
+  const span = hi - lo || 1, raw = span / count, mag = Math.pow(10, Math.floor(Math.log10(raw))), nr = raw / mag;
+  const step = (nr < 1.5 ? 1 : nr < 3 ? 2 : nr < 7 ? 5 : 10) * mag;
+  const out = [];
+  for (let v = Math.floor(lo / step) * step; v <= Math.ceil(hi / step) * step + step / 2; v += step) out.push(Math.abs(v) < step / 1e6 ? 0 : v);
+  return out;
+}
+
+let geo = null;
+function renderChart() {
+  const box = $('#chart'), res = current;
+  $('#chartNote').textContent = res.empty ? '' : `Based on ${RUNS.toLocaleString('en-US')} simulated market paths, computed in ${Math.max(1, Math.round(res.ms))} ms on this device. Best case is the 90th percentile, mid case the median, worst case the 10th percentile.`;
+  if (res.empty) {
+    box.innerHTML = `<div class="chart-empty"><div><strong>No projection yet</strong>Add at least one asset or income to see best, mid and worst cases.</div></div>`;
+    geo = null; return;
+  }
+  const w = Math.max(300, Math.round(box.clientWidth || 800)), small = w < 560, h = small ? 290 : 370;
+  const pad = { l: small ? 50 : 62, r: 14, t: 28, b: 46 };
+  const H = res.H, pw = w - pad.l - pad.r, ph = h - pad.t - pad.b;
+  const S = arr => Array.from(arr, (v, t) => disp(v, t, res));
+  const lo = S(res.p10), mid = S(res.p50), hi = S(res.p90);
+  const ovs = [];
+  scenarios.forEach((sc, i) => { if (sc.show) ovs.push({ name: sc.name, color: SC_COLORS[i % 4], vals: S(sc.res.p50).slice(0, H + 1) }); });
+  if (playRes) ovs.push({ name: 'What-if', color: PLAY_COLOR, vals: Array.from(playRes.p50, (v, t) => disp(v, t, playRes)).slice(0, H + 1), play: true });
+  let mn = Math.min(0, ...lo), mx = Math.max(...hi);
+  for (const o of ovs) { mn = Math.min(mn, ...o.vals); mx = Math.max(mx, ...o.vals); }
+  if (mx <= mn) mx = mn + 1;
+  const ticks = niceTicks(mn, mx, small ? 4 : 5), y0 = ticks[0], y1 = ticks[ticks.length - 1];
+  const X = t => pad.l + t / H * pw, Y = v => pad.t + ph - (v - y0) / (y1 - y0) * ph;
+  const path = arr => arr.map((v, t) => `${t ? 'L' : 'M'}${X(t).toFixed(1)},${Y(v).toFixed(1)}`).join('');
+  const band = path(hi) + lo.slice().reverse().map((v, j) => `L${X(H - j).toFixed(1)},${Y(v).toFixed(1)}`).join('') + 'Z';
+
+  let g = '';
+  for (const tv of ticks) g += `<line x1="${pad.l}" x2="${w - pad.r}" y1="${Y(tv).toFixed(1)}" y2="${Y(tv).toFixed(1)}" class="${tv === 0 ? 'zero' : 'grid-l'}"/><text x="${pad.l - 8}" y="${(Y(tv) + 4).toFixed(1)}" class="ylab">${axisMoney(tv)}</text>`;
+  const maxLabels = Math.max(2, Math.floor(pw / (small ? 58 : 66)));
+  const step = [1, 2, 5, 10, 20, 25].find(s => H / s <= maxLabels) || 25;
+  for (let t = 0; t <= H; t += step) {
+    g += `<text x="${X(t).toFixed(1)}" y="${h - 26}" class="xyear">${Y0 + t}</text><text x="${X(t).toFixed(1)}" y="${h - 10}" class="xage">${t === 0 ? esc(res.names[0]) + ' ' : ''}${res.a1 + t}</text>`;
+  }
+  // Retirement markers
+  const marks = [];
+  if (res.two && res.retire1 === res.retire2) { if (res.retire1 >= 1 && res.retire1 <= H) marks.push([res.retire1, '🏖 Both retire']); }
+  else {
+    if (res.retire1 >= 1 && res.retire1 <= H) marks.push([res.retire1, `🏖 ${res.names[0]} retires`]);
+    if (res.two && res.retire2 >= 1 && res.retire2 <= H) marks.push([res.retire2, `🏖 ${res.names[1]} retires`]);
+  }
+  marks.sort((a, b) => a[0] - b[0]);
+  marks.forEach(([t, label], i) => {
+    const x = X(t), near = i > 0 && Math.abs(x - X(marks[i - 1][0])) < 90;
+    const anchor = x > w - 60 ? 'end' : x < pad.l + 50 ? 'start' : 'middle';
+    g += `<line x1="${x.toFixed(1)}" x2="${x.toFixed(1)}" y1="${pad.t - 4}" y2="${pad.t + ph}" class="mk"/><text x="${x.toFixed(1)}" y="${near ? pad.t + 10 : pad.t - 10}" class="mkl" style="text-anchor:${anchor}">${esc(label)}</text>`;
+  });
+
+  let lines = `<path d="${band}" fill="var(--teal-soft)" opacity=".75"/>`;
+  lines += `<path d="${path(hi)}" fill="none" stroke="var(--green-deep)" stroke-width="1.6" opacity=".85"/>`;
+  lines += `<path d="${path(lo)}" fill="none" stroke="var(--coral)" stroke-width="1.6" opacity=".9"/>`;
+  for (const o of ovs) if (!o.play) lines += `<path d="${path(o.vals)}" fill="none" stroke="${o.color}" stroke-width="2" stroke-dasharray="6 5"/>`;
+  lines += `<path d="${path(mid)}" fill="none" stroke="var(--teal-deep)" stroke-width="2.8" stroke-linejoin="round"/>`;
+  for (const o of ovs) if (o.play) lines += `<path d="${path(o.vals)}" fill="none" stroke="${o.color}" stroke-width="2.8" stroke-linejoin="round" stroke-dasharray="8 5"/>`;
+  // Life milestones along the mid-case line
+  const ms = [];
+  res.events.forEach((ev, t) => ev.forEach(e => {
+    if (/starts college/.test(e)) ms.push([t, '🎓', e]);
+    else if (/paid off/.test(e)) ms.push([t, /mortgage|home/i.test(e) ? '🏡' : '✅', e]);
+    else if (/ begins$/.test(e)) ms.push([t, '💵', e]);
+  }));
+  const t1m = mid.findIndex(v => v >= 1e6);
+  if (t1m > 0) ms.push([t1m, '💰', 'First $1M in the mid case']);
+  if (res.wo !== null && res.wo !== undefined) { const tw = res.wo - res.a1; if (tw >= 0 && tw <= H) ms.push([tw, '🎉', 'Work-optional']); }
+  const stack = {};
+  for (const [t, emo, label] of ms) {
+    const k = stack[t] = (stack[t] || 0) + 1;
+    const y = Math.max(pad.t + 12, Y(mid[t]) - 10 - (k - 1) * 17);
+    lines += `<text class="ms" x="${X(t).toFixed(1)}" y="${y.toFixed(1)}"><title>${esc(label)} (${Y0 + t})</title>${emo}</text>`;
+  }
+
+  const hover = `<g id="hov" style="display:none"><line id="hovL" y1="${pad.t}" y2="${pad.t + ph}" stroke="#8FA3AC" stroke-width="1"/>
+    <circle id="hovHi" r="4" fill="var(--green-deep)"/><circle id="hovMid" r="5" fill="var(--teal-deep)" stroke="#fff" stroke-width="2"/><circle id="hovLo" r="4" fill="var(--coral)"/></g>`;
+  const desc = `Projected net worth from ${Y0} to ${Y0 + H}. Mid case ${money(mid[H])} at the end of the plan.`;
+  box.innerHTML = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(desc)}">${g}${lines}${hover}<rect x="${pad.l}" y="${pad.t}" width="${pw}" height="${ph}" fill="transparent" id="hovZone"/></svg><div class="tip" id="tip" hidden></div>`;
+  geo = { w, h, pad, pw, H, X, Y, lo, mid, hi, ovs };
+  const svg = box.querySelector('svg');
+  svg.addEventListener('pointermove', onHover);
+  svg.addEventListener('pointerdown', onHover);
+  svg.addEventListener('pointerleave', e => { if (e.pointerType !== 'touch') hideHover(); });
+}
+
+function hideHover() { const h = $('#hov'), tp = $('#tip'); if (h) h.style.display = 'none'; if (tp) tp.hidden = true; }
+document.addEventListener('pointerdown', e => { if (!e.target.closest('#chart')) hideHover(); });
+function onHover(e) {
+  if (!geo || !$('#hov') || !$('#tip')) return;
+  const svg = e.currentTarget, r = svg.getBoundingClientRect(), k = geo.w / r.width;
+  const x = (e.clientX - r.left) * k;
+  const t = Math.max(0, Math.min(geo.H, Math.round((x - geo.pad.l) / geo.pw * geo.H)));
+  const res = current, X = geo.X(t);
+  $('#hov').style.display = '';
+  $('#hovL').setAttribute('x1', X); $('#hovL').setAttribute('x2', X);
+  [['hovHi', geo.hi], ['hovMid', geo.mid], ['hovLo', geo.lo]].forEach(([id, arr]) => { const c = $('#' + id); c.setAttribute('cx', X); c.setAttribute('cy', geo.Y(arr[t])); });
+  const ages = res.two ? `${esc(res.names[0])} ${res.a1 + t}, ${esc(res.names[1])} ${res.a2 + t}` : `${esc(res.names[0])} ${res.a1 + t}`;
+  let rows = `<div class="tr"><span>Best case</span><b>${money(geo.hi[t])}</b></div><div class="tr"><span>Mid case</span><b>${money(geo.mid[t])}</b></div><div class="tr"><span>Worst case</span><b>${money(geo.lo[t])}</b></div>`;
+  for (const o of geo.ovs) if (o.vals[t] !== undefined) rows += `<div class="tr"><span>${esc(o.name)}</span><b>${money(o.vals[t])}</b></div>`;
+  const ev = res.events[t].length ? `<div style="margin-top:4px;color:var(--muted)">${res.events[t].map(esc).join(', ')}</div>` : '';
+  const tip = $('#tip');
+  tip.innerHTML = `<h4>${Y0 + t} <span style="font-weight:400;color:var(--muted)">${ages}</span></h4>${rows}${ev}`;
+  tip.hidden = false;
+  const px = X / k, bw = r.width, tw = tip.offsetWidth;
+  tip.style.left = (px + 14 + tw > bw ? Math.max(0, px - tw - 14) : px + 14) + 'px';
+}
+
+const ICON_EYE = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
+const ICON_EYE_OFF = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M2 12s3.6-7 10-7c2 0 3.8.7 5.2 1.6M22 12s-3.6 7-10 7c-2 0-3.8-.7-5.2-1.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M4 4l16 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+const ICON_TRASH = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 7h16M9 7V4.8h6V7M6.5 7l.9 12.2h9.2L17.5 7M10 10.5v5.5M14 10.5v5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function scenarioRow(name, res, color, actions, hidden) {
+  const nameCell = `<td class="sc-n"><span class="sc-name"><i class="dot${hidden ? ' off' : ''}" style="--c:${color}"></i>${esc(name)}</span></td>`;
+  if (res.empty) return `<tr>${nameCell}<td data-l="Retired">–</td><td class="n" data-l="At retirement">–</td><td class="n" data-l="At end">–</td><td data-l="Savings last">–</td><td class="acts">${actions}</td></tr>`;
+  const rt = res.retireT === null ? res.H : res.retireT;
+  return `<tr>${nameCell}
+    <td data-l="Retired">${res.retireT === null ? 'After plan' : rt === 0 ? 'Now' : Y0 + rt}</td>
+    <td class="n" data-l="Net worth at retirement">${money(disp(res.p50[rt], rt, res))}</td>
+    <td class="n" data-l="Net worth at end">${money(disp(res.p50[res.H], res.H, res))}</td>
+    <td data-l="Savings last">${esc(lastsText(res, res.deplMid))}</td>
+    <td class="acts">${actions}</td></tr>`;
+}
+function renderScenarios() {
+  const wrap = $('#scWrap');
+  if (!scenarios.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+  let rows = scenarioRow('Current inputs', current, 'var(--teal-deep)', '');
+  scenarios.forEach((sc, i) => {
+    const lab = sc.show ? `Hide ${sc.name} from chart` : `Show ${sc.name} on chart`;
+    const acts = `<button type="button" class="icon-btn" data-sc="show" data-i="${i}" aria-pressed="${sc.show}" aria-label="${esc(lab)}" title="${sc.show ? 'Shown on chart' : 'Hidden from chart'}">${sc.show ? ICON_EYE : ICON_EYE_OFF}</button><button type="button" class="icon-btn danger" data-sc="delete" data-i="${i}" aria-label="${esc('Delete ' + sc.name)}" title="Delete">${ICON_TRASH}</button>`;
+    rows += scenarioRow(sc.name, sc.res, SC_COLORS[i % 4], acts, !sc.show);
+  });
+  wrap.innerHTML = `<table class="sc-table"><caption>Mid case, in ${mode === 'real' ? "today's" : 'future'} dollars</caption><thead><tr><th>Scenario</th><th>Retired</th><th class="n">Net worth at retirement</th><th class="n">Net worth at end</th><th>Savings last</th><th><span class="sr">Actions</span></th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function renderTable() {
+  const res = current, tb = $('#table');
+  if (res.empty) { tb.innerHTML = ''; $('#tableHint').textContent = 'Your year-by-year projection will appear here.'; return; }
+  $('#tableHint').textContent = `Shown in ${mode === 'real' ? "today's dollars" : 'future dollars'}. Spending, income and payments are the same in every case; only net worth varies with markets.`;
+  const D = (v, t) => disp(v, t, res);
+  let h = `<thead><tr><th>Year</th><th>${res.two ? 'Ages' : 'Age'}</th><th class="n">Income</th><th class="n">Spending</th><th class="n">Debt payments</th><th class="n">College and purchases</th><th class="n">Worst case</th><th class="n">Mid case</th><th class="n">Best case</th><th>Notes</th></tr></thead><tbody>`;
+  for (let t = 0; t <= res.H; t++) {
+    const cell = v => `<td class="n${v < -0.5 ? ' neg' : ''}">${money(v)}</td>`;
+    const blank = '<td class="n">–</td>';
+    const outOfMoney = res.liq50[t] <= 0.5 && t > 0;
+    h += `<tr class="${t === res.retireT && t > 0 ? 'ret' : ''}">
+      <td>${t === 0 ? 'Now' : Y0 + t}</td>
+      <td>${res.a1 + t}${res.two ? ' / ' + (res.a2 + t) : ''}</td>
+      ${t === 0 ? blank + blank + blank + blank : cell(D(res.inc[t], t)) + cell(D(res.spend[t], t)) + cell(D(res.debtPay[t], t)) + cell(D(res.special[t], t))}
+      ${cell(D(res.p10[t], t))}<td class="n mid${res.p50[t] < -0.5 ? ' neg' : ''}">${money(D(res.p50[t], t))}</td>${cell(D(res.p90[t], t))}
+      <td class="notes">${[...res.events[t], outOfMoney ? 'Mid case savings used up' : ''].filter(Boolean).map(esc).join(', ')}</td></tr>`;
+  }
+  tb.innerHTML = h + '</tbody>';
+}
+
+function renderMobileBar() {
+  const res = current, bar = $('#mobilebar');
+  if (res.empty) { bar.innerHTML = '<span>Add assets and income to see your projection.</span>'; return; }
+  const rt = res.retireT === null ? res.H : res.retireT;
+  bar.innerHTML = `<span>Mid case at retirement <b>${money(disp(res.p50[rt], rt, res))}</b></span><span class="tag ${pctClass(res.success)}">Lasts in ${Math.round(res.success * 100)}%</span><button type="button" class="link" id="toTop">See chart</button>`;
+}
+
+function renderResults() {
+  renderHero(); renderVerdict(); renderWarnings(); renderLegend(); renderChart(); syncPlay(); renderPlayResult();
+  renderScenarios(); renderTable(); renderMobileBar(); renderSummaries(); renderProgress();
+  persist(); renderFileLabel();
+}
+function recompute() {
+  current = project(state);
+  current.wo = current.empty ? null : workOptional(state);
+  if (play.retire !== null && play.retire === n(state.people.p1.retireAge) && !play.spend && !play.ret) play.retire = null;
+  computePlay();
+  renderResults();
+}
+
+/* ---------- Scenarios ---------- */
+$('#btnScSave').addEventListener('click', () => {
+  clearTimeout(timer); current = project(state);
+  let name = $('#scName').value.trim() || `Scenario ${scenarios.length + 1}`;
+  const base = name; let k = 2;
+  while (scenarios.some(s => s.name === name)) name = `${base} (${k++})`;
+  const snap = clone(state);
+  scenarios.push({ name, state: snap, show: true, res: project(snap) });
+  $('#scName').value = '';
+  dirty = true;
+  renderResults();
+  notify(`Saved "${name}". Change your inputs to compare against it.`);
+});
+$('#scName').addEventListener('keydown', e => { if (e.key === 'Enter') $('#btnScSave').click(); });
+$('#scWrap').addEventListener('click', e => {
+  const b = e.target.closest('[data-sc]'); if (!b) return;
+  const i = +b.dataset.i, sc = scenarios[i];
+  if (b.dataset.sc === 'show') {
+    sc.show = !sc.show; renderResults();
+    const nb = $(`#scWrap [data-sc="show"][data-i="${i}"]`); if (nb) nb.focus();
+  } else if (b.dataset.sc === 'delete') {
+    scenarios.splice(i, 1); dirty = true; renderResults();
+    notify(`Deleted "${sc.name}".`, false, ['Undo', () => { scenarios.splice(Math.min(i, scenarios.length), 0, sc); renderResults(); notify(`Restored "${sc.name}".`); }]);
+  }
+});
+
+/* ---------- Dollar mode ---------- */
+document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
+  mode = b.dataset.mode;
+  document.querySelectorAll('.seg button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  renderResults();
+}));
+document.addEventListener('click', e => { if (e.target.id === 'toTop') $('#results').scrollIntoView({ behavior: 'smooth' }); });
+
+/* ---------- CSV ---------- */
+const csvCell = v => { const s = String(v ?? ''); return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+const toCSV = rows => rows.map(r => r.map(csvCell).join(',')).join('\r\n') + '\r\n';
+function parseCSV(text) {
+  const rows = []; let row = [], cell = '', q = false;
+  text = text.replace(/^\uFEFF/, '');
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; }
+      else cell += c;
+    } else if (c === '"') q = true;
+    else if (c === ',') { row.push(cell); cell = ''; }
+    else if (c === '\n' || c === '\r') { if (c === '\r' && text[i + 1] === '\n') i++; row.push(cell); rows.push(row); row = []; cell = ''; }
+    else cell += c;
+  }
+  if (cell !== '' || row.length) { row.push(cell); rows.push(row); }
+  return rows.filter(r => r.some(x => x !== ''));
+}
+function flatten(obj, prefix = '', out = []) {
+  if (Array.isArray(obj)) { if (!obj.length) out.push([prefix, '[]']); obj.forEach((v, i) => flatten(v, prefix ? `${prefix}.${i}` : String(i), out)); }
+  else if (obj && typeof obj === 'object') { for (const k of Object.keys(obj)) flatten(obj[k], prefix ? `${prefix}.${k}` : k, out); }
+  else out.push([prefix, obj === null || obj === undefined ? '' : String(obj)]);
+  return out;
+}
+const STRING_KEYS = new Set(['name', 'label', 'kind', 'owner', 'type']);
+function parseVal(v, key) {
+  if (v === '[]') return [];
+  if (STRING_KEYS.has(key)) return v;
+  if (v === '') return null;
+  if (v === 'true') return true;
+  if (v === 'false') return false;
+  const x = Number(v);
+  return Number.isFinite(x) ? x : v;
+}
+function unflatten(pairs) {
+  const root = {};
+  for (const [path, val] of pairs) {
+    if (!/^[A-Za-z0-9_.]+$/.test(path) || /(^|\.)(__proto__|constructor|prototype)(\.|$)/.test(path)) continue;
+    const ks = path.split('.'); let o = root;
+    for (let i = 0; i < ks.length; i++) {
+      const k = ks[i];
+      if (i === ks.length - 1) o[k] = parseVal(val, k);
+      else { if (o[k] === null || typeof o[k] !== 'object') o[k] = /^\d+$/.test(ks[i + 1]) ? [] : {}; o = o[k]; }
+    }
+  }
+  return root;
+}
+// Backups from earlier versions stored two numbers: spending before and in retirement
+function legacySpending(o) {
+  if (!o || typeof o !== 'object') return [];
+  const out = [];
+  if (n(o.preRetirement)) out.push({ ...NEW.spending(), label: 'Living expenses before retirement', when: 'pre', amount: n(o.preRetirement) });
+  if (n(o.retirement)) out.push({ ...NEW.spending(), label: 'Living expenses in retirement', when: 'ret', amount: n(o.retirement) });
+  return out;
+}
+function normalize(x) {
+  const b = BLANK(); x = x || {};
+  const arr = (v, mk) => (Array.isArray(v) ? v.filter(Boolean).map(r => ({ ...mk(), ...r })) : []);
+  return {
+    people: { p1: { ...b.people.p1, ...(x.people && x.people.p1) }, p2: { ...b.people.p2, ...(x.people && x.people.p2) } },
+    dependents: arr(x.dependents, NEW.dependents),
+    assets: arr(x.assets, NEW.assets),
+    liabilities: arr(x.liabilities, NEW.liabilities).map(l => {
+      // Backups from the first version stored a yearly payment
+      if ('payment' in l) { if (!n(l.monthlyPayment) && has(l.payment)) l.monthlyPayment = Math.round(n(l.payment) / 12); delete l.payment; }
+      return l;
+    }),
+    income: arr(x.income, NEW.income),
+    spending: Array.isArray(x.spending) ? arr(x.spending, NEW.spending) : legacySpending(x.spending),
+    purchases: arr(x.purchases, NEW.purchases),
+    assumptions: { ...b.assumptions, ...x.assumptions }
+  };
+}
+function download(name, text) {
+  try { return doDownload(name, text); }
+  catch (err) { notify("This browser blocked the download. Open the planner file directly (not inside a preview window) and try again.", true); return false; }
+}
+function doDownload(name, text) {
+  const blob = text instanceof Blob ? text : new Blob([text], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob), a = document.createElement('a');
+  a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+  return true;
+}
+const stamp = () => new Date().toISOString().slice(0, 10);
+
+// Ask for a file name in our own dialog (used where the browser has no save picker)
+function askFileName(title, suggested) {
+  return new Promise(resolve => {
+    const dlg = $('#nameDlg'), inp = $('#nameDlgInput'), prev = document.activeElement;
+    $('#nameDlgTitle').textContent = title;
+    inp.value = suggested.replace(/\.csv$/i, '');
+    dlg.hidden = false; inp.focus(); inp.select();
+    const done = v => { dlg.hidden = true; cleanup(); if (prev && prev.focus) prev.focus(); resolve(v); };
+    const ok = () => { const v = inp.value.trim().replace(/[\\/:*?"<>|]+/g, '-'); if (v) done(v.replace(/\.csv$/i, '') + '.csv'); else inp.focus(); };
+    const cancel = () => done(null);
+    const key = e => { if (e.key === 'Enter') ok(); else if (e.key === 'Escape') cancel(); };
+    const back = e => { if (e.target === dlg) cancel(); };
+    function cleanup() { $('#nameDlgOk').removeEventListener('click', ok); $('#nameDlgCancel').removeEventListener('click', cancel); inp.removeEventListener('keydown', key); dlg.removeEventListener('click', back); }
+    $('#nameDlgOk').addEventListener('click', ok); $('#nameDlgCancel').addEventListener('click', cancel);
+    inp.addEventListener('keydown', key); dlg.addEventListener('click', back);
+  });
+}
+// Save a CSV: the browser's own Save As picker (choose folder and name) where supported, otherwise name it and download.
+async function saveFile(suggested, text, title) {
+  if (typeof window.showSaveFilePicker === 'function') {
+    try {
+      const handle = await window.showSaveFilePicker({ suggestedName: suggested, types: [{ description: 'CSV file', accept: { 'text/csv': ['.csv'] } }] });
+      const w = await handle.createWritable();
+      await w.write(new Blob([text], { type: 'text/csv' })); await w.close();
+      return handle.name;
+    } catch (err) {
+      if (err && err.name === 'AbortError') return null; // cancelled
+      // Picker not allowed here (for example inside a preview frame): fall back below
+    }
+  }
+  const name = await askFileName(title, suggested);
+  if (!name) return null;
+  return download(name, text) ? name : null;
+}
+
+// Autosave: the whole plan is kept in this browser's storage on this device, and restored on the next visit
+const SAVE_KEY = 'netWorthPlanner.v2';
+let fileName = null, storageOk = true, canPersist = false, celebrated = false;
+function persist() {
+  if (!canPersist) return;
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify({ v: 2, state, scenarios: scenarios.map(sc => ({ name: sc.name, state: sc.state, show: sc.show })), isExample, fileName, celebrated, savedAt: new Date().toISOString() }));
+    storageOk = true; dirty = false;
+  } catch (e) { storageOk = false; }
+}
+function restoreSaved() {
+  try {
+    const o = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
+    if (o && o.v === 2 && o.state) {
+      state = normalize(o.state);
+      scenarios = (o.scenarios || []).map(x => { const st = normalize(x.state); return { name: String(x.name || 'Scenario'), state: st, show: x.show !== false, res: project(st) }; });
+      isExample = !!o.isExample; fileName = o.fileName || null; celebrated = !!o.celebrated;
+      return true;
+    }
+    const old = JSON.parse(localStorage.getItem('netWorthPlanner.lastFile') || 'null'); // saved by the previous version
+    if (old && typeof old.text === 'string') { loadBackupText(old.text); fileName = old.name; return true; }
+  } catch (e) { /* nothing usable saved */ }
+  return false;
+}
+function renderFileLabel() {
+  const el = $('#fileLabel');
+  if (!storageOk && canPersist) { el.innerHTML = `<span style="color:var(--coral-deep)">This browser won't let the planner save. Use Save a copy before you close it.</span>`; return; }
+  el.innerHTML = canPersist ? `Saved automatically on this device${fileName ? `. Last copy: <b>${esc(fileName)}</b>` : ''}.` : '';
+}
+const CURRENT = '(current inputs)';
+
+function backupText() {
+  const rows = [['scenario', 'field', 'value'], ['_meta', 'format', 'simple-retirement-planner'], ['_meta', 'version', '2'], ['_meta', 'saved', new Date().toISOString()]];
+  for (const [f, v] of flatten(state)) rows.push([CURRENT, f, v]);
+  for (const sc of scenarios) { rows.push([sc.name, '_show', String(sc.show)]); for (const [f, v] of flatten(sc.state)) rows.push([sc.name, f, v]); }
+  return toCSV(rows);
+}
+$('#btnSave').addEventListener('click', async () => {
+  const text = backupText(), suggested = fileName || `net-worth-plan-${stamp()}.csv`;
+  let saved = null;
+  // On phones, hand the file to the share sheet (Files, iCloud Drive, email, AirDrop)
+  if (matchMedia('(pointer:coarse)').matches && navigator.canShare) {
+    try {
+      const file = new File([text], suggested, { type: 'text/csv' });
+      if (navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: 'Net Worth Planner copy' }); saved = suggested; }
+    } catch (err) { if (err && err.name === 'AbortError') return; }
+  }
+  if (!saved) saved = await saveFile(suggested, text, 'Save a copy');
+  if (!saved) return;
+  fileName = saved; persist(); renderFileLabel();
+  notify(`Saved a copy as ${saved}. Your plan also stays saved on this device.`);
+});
+
+$('#btnOpen').addEventListener('click', () => $('#fileIn').click());
+function loadBackupText(text) {
+    const rows = parseCSV(text);
+    const okHeader = rows[0] && rows[0][0] === 'scenario' && rows[0][1] === 'field';
+    const okMeta = rows.some(r => r[0] === '_meta' && r[1] === 'format' && r[2] === 'simple-retirement-planner');
+    if (!okHeader || !okMeta) throw new Error('format');
+    const groups = new Map();
+    for (const r of rows.slice(1)) {
+      if (r[0] === '_meta') continue;
+      if (!groups.has(r[0])) groups.set(r[0], []);
+      groups.get(r[0]).push([r[1] || '', r[2] ?? '']);
+    }
+    if (!groups.has(CURRENT)) throw new Error('format');
+    state = normalize(unflatten(groups.get(CURRENT)));
+    scenarios = [];
+    for (const [name, pairs] of groups) {
+      if (name === CURRENT) continue;
+      const show = pairs.find(p => p[0] === '_show');
+      const st = normalize(unflatten(pairs.filter(p => p[0] !== '_show')));
+      scenarios.push({ name, state: st, show: show ? show[1] === 'true' : true, res: project(st) });
+    }
+    dirty = false; isExample = false; updateResetBtn();
+    renderInputs(); recompute();
+}
+const scCount = () => scenarios.length ? ` with ${scenarios.length} scenario${scenarios.length > 1 ? 's' : ''}` : '';
+$('#fileIn').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  try {
+    const text = await f.text();
+    loadBackupText(text);
+    fileName = f.name; canPersist = true; closeQuickStart(); clearPlay(); recompute(); persist(); renderFileLabel();
+    notify(`Opened ${f.name}${scCount()}. It's now saved on this device too.`);
+  } catch (err) {
+    notify(`${f.name} isn't a planner copy. Choose a CSV made with Save a copy.`, true);
+  }
+});
+
+$('#btnExport').addEventListener('click', async () => {
+  if (current.empty) { notify('Add at least one asset or income before exporting projections.', true); return; }
+  const unit = mode === 'real' ? "today's dollars" : 'future dollars';
+  const all = [current, ...scenarios.map(sc => sc.res)];
+  const cats = SPEND_CATS.filter(([c]) => all.some(r => r.catSpend && r.catSpend[c]));
+  const rows = [['scenario', 'year', 'age_partner_1', 'age_partner_2', 'income', 'spending', ...cats.map(([, l]) => 'spending_' + l.toLowerCase().replace(/\W+/g, '_')), 'debt_payments', 'college_and_purchases', 'net_worth_worst', 'net_worth_mid', 'net_worth_best', 'savings_mid', 'notes', 'dollars']];
+  const add = (name, res) => {
+    for (let t = 0; t <= res.H; t++) {
+      const D = v => Math.round(disp(v, t, res));
+      rows.push([name, Y0 + t, res.a1 + t, res.two ? res.a2 + t : '', D(res.inc[t]), D(res.spend[t]), ...cats.map(([c]) => D(res.catSpend && res.catSpend[c] ? res.catSpend[c][t] : 0)), D(res.debtPay[t]), D(res.special[t]), D(res.p10[t]), D(res.p50[t]), D(res.p90[t]), D(res.liq50[t]), res.events[t].join('; '), unit]);
+    }
+  };
+  add('Current inputs', current);
+  for (const sc of scenarios) if (!sc.res.empty) add(sc.name, sc.res);
+  const saved = await saveFile(`net-worth-projections-${stamp()}.csv`, toCSV(rows), 'Export projections');
+  if (!saved) return;
+  notify(`Exported ${saved} in ${unit}${scenarios.length ? `, including ${scenarios.length} scenario${scenarios.length > 1 ? 's' : ''}` : ''}.`);
+});
+
+/* ---------- Reset: start over with quick start ---------- */
+let armed = null;
+function updateResetBtn() {
+  const b = $('#btnReset');
+  b.classList.remove('armed');
+  b.dataset.tip = 'Reset and start over'; b.setAttribute('aria-label', 'Reset and start over');
+  b.querySelector('.lbl').textContent = 'Reset';
+}
+$('#btnReset').addEventListener('click', () => {
+  const b = $('#btnReset');
+  if (!armed) {
+    b.dataset.tip = 'Click again to start over'; b.setAttribute('aria-label', 'Click again to start over');
+    b.querySelector('.lbl').textContent = 'Sure?';
+    b.classList.add('armed');
+    armed = setTimeout(() => { armed = null; updateResetBtn(); }, 4000);
+    return;
+  }
+  clearTimeout(armed); armed = null; updateResetBtn();
+  openQuickStart(true);
+});
+
+/* ---------- Quick start ---------- */
+const QS_STEPS = ['welcome', 'people', 'retire', 'kids', 'savings', 'home', 'income', 'spend'];
+const qs = { step: 0, d: null, canClose: false };
+function qsDefaults() {
+  return { name1: '', age1: null, two: false, name2: '', age2: null, retireAge: 65, kids: [], retSaved: null, otherSaved: null,
+    ownHome: false, homeValue: null, mortgage: null, mortgageRate: 4, mortgageEnd: Y0 + 25, takeHome: null, contrib: null, spend: null, spendTouched: false };
+}
+function openQuickStart(canClose) {
+  qs.step = 0; qs.d = qsDefaults(); qs.canClose = !!canClose;
+  $('#qsClose').hidden = !qs.canClose;
+  $('#qs').hidden = false; document.body.classList.add('qs-open');
+  renderQS();
+}
+function closeQuickStart() { $('#qs').hidden = true; document.body.classList.remove('qs-open'); }
+
+const qMoney = (key, label, hint, ph) => `<div class="fld"><label for="q_${key}">${label}</label><div class="inp"><span class="pre">$</span><input id="q_${key}" type="text" inputmode="decimal" data-q="${key}" data-qk="money" value="${esc(fmtInput(qs.d[key], 'money'))}" placeholder="${esc(ph || '0')}" autocomplete="off"></div>${hint ? `<div class="hint2">${hint}</div>` : ''}</div>`;
+const qNum = (key, label, ph, suf) => `<div class="fld"><label for="q_${key}">${label}</label><div class="inp"><input id="q_${key}" type="text" inputmode="numeric" data-q="${key}" data-qk="num" value="${esc(fmtInput(qs.d[key]))}" placeholder="${esc(ph || '')}" autocomplete="off">${suf ? `<span class="suf">${suf}</span>` : ''}</div></div>`;
+const qText = (key, label, ph) => `<div class="fld"><label for="q_${key}">${label}</label><div class="inp"><input id="q_${key}" type="text" data-q="${key}" data-qk="text" value="${esc(qs.d[key])}" placeholder="${esc(ph || '')}" autocomplete="off"></div></div>`;
+const qToggle = (key, opts) => `<div class="qs-toggle">${opts.map(([v, t]) => `<button type="button" data-qset="${key}" data-val="${v}" aria-pressed="${String(qs.d[key]) === String(v)}">${t}</button>`).join('')}</div>`;
+
+function estMortgagePay(d) { return loanPayment({ balance: d.mortgage, rate: d.mortgageRate, monthlyPayment: null, endYear: d.mortgageEnd }); }
+function estSpend(d) {
+  const mort = d.ownHome ? estMortgagePay(d) * 12 : 0;
+  return Math.max(0, Math.round((n(d.takeHome) * 0.85 - mort) / 1000) * 1000);
+}
+
+function renderQS() {
+  const d = qs.d, step = QS_STEPS[qs.step], who = d.name1.trim() || 'you';
+  $('#qsBar').style.width = `${(qs.step / (QS_STEPS.length)) * 100}%`;
+  let h = '';
+  if (step === 'welcome') h = `<div class="qs-emoji">🌱</div><h2 id="qsTitle">Let's sketch your future</h2>
+    <p>Seven quick questions, about a minute. Rough numbers are fine; you can fine-tune everything later.</p>
+    <p class="qs-private">🤫 Everything you type stays on this device. Nothing is sent anywhere, not even to us.</p>
+    <div class="qs-alt"><button type="button" class="link" data-qalt="example">Look at an example first</button><button type="button" class="link" data-qalt="open">Open a saved copy</button></div>`;
+  if (step === 'people') h = `<h2 id="qsTitle">Who's planning?</h2><p>Your first name makes the plan feel like yours. It's optional.</p>
+    <div class="qs-grid">${qText('name1', 'Your first name', 'e.g. Sam')}${qNum('age1', 'Your age', 'e.g. 40')}</div>
+    ${qToggle('two', [[false, 'Just me'], [true, 'With a partner']])}
+    ${d.two ? `<div class="qs-grid">${qText('name2', "Partner's first name", 'e.g. Jordan')}${qNum('age2', "Partner's age", 'e.g. 40')}</div>` : ''}`;
+  if (step === 'retire') {
+    const min = Math.max(30, n(d.age1) + 1);
+    if (d.retireAge < min) d.retireAge = min;
+    h = `<h2 id="qsTitle">When would you like to stop working?</h2><p>${d.two ? "We'll use this age for both of you for now." : 'Pick the age that feels right. You can change it any time.'}</p>
+    <div class="qs-big" id="qsRetOut">${d.retireAge}<small>in ${Y0 + d.retireAge - n(d.age1)}</small></div>
+    <input class="qs-range" type="range" min="${min}" max="80" step="1" value="${d.retireAge}" data-q="retireAge" data-qk="range" aria-label="Retirement age">`;
+  }
+  if (step === 'kids') h = `<h2 id="qsTitle">Any kids you'd like to help through college?</h2><p>Add each child's age. We'll plan four years of college for each, starting at 18. Skip this if it doesn't apply.</p>
+    <div class="qs-kids">${d.kids.map((a, i) => `<span class="kid">Child ${i + 1}, age <input type="text" inputmode="numeric" data-qkid="${i}" value="${esc(fmtInput(a))}" aria-label="Child ${i + 1} age"><button type="button" class="rm" data-qkiddel="${i}" aria-label="Remove child ${i + 1}">×</button></span>`).join('')}</div>
+    <button type="button" class="add" data-qkidadd>Add a child</button>`;
+  if (step === 'savings') h = `<h2 id="qsTitle">Roughly how much have you saved?</h2><p>A ballpark is perfect. Add up everything, even if it's spread across accounts.</p>
+    ${qMoney('retSaved', 'In retirement accounts', '401(k), IRA, Roth, pension savings')}
+    ${qMoney('otherSaved', 'Other savings and investments', 'Bank accounts, brokerage, cash')}`;
+  if (step === 'home') h = `<h2 id="qsTitle">Do you own a home?</h2><p>It counts toward your net worth, but the plan never sells it to pay the bills.</p>
+    ${qToggle('ownHome', [[true, 'Yes'], [false, 'No']])}
+    ${d.ownHome ? `${qMoney('homeValue', "What it's worth today")}${qMoney('mortgage', 'Mortgage left', 'Enter 0 if it\'s paid off')}
+      <div class="qs-grid">${qNum('mortgageEnd', 'Paid off by', String(Y0 + 25))}${qNum('mortgageRate', 'Interest', '4', '%')}</div>` : ''}`;
+  if (step === 'income') h = `<h2 id="qsTitle">What does your household take home?</h2><p>Yearly pay after taxes and retirement contributions${d.two ? ', for both of you together' : ''}. Your bank deposits × 12 is a good guess.</p>
+    ${qMoney('takeHome', 'Take-home pay per year')}
+    ${qMoney('contrib', 'Put into retirement accounts per year', 'Include any employer match')}`;
+  if (step === 'spend') {
+    if (!d.spendTouched && d.spend === null && n(d.takeHome) > 0) d.spend = estSpend(d);
+    h = `<h2 id="qsTitle">And what do you spend in a year?</h2><p>Everything except ${d.ownHome ? 'mortgage payments and ' : ''}college. ${n(d.takeHome) > 0 ? "We've guessed from your pay; adjust if you know better." : ''}</p>
+    ${qMoney('spend', 'Spending per year')}
+    <p class="hint2">In retirement we'll start you at 85% of this. You can itemize later: home, food, health, travel and more.</p>`;
+  }
+  $('#qsBody').innerHTML = h;
+  $('#qsBody').style.animation = 'none'; void $('#qsBody').offsetWidth; $('#qsBody').style.animation = '';
+  $('#qsBack').hidden = qs.step === 0;
+  $('#qsNext').textContent = step === 'welcome' ? "Let's go" : step === 'spend' ? 'See my plan ✨' : (step === 'kids' && !d.kids.length) ? 'Skip' : 'Continue';
+  const first = $('#qsBody input');
+  if (first && step !== 'retire' && !matchMedia('(pointer:coarse)').matches) first.focus();
+  else $('#qsNext').focus();
+}
+$('#qsBody').addEventListener('input', e => {
+  const el = e.target, d = qs.d;
+  if (el.dataset.qkid !== undefined) { const v = parseFloat(el.value.replace(/[^0-9.]/g, '')); d.kids[+el.dataset.qkid] = Number.isFinite(v) ? v : null; return; }
+  const key = el.dataset.q; if (!key) return;
+  const k = el.dataset.qk;
+  if (k === 'text') d[key] = el.value;
+  else { const v = parseFloat(el.value.replace(/[^0-9.]/g, '')); d[key] = Number.isFinite(v) ? v : null; }
+  if (key === 'spend') d.spendTouched = true;
+  if (k === 'range') $('#qsRetOut').innerHTML = `${d.retireAge}<small>in ${Y0 + d.retireAge - n(d.age1)}</small>`;
+});
+$('#qsBody').addEventListener('focusout', e => { const el = e.target; if (el.dataset && el.dataset.qk === 'money') el.value = fmtInput(qs.d[el.dataset.q], 'money'); });
+$('#qsBody').addEventListener('click', e => {
+  const t = e.target.closest('button'); if (!t) return;
+  const d = qs.d;
+  if (t.dataset.qset) { d[t.dataset.qset] = t.dataset.val === 'true'; renderQS(); }
+  else if (t.hasAttribute('data-qkidadd')) { d.kids.push(null); renderQS(); const ins = $('#qsBody').querySelectorAll('[data-qkid]'); ins[ins.length - 1].focus(); }
+  else if (t.dataset.qkiddel !== undefined) { d.kids.splice(+t.dataset.qkiddel, 1); renderQS(); }
+  else if (t.dataset.qalt === 'example') {
+    state = EXAMPLE(); scenarios = []; isExample = true; fileName = null; canPersist = true;
+    closeQuickStart(); clearPlay(); renderInputs(); recompute();
+    notify('This is a made-up household. Press Reset whenever you want to start your own.');
+  } else if (t.dataset.qalt === 'open') $('#fileIn').click();
+});
+$('#qsBody').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); $('#qsNext').click(); } });
+$('#qsBack').addEventListener('click', () => { if (qs.step > 0) { qs.step--; renderQS(); } });
+$('#qsClose').addEventListener('click', closeQuickStart);
+$('#qsNext').addEventListener('click', () => {
+  const step = QS_STEPS[qs.step], d = qs.d;
+  if (step === 'people') {
+    if (!(n(d.age1) >= 16 && n(d.age1) <= 100)) { const i = $('#q_age1'); i.focus(); i.closest('.inp').style.borderColor = 'var(--coral)'; return; }
+    if (d.two && !(n(d.age2) >= 16 && n(d.age2) <= 100)) d.age2 = d.age1;
+  }
+  if (step === 'kids') d.kids = d.kids.filter(a => Number.isFinite(a) && a >= 0 && a < 30);
+  if (qs.step < QS_STEPS.length - 1) { qs.step++; renderQS(); return; }
+  finishQuickStart();
+});
+
+function socialSecurityGuess(takeHomeShare) {
+  // Very rough: gross pay is about take-home / 0.72, and Social Security replaces about 40% of it, within typical limits.
+  const gross = n(takeHomeShare) / 0.72;
+  return Math.round(Math.min(45000, Math.max(12000, gross * 0.4)) / 100) * 100;
+}
+function finishQuickStart() {
+  const d = qs.d, s = BLANK();
+  s.people.p1 = { name: d.name1.trim(), age: n(d.age1), retireAge: d.retireAge, planToAge: 95 };
+  if (d.two) s.people.p2 = { enabled: true, name: d.name2.trim(), age: n(d.age2), retireAge: d.retireAge, planToAge: 95 };
+  state = s; // names are needed for labels below
+  const est = true;
+  s.dependents = d.kids.map((a, i) => ({ name: `Child ${i + 1}`, age: a, college: true, collegeCost: 30000, collegeStartAge: 18, collegeYears: 4, est }));
+  if (n(d.retSaved) > 0 || n(d.contrib) > 0) s.assets.push({ label: d.two ? 'Retirement accounts' : `${nm('p1')}'s retirement accounts`, kind: 'retirement', owner: d.two ? 'joint' : 'p1', balance: n(d.retSaved), contribution: n(d.contrib), est });
+  if (n(d.otherSaved) > 0) s.assets.push({ label: 'Savings and investments', kind: 'nonretirement', owner: 'joint', balance: n(d.otherSaved), contribution: 0, est });
+  if (d.ownHome && n(d.homeValue) > 0) s.assets.push({ label: 'Home', kind: 'other', owner: 'joint', balance: n(d.homeValue), contribution: 0, est });
+  if (d.ownHome && n(d.mortgage) > 0) s.liabilities.push({ label: 'Mortgage', balance: n(d.mortgage), rate: n(d.mortgageRate) || 4, monthlyPayment: null, endYear: has(d.mortgageEnd) ? n(d.mortgageEnd) : Y0 + 25, est });
+  if (n(d.takeHome) > 0) {
+    const owners = d.two ? ['p1', 'p2'] : ['p1'], share = n(d.takeHome) / owners.length;
+    for (const o of owners) s.income.push({ label: '', type: 'salary', owner: o, amount: Math.round(share), startAge: null, endAge: null, est });
+    for (const o of owners) s.income.push({ label: '', type: 'benefit', owner: o, amount: socialSecurityGuess(share), startAge: 67, endAge: null, est });
+    for (const i of s.income) i.label = incomeLabel(i);
+  }
+  const sp = d.spend !== null ? n(d.spend) : estSpend(d);
+  if (sp > 0) {
+    s.spending.push({ label: 'Living expenses', category: 'other', when: 'pre', amount: sp, fromAge: null, toAge: null, est });
+    s.spending.push({ label: 'Living expenses in retirement', category: 'other', when: 'ret', amount: Math.round(sp * 0.85 / 1000) * 1000, fromAge: null, toAge: null, est });
+  }
+  scenarios = []; isExample = false; fileName = null; canPersist = true; celebrated = false;
+  closeQuickStart(); clearPlay(); renderInputs(); recompute();
+  askPersistentStorage(); maybeShowIOSTip();
+  window.scrollTo({ top: 0 });
+  revealHero(true);
+}
+
+/* ---------- Work-optional age ---------- */
+const WO_TARGET = 0.85;
+function workOptional(s) {
+  const p1 = s.people.p1, r1 = n(p1.retireAge), a1 = n(p1.age), two = s.people.p2.enabled, r2 = n(s.people.p2.retireAge);
+  const minA = Math.max(a1, 30), maxA = Math.min(80, Math.max(minA, n(p1.planToAge) - 1));
+  const test = A => { const c = clone(s); c.people.p1.retireAge = A; if (two) c.people.p2.retireAge = r2 + (A - r1); return project(c, 400).success >= WO_TARGET; };
+  if (!test(maxA)) return null;
+  if (test(minA)) return minA;
+  let lo = minA, hi = maxA;
+  while (hi - lo > 1) { const m = (lo + hi) >> 1; if (test(m)) hi = m; else lo = m; }
+  return hi;
+}
+
+/* ---------- Hero ---------- */
+function heroNumber(res) { return res.wo === null ? null : res.wo; }
+function renderHero() {
+  const el = $('#hero'), res = current;
+  if (res.empty) { el.innerHTML = ''; return; }
+  const p1 = state.people.p1, planned = n(p1.retireAge), n1 = res.names[0], two = res.two, wo = res.wo;
+  const pc = Math.round(res.success * 100);
+  let kicker, num, say;
+  if (res.retireT === 0) {
+    kicker = "You're retired";
+    num = `${pc}<small>%</small>`;
+    say = `Your savings last the whole plan in ${pc} of 100 simulated markets.`;
+  } else if (wo === null) {
+    kicker = 'Work-optional';
+    num = `80+`;
+    say = `Even working until 80, this plan runs short in too many markets. Try the sliders below: a little less spending goes a long way.`;
+  } else {
+    const diff = planned - wo, yrs = wo - res.a1;
+    kicker = two ? `Work-optional when ${esc(n1)} is` : 'You could be work-optional at';
+    num = `${wo}`;
+    const when = yrs <= 0 ? 'That could be now' : `That's ${Y0 + yrs}, ${yrs} year${yrs === 1 ? '' : 's'} from now`;
+    const vs = diff > 0 ? ` <span class="good">${diff} year${diff === 1 ? '' : 's'} before</span> the ${planned} you planned 🎉`
+      : diff === 0 ? ', right on your plan 👌' : ` <span class="later">${-diff} year${diff === -1 ? '' : 's'} after</span> the ${planned} you planned. The sliders below can close the gap.`;
+    say = `${when},${vs}`;
+  }
+  el.innerHTML = `<div class="big"><span class="kicker">${kicker}</span><span class="num" id="heroNum">${num}</span></div>
+    <div><p class="say">${say}</p>
+      <div class="meta"><span>Savings last the whole plan in <b>${pc}%</b> of markets</span>${wo !== null && res.retireT !== 0 ? '<button type="button" class="link" id="btnShare">Share this milestone</button>' : ''}</div>
+      <div class="def">Work-optional means your savings would last the whole plan in at least ${Math.round(WO_TARGET * 100)} of 100 simulated markets, if you stopped working then.</div></div>`;
+}
+function revealHero(celebrate) {
+  const res = current, el = $('#heroNum');
+  if (!el || res.empty) return;
+  const target = res.wo;
+  if (target !== null && res.retireT !== 0 && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const from = Math.min(80, target + 15), t0 = performance.now();
+    const tick = now => { const k = Math.min(1, (now - t0) / 900), e = 1 - Math.pow(1 - k, 3); el.textContent = Math.round(from + (target - from) * e); if (k < 1) requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
+  }
+  if (celebrate && res.success >= WO_TARGET) setTimeout(confetti, 500);
+}
+document.addEventListener('click', e => { if (e.target.id === 'btnShare') shareMilestone(); });
+
+async function shareMilestone() {
+  const res = current; if (!res || res.wo === null) return;
+  const c = document.createElement('canvas'); c.width = 1080; c.height = 1080;
+  const g = c.getContext('2d'), F = getComputedStyle(document.body).fontFamily;
+  const grad = g.createLinearGradient(0, 0, 1080, 1080); grad.addColorStop(0, '#D3EAF2'); grad.addColorStop(1, '#D5F1E0');
+  g.fillStyle = grad; g.fillRect(0, 0, 1080, 1080);
+  g.fillStyle = '#2B6B7E'; g.font = `600 52px ${F}`; g.textAlign = 'center';
+  g.fillText(res.two ? 'We could be work-optional' : 'I could be work-optional at', 540, 330);
+  if (res.two) g.fillText(`when ${res.names[0]} is`, 540, 400);
+  g.fillStyle = '#26333A'; g.font = `700 300px ${F}`; g.fillText(String(res.wo), 540, res.two ? 700 : 660);
+  g.font = `100px ${F}`; g.fillText('🎉', 540, res.two ? 850 : 810);
+  g.fillStyle = '#66757D'; g.font = `500 36px ${F}`; g.fillText('Planned privately with Net Worth Planner 🤫', 540, 980);
+  const blob = await new Promise(r => c.toBlob(r, 'image/png'));
+  const file = new File([blob], 'work-optional.png', { type: 'image/png' });
+  const url = /^https?:$/.test(location.protocol) ? location.origin + location.pathname : '';
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file], text: `Planned privately with Net Worth Planner 🤫 ${url}`.trim() }); return; }
+    catch (err) { if (err && err.name === 'AbortError') return; }
+  }
+  try { doDownload('work-optional.png', blob); notify('Saved the milestone image. No dollar amounts are on it.'); } catch (e) { notify("This browser couldn't save the image.", true); }
+}
+
+/* ---------- Play with it ---------- */
+const play = { retire: null, spend: 0, ret: 0 };
+function playActive() { return (play.retire !== null && play.retire !== n(state.people.p1.retireAge)) || play.spend !== 0 || play.ret !== 0; }
+function applyPlay(s) {
+  const c = clone(s), p1 = c.people.p1;
+  if (play.retire !== null) { const d = play.retire - n(p1.retireAge); p1.retireAge = play.retire; if (c.people.p2.enabled) c.people.p2.retireAge = n(c.people.p2.retireAge) + d; }
+  if (play.spend) c.spending.forEach(x => { x.amount = Math.round(n(x.amount) * (1 + play.spend / 100) / 100) * 100; });
+  if (play.ret) { c.assumptions.retReturn = +(n(c.assumptions.retReturn) + play.ret).toFixed(2); c.assumptions.nonReturn = +(n(c.assumptions.nonReturn) + play.ret).toFixed(2); }
+  return c;
+}
+function playName() {
+  const bits = [];
+  if (play.retire !== null && play.retire !== n(state.people.p1.retireAge)) bits.push(`Retire at ${play.retire}`);
+  if (play.spend) bits.push(`spend ${play.spend > 0 ? '+' : '−'}${Math.abs(play.spend)}%`);
+  if (play.ret) bits.push(`returns ${play.ret > 0 ? '+' : '−'}${Math.abs(play.ret)} pts`);
+  const t = bits.join(', ');
+  return t.charAt(0).toUpperCase() + t.slice(1);
+}
+const PRESETS = [
+  ['sooner', 'Retire 2 years sooner', () => ({ retire: n(state.people.p1.retireAge) - 2, spend: 0, ret: 0 })],
+  ['later', 'Work 3 more years', () => ({ retire: n(state.people.p1.retireAge) + 3, spend: 0, ret: 0 })],
+  ['less', 'Spend 10% less', () => ({ retire: null, spend: -10, ret: 0 })],
+  ['tough', 'Tough markets', () => ({ retire: null, spend: 0, ret: -1.5 })]
+];
+function syncPlay() {
+  const p1 = state.people.p1, r = $('#plRetire'), planned = n(p1.retireAge);
+  r.min = Math.max(30, n(p1.age)); r.max = 80;
+  r.value = play.retire === null ? planned : play.retire;
+  const rv = +r.value, d = rv - planned;
+  const two = state.people.p2.enabled;
+  $('#plRetireOut').textContent = String(rv);
+  $('#plSpend').value = play.spend;
+  const now = current && !current.empty ? current.spendNow : 0;
+  const pctTxt = play.spend ? ` (${play.spend > 0 ? '+' : '−'}${Math.abs(play.spend)}%)` : '';
+  $('#plSpendOut').textContent = `${money(now * (1 + play.spend / 100))}/year${pctTxt}`;
+  $('#plRet').value = play.ret;
+  const rNow = +(n(state.assumptions.retReturn) + play.ret).toFixed(1), pts = Math.abs(play.ret);
+  $('#plRetOut').textContent = `${rNow}%${play.ret ? ` (${play.ret > 0 ? '+' : '−'}${pts} ${pts === 1 ? 'pt' : 'pts'})` : ''}`;
+  $('#playChips').innerHTML = PRESETS.map(([id, label, fn]) => {
+    const v = fn(), on = (v.retire === null ? (play.retire === null || play.retire === planned) : play.retire === v.retire) && play.spend === v.spend && play.ret === v.ret;
+    return `<button type="button" class="chip" data-preset="${id}" aria-pressed="${on}">${label}</button>`;
+  }).join('');
+  $('#play').hidden = current.empty;
+}
+let playTimer = null;
+function computePlay() {
+  if (!playActive() || current.empty) { playRes = null; return; }
+  const ps = applyPlay(state);
+  playRes = project(ps); playRes.wo = workOptional(ps);
+}
+function refreshPlay() { computePlay(); renderPlayResult(); renderLegend(); renderChart(); syncPlay(); }
+function clearPlay() { play.retire = null; play.spend = 0; play.ret = 0; playRes = null; }
+function renderPlayResult() {
+  const el = $('#playResult');
+  if (!playRes) { el.hidden = true; el.innerHTML = ''; return; }
+  const base = current, pw = playRes.wo, bw = base.wo;
+  let woTxt;
+  if (pw === null) woTxt = 'work-optional <b>after 80</b>';
+  else woTxt = `work-optional at <b>${pw}</b>`;
+  let woDelta = '';
+  if (pw !== null && bw !== null && pw !== bw) woDelta = `<span class="delta ${pw < bw ? 'good' : 'bad'}">${Math.abs(bw - pw)} yr${Math.abs(bw - pw) === 1 ? '' : 's'} ${pw < bw ? 'sooner' : 'later'}</span>`;
+  const dp = Math.round(playRes.success * 100) - Math.round(base.success * 100);
+  el.innerHTML = `<span>What-if: ${woTxt}${woDelta}, lasts in <b>${Math.round(playRes.success * 100)}%</b> of markets${dp ? `<span class="delta ${dp > 0 ? 'good' : 'bad'}">${dp > 0 ? '+' : '−'}${Math.abs(dp)}</span>` : ''}</span>
+    <span class="pr-actions"><button type="button" class="btn small" id="plApply">Use in my plan</button><button type="button" class="link" id="plSave">Save as scenario</button><button type="button" class="link" id="plClear">Clear</button></span>`;
+  el.hidden = false;
+}
+$('#play').addEventListener('input', e => {
+  const id = e.target.id;
+  if (id === 'plRetire') play.retire = +e.target.value;
+  else if (id === 'plSpend') play.spend = +e.target.value;
+  else if (id === 'plRet') play.ret = +e.target.value;
+  else return;
+  syncPlay();
+  clearTimeout(playTimer); playTimer = setTimeout(refreshPlay, 120);
+});
+$('#play').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.preset) {
+    const pre = PRESETS.find(p => p[0] === b.dataset.preset);
+    if (b.getAttribute('aria-pressed') === 'true') clearPlay(); else Object.assign(play, pre[2]());
+    refreshPlay();
+  } else if (b.id === 'plClear') { clearPlay(); refreshPlay(); }
+  else if (b.id === 'plApply') {
+    const before = clone(state);
+    state = applyPlay(state); clearPlay(); renderInputs(); recompute();
+    notify('Updated your plan with the what-if.', false, ['Undo', () => { state = before; renderInputs(); recompute(); }]);
+  } else if (b.id === 'plSave') {
+    let name = playName() || 'What-if'; const base = name; let k = 2;
+    while (scenarios.some(x => x.name === name)) name = `${base} (${k++})`;
+    const st = applyPlay(state);
+    scenarios.push({ name, state: st, show: true, res: project(st) });
+    clearPlay(); refreshPlay(); renderResults();
+    notify(`Saved "${name}" as a scenario.`);
+  }
+});
+
+/* ---------- Plan progress ---------- */
+function planSteps() {
+  const s = state, anyEst = arr => arr.some(x => x.est);
+  const accts = s.assets.filter(a => a.kind !== 'other');
+  return [
+    ['household', 'Name your household', !!(s.people.p1.name || '').trim() && (!s.people.p2.enabled || !!(s.people.p2.name || '').trim())],
+    ['assets', 'Check your savings', accts.length > 0 && !anyEst(accts)],
+    ['income', 'Check your pay', s.income.some(i => i.type === 'salary' && !i.est) || (s.income.length > 0 && !s.income.some(i => i.type === 'salary'))],
+    ['income', 'Look up your Social Security', s.income.some(i => i.type === 'benefit' && !i.est)],
+    ['spending', 'Itemize your spending', s.spending.length >= 3 && !anyEst(s.spending)],
+    ['liabilities', 'Check your home and loans', !anyEst(s.liabilities) && !s.assets.some(a => a.kind === 'other' && a.est)],
+    ['special', 'Plan college and big purchases', s.purchases.length > 0 || (s.dependents.length > 0 && !anyEst(s.dependents))],
+    ['scenarios', 'Save a what-if scenario', scenarios.length > 0]
+  ];
+}
+function renderProgress() {
+  const el = $('#planProgress');
+  if (isExample) { el.innerHTML = `<div class="pp-text">You're exploring a made-up household. <button type="button" class="link" data-reset-now>Start your own plan →</button></div>`; return; }
+  const steps = planSteps(), done = steps.filter(x => x[2]).length, next = steps.find(x => !x[2]);
+  el.innerHTML = `<div class="pp"><div class="pp-bar"><span style="width:${Math.round(done / steps.length * 100)}%"></span></div>
+    <div class="pp-text"><span><b>${done} of ${steps.length}</b> plan details done.</span>${next ? `<button type="button" class="link" data-jump="${next[0]}">Next: ${esc(next[1])} →</button>` : '<span>Your plan is complete 🎉</span>'}</div></div>`;
+  if (!next && !celebrated && canPersist) { celebrated = true; confetti(); notify('Every plan detail is filled in. Nicely done! 🎉'); }
+}
+$('#planProgress').addEventListener('click', e => {
+  if (e.target.closest('[data-reset-now]')) { openQuickStart(true); return; }
+  const b = e.target.closest('[data-jump]'); if (!b) return;
+  const id = b.dataset.jump;
+  if (id === 'scenarios') { $('#scName').scrollIntoView({ behavior: 'smooth', block: 'center' }); $('#scName').focus({ preventScroll: true }); return; }
+  const sec = inputsEl.querySelector(`details[data-sec="${id}"]`); if (!sec) return;
+  sec.open = true; closedSections.delete(id);
+  sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const target = sec.querySelector('.est') ? sec.querySelector('.est').closest('.row').querySelector('input:not([type=checkbox])') : sec.querySelector('input:not([type=checkbox])');
+  if (target) setTimeout(() => target.focus({ preventScroll: true }), 350);
+});
+
+/* ---------- Confetti ---------- */
+function confetti() {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const c = $('#confetti'), g = c.getContext('2d'), dpr = window.devicePixelRatio || 1;
+  c.width = innerWidth * dpr; c.height = innerHeight * dpr; g.scale(dpr, dpr);
+  const colors = ['#7FB8CC', '#6FCF97', '#F6E3A1', '#F7B6B6', '#2B6B7E', '#B7E4C7'];
+  const P = Array.from({ length: 140 }, () => ({ x: innerWidth / 2 + (Math.random() - .5) * 200, y: innerHeight * .35, vx: (Math.random() - .5) * 14, vy: -Math.random() * 13 - 4, r: Math.random() * 6 + 4, a: Math.random() * 6, va: (Math.random() - .5) * .3, c: colors[(Math.random() * colors.length) | 0] }));
+  const t0 = performance.now();
+  (function frame(now) {
+    const k = (now - t0) / 1900;
+    g.clearRect(0, 0, innerWidth, innerHeight);
+    for (const p of P) { p.vy += 0.35; p.vx *= 0.99; p.x += p.vx; p.y += p.vy; p.a += p.va; g.save(); g.globalAlpha = Math.max(0, 1 - k); g.translate(p.x, p.y); g.rotate(p.a); g.fillStyle = p.c; g.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2); g.restore(); }
+    if (k < 1) requestAnimationFrame(frame); else g.clearRect(0, 0, innerWidth, innerHeight);
+  })(t0);
+}
+
+/* ---------- Install, offline and updates ---------- */
+const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const onWeb = /^https?:$/.test(location.protocol);
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; $('#btnInstall').hidden = false; });
+$('#btnInstall').addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  try { await deferredPrompt.userChoice; } catch (e) { /* ignore */ }
+  deferredPrompt = null; $('#btnInstall').hidden = true;
+});
+window.addEventListener('appinstalled', () => { $('#btnInstall').hidden = true; notify('Installed! Open Net Worth Planner from your home screen or apps, even without wifi.'); });
+function maybeShowIOSTip() {
+  const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  let dismissed = false; try { dismissed = localStorage.getItem('netWorthPlanner.iosTip') === '1'; } catch (e) { /* ignore */ }
+  if (ios && onWeb && !isStandalone() && !dismissed) $('#iosTip').hidden = false;
+}
+$('#iosTipClose').addEventListener('click', () => { $('#iosTip').hidden = true; try { localStorage.setItem('netWorthPlanner.iosTip', '1'); } catch (e) { /* ignore */ } });
+function askPersistentStorage() { try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch (e) { /* ignore */ } }
+if ('serviceWorker' in navigator && onWeb) {
+  navigator.serviceWorker.register('./sw.js').then(reg => {
+    reg.addEventListener('updatefound', () => {
+      const w = reg.installing;
+      if (w) w.addEventListener('statechange', () => {
+        if (w.state === 'installed' && navigator.serviceWorker.controller) notify('A new version of the planner is ready.', false, ['Update now', () => w.postMessage('skipWaiting')], 20000);
+      });
+    });
+  }).catch(() => {});
+  let reloading = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (!reloading) { reloading = true; location.reload(); } });
+}
+
+/* ---------- Notices ---------- */
+let noteTimer = null;
+function notify(msg, isError, action, duration) {
+  const el = $('#notice');
+  el.textContent = msg; el.hidden = false;
+  if (action) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'link'; b.textContent = action[0]; b.style.marginLeft = '10px';
+    b.addEventListener('click', () => { el.hidden = true; action[1](); });
+    el.appendChild(b);
+  }
+  el.classList.toggle('error', !!isError);
+  clearTimeout(noteTimer);
+  noteTimer = setTimeout(() => { el.hidden = true; }, duration || (isError ? 7000 : action ? 7000 : 4500));
+}
+
+window.addEventListener('beforeunload', e => { if (dirty && !storageOk) { e.preventDefault(); e.returnValue = ''; } });
+
+let lastW = 0;
+let roFrame = 0;
+const ro = new ResizeObserver(() => {
+  cancelAnimationFrame(roFrame);
+  roFrame = requestAnimationFrame(() => { const w = $('#chart').clientWidth; if (Math.abs(w - lastW) > 4 && current) { lastW = w; renderChart(); } });
+});
+ro.observe($('#chart'));
+
+if (restoreSaved()) { canPersist = true; askPersistentStorage(); maybeShowIOSTip(); }
+else { state = BLANK(); isExample = false; }
+const phoneQuery = matchMedia('(max-width: 960px)');
+function syncYearByYear() { $('#yby').open = !phoneQuery.matches; }
+syncYearByYear();
+if (phoneQuery.addEventListener) phoneQuery.addEventListener('change', syncYearByYear);
+renderInputs(); recompute();
+dirty = false;
+updateResetBtn();
+renderFileLabel();
+if (canPersist) revealHero(false); else openQuickStart(false);
+})();
+</script>
+</body>
+</html>
