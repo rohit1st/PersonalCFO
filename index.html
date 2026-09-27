@@ -178,7 +178,6 @@ mark.bad{background:linear-gradient(transparent 58%,var(--coral-soft) 58%)}
 .card .scroll{box-shadow:none;border:1px solid var(--line);border-radius:12px}
 .yby>summary{list-style:none;display:flex;align-items:baseline;justify-content:space-between;gap:10px;pointer-events:none}
 .yby>summary::-webkit-details-marker{display:none}
-.yby-tap{display:none}
 .save-row{display:flex;gap:8px;margin:10px 0 12px;flex-wrap:wrap}
 .save-row .inp{flex:1 1 240px;max-width:420px}
 .sc-table,.proj{width:100%;border-collapse:collapse;font-size:.88rem}
@@ -229,7 +228,10 @@ mark.bad{background:linear-gradient(transparent 58%,var(--coral-soft) 58%)}
 .proj td.mid{font-weight:600}
 .how{color:var(--muted);font-size:.86rem;padding:16px 22px}
 .how p{max-width:60em}
-.how summary{cursor:pointer;color:var(--ink);font-weight:600}
+.how summary{cursor:pointer;color:var(--ink);font-weight:600;list-style:none;display:flex;align-items:center;gap:10px}
+.how summary::-webkit-details-marker{display:none}
+.how summary::before{content:"";width:7px;height:7px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(-45deg) translateY(-2px);transition:transform .15s;flex:none}
+.how[open] summary::before{transform:rotate(45deg) translateY(-3px)}
 .how p{margin:8px 0}
 
 .foot{text-align:center;color:var(--muted);font-size:.86rem;padding:8px 16px 32px}
@@ -263,13 +265,10 @@ mark.bad{background:linear-gradient(transparent 58%,var(--coral-soft) 58%)}
   .card{padding:16px}
   .chart-card{padding:14px 10px 10px}
   .chart-summary{padding:12px 6px 0}
-  .yby>summary{pointer-events:auto;cursor:pointer}
-  .yby-tap{display:inline-flex;align-items:center;gap:6px;color:var(--teal-deep);font-weight:600;font-size:.84rem}
-  .yby-tap::after{content:"";width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg) translateY(-2px)}
-  .yby-tap::before{content:"Show each year"}
-  .yby[open] .yby-tap::before{content:"Hide"}
-  .yby[open] .yby-tap::after{transform:rotate(-135deg) translateY(-2px)}
-  .yby:not([open])>summary h2{margin:0}
+  .yby>summary{pointer-events:auto;cursor:pointer;justify-content:flex-start;align-items:center;gap:10px;user-select:none}
+  .yby>summary::before{content:"";width:7px;height:7px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(-45deg) translateY(-2px);transition:transform .15s;flex:none}
+  .yby[open]>summary::before{transform:rotate(45deg) translateY(-3px)}
+  .yby>summary h2{margin:0}
   .yby .hint{margin-top:8px}
   .chart-head{flex-direction:column;align-items:flex-start}
   .verdict{font-size:1.02rem}
@@ -381,6 +380,30 @@ body.qs-open .mobilebar{display:none}
   .qs-nav .btn{flex:1}
 }
 #confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:60}
+
+/* ---------- Taxes, legal ---------- */
+.totals .tl{display:flex;flex-wrap:wrap;gap:6px 18px;width:100%}
+.save-line{margin-top:6px;padding:8px 10px;border-radius:var(--r-sm);background:var(--well);flex-direction:column;gap:2px!important}
+.save-line.good{background:var(--green-soft)}
+.save-line.ok{background:var(--teal-soft)}
+.save-line.bad{background:var(--coral-soft);color:var(--coral-deep)}
+.save-line .how-calc{font-size:.78rem;color:var(--muted)}
+.legacy-note{background:#FBF0C9;border-radius:var(--r);padding:12px 14px;margin:0 0 12px;font-size:.84rem;color:var(--amber-deep)}
+.legacy-note p{margin:0 0 8px}
+.qs-legal{margin-top:16px;padding:12px 14px;border-radius:var(--r);background:var(--well);font-size:.84rem;color:var(--muted)}
+.qs-legal p{margin:0 0 8px;color:var(--muted)}
+.qs-legal .check{align-items:flex-start;margin:0;color:var(--ink);font-size:.86rem}
+.qs-legal .check input{margin-top:2px;flex:none}
+.link.inline{padding:0;font-size:inherit;display:inline;vertical-align:baseline;text-decoration:underline}
+.shake{animation:shake .4s ease;box-shadow:inset 0 0 0 2px var(--coral)}
+@keyframes shake{25%{transform:translateX(-5px)}50%{transform:translateX(5px)}75%{transform:translateX(-3px)}}
+.foot{max-width:760px;margin:0 auto}
+.foot p{margin:0 0 6px}
+.foot-legal{font-size:.78rem;line-height:1.5}
+.foot-legal .link{font-size:.78rem;padding:0 2px;text-decoration:underline}
+.terms-card{width:min(620px,100%);max-height:calc(100vh - 32px);display:flex;flex-direction:column}
+.terms-body{overflow:auto;font-size:.88rem;color:var(--ink);line-height:1.55}
+.terms-body p{margin:0 0 10px}
 </style>
 </head>
 <body>
@@ -466,7 +489,7 @@ body.qs-open .mobilebar{display:none}
     </div>
 
     <details class="card block yby" id="yby" open>
-      <summary><h2>Year by year</h2><span class="yby-tap" aria-hidden="true"></span></summary>
+      <summary><h2>Year by year</h2></summary>
       <p class="hint" id="tableHint"></p>
       <div class="scroll table-scroll"><table class="proj" id="table"></table></div>
     </details>
@@ -474,7 +497,8 @@ body.qs-open .mobilebar{display:none}
     <details class="card how">
       <summary>How the projection works</summary>
       <p>The first row is today. Each row after that is a full year: account balances grow by that year's return, then the year's money in and out is added or taken at year end. Salaries grow at your salary growth rate and stop at retirement age. Everything else you enter in today's dollars (spending, benefits, purchases) rises with inflation, and college costs rise with college cost inflation.</p>
-      <p>Retirement contributions go into retirement accounts while their owner is working. Whatever is left over after spending, debt payments, college and purchases is added to non-retirement savings. When there's a shortfall, it comes out of non-retirement savings first, then retirement accounts, with your withdrawal tax rate added on top. Home and other assets grow but are never sold to cover spending.</p>
+      <p>Income is entered before taxes. Each year the planner estimates taxes on pay (federal brackets and standard deduction, Social Security and Medicare, and your state rate), subtracts them along with what you put into retirement accounts, and uses the rest for spending and saving. Contributions to pre-tax accounts lower the tax estimate; Roth contributions don't, because they're made with after-tax money. "Total saving" under Income adds up what goes into retirement accounts from your pay, what your employer adds, and what's left of take-home pay after spending and loan payments. College and big purchases are left out of that figure because they're paid from savings when they happen. The tax rules live in config.js and are simplified: no itemized deductions, credits or local quirks. You can replace the estimate with one overall rate under Assumptions.</p>
+      <p>Retirement contributions go into retirement accounts while their owner is working. Whatever is left over after spending, debt payments, college and purchases is added to non-retirement savings. When there's a shortfall, it comes out of non-retirement savings first, then pre-tax retirement accounts (with your withdrawal tax rate added on top), then Roth accounts, which are tax-free. Home and other assets grow but are never sold to cover spending.</p>
       <p>Loans are paid down month by month: each month interest is added at the yearly rate divided by 12, then the monthly payment is taken off, so payoff dates match a normal amortization schedule. If you give a paid-off year without a payment, the planner calculates the payment that clears the loan that year.</p>
       <p>To get best, mid and worst cases, the planner simulates 1,000 market paths every time an input changes. In each path, every year gets a random return drawn around your typical return, spread out by the market ups and downs you set (the same draw applies to retirement and non-retirement accounts, since they're in the same market). For each year it then ranks the 1,000 net worths: the best case is the 90th percentile, the mid case is the median, and the worst case is the 10th percentile. The random numbers use a fixed seed, so the same inputs always give the same answer, which keeps scenario comparisons fair.</p>
       <p><b>Privacy.</b> Your plan is saved automatically in this browser's storage on this device, and nowhere else. The page carries a security rule that tells the browser to block any attempt to send data over the network, so even the planner itself couldn't upload your numbers if it tried. Use Save a copy to keep a backup file or move your plan to another device.</p>
@@ -483,7 +507,17 @@ body.qs-open .mobilebar{display:none}
     </details>
   </section>
 </main>
-<footer class="foot">Built with love ❤️ - contact: <a href="mailto:momtrepreneur@hugsybugsybooks.com">momtrepreneur@hugsybugsybooks.com</a></footer>
+<footer class="foot">
+  <p class="foot-love">Built with love ❤️</p>
+  <p class="foot-legal"><span id="footLegal"></span> <button type="button" class="link" data-terms>Terms of use</button></p>
+</footer>
+<div class="modal" id="termsDlg" hidden>
+  <div class="modal-card terms-card" role="dialog" aria-modal="true" aria-labelledby="termsTitle">
+    <h3 id="termsTitle">Terms of use</h3>
+    <div id="termsBody" class="terms-body"></div>
+    <div class="modal-actions"><button type="button" class="btn" id="termsClose">Close</button></div>
+  </div>
+</div>
 <div class="mobilebar" id="mobilebar"></div>
 <div class="qs" id="qs" hidden>
   <div class="qs-card" role="dialog" aria-modal="true" aria-labelledby="qsTitle">
@@ -508,6 +542,7 @@ body.qs-open .mobilebar{display:none}
   </div>
 </div>
 
+<script src="config.js"></script>
 <script>
 (() => {
 'use strict';
@@ -517,67 +552,218 @@ const RUNS = 1000;
 const SC_COLORS = ['#5E7A8A', '#C0902A', '#3F8F86', '#9A7B63'];
 const PLAY_COLOR = '#B86E1F';
 
-/* ---------- Data ---------- */
-const EXAMPLE = () => ({
-  people: {
-    p1: { name: 'Sam', age: 42, retireAge: 62, planToAge: 95 },
-    p2: { enabled: true, name: 'Jordan', age: 40, retireAge: 62, planToAge: 95 }
+/* ---------- Settings (config.js) ---------- */
+// Built-in copy of config.js, used if config.js is missing. The admin edits config.js, not this.
+const BUILTIN_CONFIG = {
+
+  // Starting assumptions for every new plan (quick start and "start over") and for the example.
+  // People can change these in their own plan under Assumptions.
+  assumptions: {
+    retirementReturn: 5,          // typical yearly return on 401(k), IRA, Roth, before inflation
+    nonRetirementReturn: 6,       // typical yearly return on brokerage and savings, before inflation
+    homeAndOtherGrowth: 3.5,      // yearly growth of home and other assets
+    inflation: 2.5,
+    salaryGrowth: 3.5,            // yearly raise on salaries
+    collegeInflation: 4.5,        // yearly rise in college costs
+    retirementWithdrawalTax: 18,  // tax on money taken out of retirement accounts
+    stateIncomeTax: 5,            // state and local income tax, as a share of taxable pay
+    taxesOnPay: null,             // null = estimate taxes automatically; or a number like 28 for a flat overall rate
+    marketUpsAndDowns: 12         // volatility; drives the gap between best and worst case
   },
-  dependents: [
-    { name: 'Maya', age: 10, college: true, collegeCost: 40000, collegeStartAge: 18, collegeYears: 4 },
-    { name: 'Leo', age: 7, college: true, collegeCost: 40000, collegeStartAge: 18, collegeYears: 4 }
-  ],
-  assets: [
-    { label: "Sam's 401(k)", kind: 'retirement', owner: 'p1', balance: 420000, contribution: 30000 },
-    { label: "Jordan's 401(k)", kind: 'retirement', owner: 'p2', balance: 260000, contribution: 26000 },
-    { label: 'Roth IRAs', kind: 'retirement', owner: 'joint', balance: 90000, contribution: 14000 },
-    { label: 'Brokerage account', kind: 'nonretirement', owner: 'joint', balance: 150000, contribution: 0 },
-    { label: 'Savings', kind: 'nonretirement', owner: 'joint', balance: 60000, contribution: 0 },
-    { label: 'Home', kind: 'other', owner: 'joint', balance: 1400000, contribution: 0 }
-  ],
-  liabilities: [
-    { label: 'Mortgage', balance: 780000, rate: 3, monthlyPayment: null, endYear: Y0 + 25 },
-    { label: 'Car loan', balance: 18000, rate: 5, monthlyPayment: 600, endYear: null }
-  ],
-  income: [
-    { label: "Sam's salary", type: 'salary', owner: 'p1', amount: 185000, startAge: null, endAge: null },
-    { label: "Jordan's salary", type: 'salary', owner: 'p2', amount: 135000, startAge: null, endAge: null },
-    { label: "Sam's Social Security", type: 'benefit', owner: 'p1', amount: 40000, startAge: 67, endAge: null },
-    { label: "Jordan's Social Security", type: 'benefit', owner: 'p2', amount: 30000, startAge: 67, endAge: null }
-  ],
-  spending: [
-    { label: 'Home upkeep, property tax and insurance', category: 'home', when: 'always', amount: 32000, fromAge: null, toAge: null },
-    { label: 'Groceries and dining', category: 'food', when: 'always', amount: 30000, fromAge: null, toAge: null },
-    { label: 'Health care', category: 'health', when: 'pre', amount: 9000, fromAge: null, toAge: null },
-    { label: 'Health insurance before Medicare', category: 'health', when: 'ages', amount: 22000, fromAge: 64, toAge: 66 },
-    { label: 'Health care in retirement', category: 'health', when: 'ret', amount: 15000, fromAge: null, toAge: null },
-    { label: 'Kids activities and childcare', category: 'kids', when: 'ages', amount: 30000, fromAge: null, toAge: 53 },
-    { label: 'Cars and transportation', category: 'transport', when: 'always', amount: 15000, fromAge: null, toAge: null },
-    { label: 'Travel and fun', category: 'travel', when: 'pre', amount: 25000, fromAge: null, toAge: null },
-    { label: 'Travel in early retirement', category: 'travel', when: 'ages', amount: 40000, fromAge: 64, toAge: 80 },
-    { label: 'Everything else', category: 'other', when: 'always', amount: 58000, fromAge: null, toAge: null }
-  ],
-  purchases: [
-    { label: 'Kitchen remodel', year: Y0 + 1, amount: 80000, repeatEvery: null, until: null },
-    { label: 'Replace a car', year: Y0 + 3, amount: 45000, repeatEvery: 8, until: Y0 + 35 }
-  ],
-  assumptions: { retReturn: 6.5, nonReturn: 5, otherGrowth: 3.5, inflation: 2.5, earningsGrowth: 3.5, eduInflation: 4.5, withdrawalTax: 18, volatility: 12 }
-});
+
+  planUntilAge: 95,               // default "plan until" age for new plans
+  workOptionalConfidence: 85,     // work-optional = savings last in at least this many of 100 simulated markets
+
+  // Guesses used by quick start. Everything quick start guesses is marked "Estimated" for the user.
+  quickStart: {
+    defaultRetireAge: 65,
+    collegeCostPerYear: 30000,
+    collegeStartAge: 18,
+    collegeYears: 4,
+    socialSecurityStartAge: 67,
+    socialSecurityPercentOfPay: 40,   // rough share of pre-tax pay replaced by Social Security...
+    socialSecurityMin: 12000,         // ...but at least this...
+    socialSecurityMax: 45000,         // ...and at most this, per person
+    spendingPercentOfTakeHome: 85,    // first guess for spending: this share of take-home pay, minus the mortgage
+    retirementSpendingPercent: 85,    // retirement spending starts at this share of today's spending
+    mortgageRate: 4,
+    mortgageYearsLeft: 25
+  },
+
+  // US federal tax estimate (update each year). Amounts are in today's dollars.
+  // Brackets: each row is [taxable income up to, rate %]; use null for "and above".
+  taxes: {
+    taxYear: 2026,
+    standardDeduction: { single: 16100, joint: 32200 },
+    brackets: {
+      single: [[12400, 10], [50400, 12], [105700, 22], [201775, 24], [256225, 32], [640600, 35], [null, 37]],
+      joint:  [[24800, 10], [100800, 12], [211400, 22], [403550, 24], [512450, 32], [768700, 35], [null, 37]]
+    },
+    socialSecurityWageBase: 184500,
+    socialSecurityRate: 6.2,
+    medicareRate: 1.45,
+    additionalMedicareRate: 0.9,
+    additionalMedicareThreshold: { single: 200000, joint: 250000 },
+    taxableShareOfBenefits: 50        // share of Social Security and pension income counted as taxable
+  },
+
+  // The made-up household people see when they tap "Look at an example first".
+  // owner: 'you', 'partner' or 'joint'. Set partner to null for a single-person example.
+  example: {
+    you:     { name: 'Sam',    age: 42, retireAge: 62, planUntilAge: 95 },
+    partner: { name: 'Jordan', age: 40, retireAge: 62, planUntilAge: 95 },
+    kids: [
+      { name: 'Maya', age: 10, collegeCostPerYear: 40000 },
+      { name: 'Leo',  age: 7,  collegeCostPerYear: 40000 }
+    ],
+    // type: 'retirement', 'non_retirement' or 'home_or_other'
+    // taxTreatment (retirement only): 'pre_tax' (traditional 401(k)/IRA, the default) or 'roth'
+    assets: [
+      { name: "Sam's 401(k)",      type: 'retirement',     owner: 'you',     balance: 420000,  youAddPerYear: 24000, employerAddsPerYear: 8000 },
+      { name: "Jordan's 401(k)",   type: 'retirement',     owner: 'partner', balance: 260000,  youAddPerYear: 22000, employerAddsPerYear: 6000 },
+      { name: 'Roth IRAs',         type: 'retirement',     owner: 'joint',   balance: 90000,   youAddPerYear: 14000, employerAddsPerYear: 0, taxTreatment: 'roth' },
+      { name: 'Brokerage account', type: 'non_retirement', owner: 'joint',   balance: 150000 },
+      { name: 'Savings',           type: 'non_retirement', owner: 'joint',   balance: 60000 },
+      { name: 'Home',              type: 'home_or_other',  owner: 'joint',   balance: 1400000 }
+    ],
+    // Give a monthlyPayment, or leave it null and give paidOffInYears to have the payment calculated.
+    loans: [
+      { name: 'Mortgage', balance: 780000, interestRate: 3, monthlyPayment: null, paidOffInYears: 25 },
+      { name: 'Car loan', balance: 18000,  interestRate: 5, monthlyPayment: 600,  paidOffInYears: null }
+    ],
+    // type: 'salary' (before-tax pay, stops at retirement), 'social_security' (or pension) or 'other'
+    income: [
+      { name: "Sam's salary",             type: 'salary',          owner: 'you',     perYear: 290000 },
+      { name: "Jordan's salary",          type: 'salary',          owner: 'partner', perYear: 200000 },
+      { name: "Sam's Social Security",    type: 'social_security', owner: 'you',     perYear: 40000, fromAge: 67 },
+      { name: "Jordan's Social Security", type: 'social_security', owner: 'partner', perYear: 30000, fromAge: 67 }
+    ],
+    // category: home, food, health, transport, kids, travel, insurance, giving, other
+    // when: 'always', 'before_retirement', 'in_retirement' or 'between_ages' (ages are "you")
+    spending: [
+      { name: 'Home upkeep, property tax and insurance', category: 'home',      when: 'always',            perYear: 32000 },
+      { name: 'Groceries and dining',                    category: 'food',      when: 'always',            perYear: 30000 },
+      { name: 'Health care',                             category: 'health',    when: 'before_retirement', perYear: 9000 },
+      { name: 'Health insurance before Medicare',        category: 'health',    when: 'between_ages',      perYear: 22000, fromAge: 64, untilAge: 66 },
+      { name: 'Health care in retirement',               category: 'health',    when: 'in_retirement',     perYear: 15000 },
+      { name: 'Kids activities and childcare',           category: 'kids',      when: 'between_ages',      perYear: 30000, untilAge: 53 },
+      { name: 'Cars and transportation',                 category: 'transport', when: 'always',            perYear: 15000 },
+      { name: 'Travel and fun',                          category: 'travel',    when: 'before_retirement', perYear: 25000 },
+      { name: 'Travel in early retirement',              category: 'travel',    when: 'between_ages',      perYear: 40000, fromAge: 64, untilAge: 80 },
+      { name: 'Everything else',                         category: 'other',     when: 'always',            perYear: 58000 }
+    ],
+    purchases: [
+      { name: 'Kitchen remodel', inYears: 1, cost: 80000 },
+      { name: 'Replace a car',   inYears: 3, cost: 45000, repeatEveryYears: 8, untilInYears: 35 }
+    ],
+    assumptions: {}   // optional: override any of the assumptions above for the example only
+  },
+
+  // Legal text shown on the quick start welcome screen and at the bottom of every page.
+  // Have a lawyer review this before sharing widely.
+  disclaimer: {
+    short: 'For education and planning conversations only. This is not financial, investment, tax or legal advice, and projections are estimates, not guarantees.',
+    terms: [
+      'Net Worth Planner is an educational tool. It does not provide financial, investment, tax, legal or retirement advice, and it is not a substitute for advice from a qualified professional who knows your situation. Its creators and anyone who shares it are not acting as your financial adviser, broker, tax preparer or lawyer.',
+      'All results are hypothetical estimates based on the information and assumptions you enter and on simplified models of markets, inflation and taxes. They may be inaccurate or incomplete, and they are not predictions or guarantees of future results. Markets, tax laws and your circumstances will change.',
+      'Talk to a qualified financial, tax or legal professional before making any decision based on this tool. You are solely responsible for your decisions and their results.',
+      'The tool is provided "as is" and "as available", without warranties of any kind, express or implied, including accuracy, completeness, merchantability or fitness for a particular purpose.',
+      'To the fullest extent permitted by law, the creators and anyone who shares this tool are not liable for any loss or damage of any kind, direct or indirect, arising from your use of or reliance on the tool or its results.',
+      'Your information is stored only on your own device. You are responsible for keeping backup copies; lost data cannot be recovered by anyone else.',
+      'By using Net Worth Planner you agree to these terms. If you do not agree, please do not use it.'
+    ]
+  }
+};
+function mergeConfig(base, over) {
+  if (!over || typeof over !== 'object' || Array.isArray(over)) return base;
+  const out = { ...base };
+  for (const k of Object.keys(over)) {
+    const b = base[k], o = over[k];
+    out[k] = (b && typeof b === 'object' && !Array.isArray(b) && o && typeof o === 'object' && !Array.isArray(o)) ? mergeConfig(b, o) : o;
+  }
+  return out;
+}
+const CFG = mergeConfig(BUILTIN_CONFIG, window.PLANNER_CONFIG);
+const cfgNum = (v, d) => (v === null || v === undefined || v === '' || !Number.isFinite(+v)) ? d : +v;
+function assumptionsFrom(a) {
+  a = a || {};
+  return {
+    retReturn: cfgNum(a.retirementReturn, 6), nonReturn: cfgNum(a.nonRetirementReturn, 5), otherGrowth: cfgNum(a.homeAndOtherGrowth, 3),
+    inflation: cfgNum(a.inflation, 2.5), earningsGrowth: cfgNum(a.salaryGrowth, 3), eduInflation: cfgNum(a.collegeInflation, 4.5),
+    withdrawalTax: cfgNum(a.retirementWithdrawalTax, 15), stateTax: cfgNum(a.stateIncomeTax, 5),
+    payTaxRate: (a.taxesOnPay === null || a.taxesOnPay === undefined || a.taxesOnPay === '') ? null : cfgNum(a.taxesOnPay, null),
+    volatility: cfgNum(a.marketUpsAndDowns, 12)
+  };
+}
+const DEFAULT_ASSUMPTIONS = () => assumptionsFrom(CFG.assumptions);
+const QS = CFG.quickStart || {};
+const PLAN_TO = cfgNum(CFG.planUntilAge, 95);
+const OWNER = { you: 'p1', partner: 'p2', joint: 'joint' };
+const WHEN = { always: 'always', before_retirement: 'pre', in_retirement: 'ret', between_ages: 'ages' };
+const ASSET_KIND = { retirement: 'retirement', non_retirement: 'nonretirement', home_or_other: 'other' };
+const INCOME_TYPE = { salary: 'salary', social_security: 'benefit', pension: 'benefit', other: 'other' };
+const EXAMPLE = () => {
+  const e = CFG.example || {}, you = e.you || {}, pt = e.partner;
+  const person = (x, def) => ({ name: x.name || '', age: cfgNum(x.age, def), retireAge: cfgNum(x.retireAge, 65), planToAge: cfgNum(x.planUntilAge, PLAN_TO) });
+  return {
+    incomeBasis: 'gross',
+    people: {
+      p1: person(you, 42),
+      p2: pt ? { enabled: true, ...person(pt, 40) } : { enabled: false, name: '', age: 40, retireAge: 65, planToAge: PLAN_TO }
+    },
+    dependents: (e.kids || []).map(k => ({ name: k.name || '', age: cfgNum(k.age, 5), college: k.college !== false, collegeCost: cfgNum(k.collegeCostPerYear, cfgNum(QS.collegeCostPerYear, 30000)), collegeStartAge: cfgNum(k.collegeStartAge, cfgNum(QS.collegeStartAge, 18)), collegeYears: cfgNum(k.collegeYears, cfgNum(QS.collegeYears, 4)) })),
+    assets: (e.assets || []).map(x => ({ label: x.name || '', kind: ASSET_KIND[x.type] || 'nonretirement', owner: OWNER[x.owner] || 'joint', taxType: x.taxTreatment === 'roth' ? 'roth' : 'pretax', balance: cfgNum(x.balance, 0), contribution: cfgNum(x.youAddPerYear, 0), employerContribution: cfgNum(x.employerAddsPerYear, 0) })),
+    liabilities: (e.loans || []).map(x => ({ label: x.name || '', balance: cfgNum(x.balance, 0), rate: cfgNum(x.interestRate, 5), monthlyPayment: cfgNum(x.monthlyPayment, null), endYear: has(x.paidOffInYears) ? Y0 + n(x.paidOffInYears) : null })),
+    income: (e.income || []).map(x => ({ label: x.name || '', type: INCOME_TYPE[x.type] || 'other', owner: OWNER[x.owner] || 'p1', amount: cfgNum(x.perYear, 0), startAge: cfgNum(x.fromAge, null), endAge: cfgNum(x.untilAge, null) })),
+    spending: (e.spending || []).map(x => ({ label: x.name || '', category: x.category || 'other', when: WHEN[x.when] || 'always', amount: cfgNum(x.perYear, 0), fromAge: cfgNum(x.fromAge, null), toAge: cfgNum(x.untilAge, null) })),
+    purchases: (e.purchases || []).map(x => ({ label: x.name || '', year: Y0 + cfgNum(x.inYears, 1), amount: cfgNum(x.cost, 0), repeatEvery: cfgNum(x.repeatEveryYears, null), until: has(x.untilInYears) ? Y0 + n(x.untilInYears) : null })),
+    assumptions: { ...DEFAULT_ASSUMPTIONS(), ...assumptionsFrom({ ...CFG.assumptions, ...(e.assumptions || {}) }) }
+  };
+};
 
 const BLANK = () => ({
+  incomeBasis: 'gross',
   people: {
-    p1: { name: '', age: 40, retireAge: 65, planToAge: 95 },
-    p2: { enabled: false, name: '', age: 40, retireAge: 65, planToAge: 95 }
+    p1: { name: '', age: 40, retireAge: cfgNum(QS.defaultRetireAge, 65), planToAge: PLAN_TO },
+    p2: { enabled: false, name: '', age: 40, retireAge: cfgNum(QS.defaultRetireAge, 65), planToAge: PLAN_TO }
   },
   dependents: [], assets: [], liabilities: [], income: [],
   spending: [],
   purchases: [],
-  assumptions: { retReturn: 6, nonReturn: 5, otherGrowth: 3, inflation: 2.5, earningsGrowth: 3, eduInflation: 4.5, withdrawalTax: 15, volatility: 12 }
+  assumptions: DEFAULT_ASSUMPTIONS()
 });
 
+/* ---------- Tax estimate ---------- */
+const TX = CFG.taxes || {};
+function bracketTax(taxable, filing) {
+  const rows = (TX.brackets && TX.brackets[filing]) || [];
+  let tax = 0, prev = 0;
+  for (const [top, rate] of rows) {
+    const cap = top === null || top === undefined ? Infinity : +top;
+    if (taxable <= prev) break;
+    tax += (Math.min(taxable, cap) - prev) * (+rate / 100);
+    prev = cap;
+  }
+  return tax;
+}
+// All amounts in today's dollars. wages: pay per person; other: other taxable income; benefits: Social Security and pensions;
+// pretax: retirement contributions taken from pay. Returns federal + Social Security/Medicare + state tax.
+function estimateTaxes({ wages, other, benefits, pretax, filing, stateRate }) {
+  const w = wages.reduce((a, b) => a + b, 0);
+  const agi = Math.max(0, w + other + benefits * cfgNum(TX.taxableShareOfBenefits, 50) / 100 - pretax);
+  const std = (TX.standardDeduction && TX.standardDeduction[filing]) || 0;
+  const fed = bracketTax(Math.max(0, agi - std), filing);
+  const base = cfgNum(TX.socialSecurityWageBase, Infinity);
+  let fica = 0;
+  for (const x of wages) fica += Math.min(x, base) * cfgNum(TX.socialSecurityRate, 6.2) / 100 + x * cfgNum(TX.medicareRate, 1.45) / 100;
+  const thr = (TX.additionalMedicareThreshold && TX.additionalMedicareThreshold[filing]) || Infinity;
+  fica += Math.max(0, w - thr) * cfgNum(TX.additionalMedicareRate, 0.9) / 100;
+  return fed + fica + agi * stateRate;
+}
+
 const NEW = {
-  dependents: () => ({ name: '', age: 5, college: true, collegeCost: 35000, collegeStartAge: 18, collegeYears: 4 }),
-  assets: () => ({ label: '', kind: 'retirement', owner: 'p1', balance: 0, contribution: 0 }),
+  dependents: () => ({ name: '', age: 5, college: true, collegeCost: cfgNum(QS.collegeCostPerYear, 30000), collegeStartAge: cfgNum(QS.collegeStartAge, 18), collegeYears: cfgNum(QS.collegeYears, 4) }),
+  assets: () => ({ label: '', kind: 'retirement', owner: 'p1', taxType: 'pretax', balance: 0, contribution: 0, employerContribution: 0 }),
   liabilities: () => ({ label: '', balance: 0, rate: 5, monthlyPayment: null, endYear: null }),
   income: () => ({ label: '', type: 'salary', owner: 'p1', amount: 0, startAge: null, endAge: null }),
   purchases: () => ({ label: '', year: Y0 + 2, amount: 0, repeatEvery: null, until: null }),
@@ -586,7 +772,7 @@ const NEW = {
 const SPEND_CATS = [['home', 'Home'], ['food', 'Food'], ['health', 'Health'], ['transport', 'Transportation'], ['kids', 'Kids'], ['travel', 'Travel and fun'], ['insurance', 'Insurance'], ['giving', 'Giving'], ['other', 'Other']];
 const WHEN_OPTS = [['always', 'Every year'], ['pre', 'Before retirement'], ['ret', 'In retirement'], ['ages', 'Between ages']];
 
-let state = EXAMPLE();
+let state = BLANK();
 let playRes = null;          // projection for the 'Play with it' what-if
 let scenarios = [];      // {name, state, show, res}
 let current = null;      // projection result for current inputs
@@ -669,7 +855,7 @@ function project(s, NR = RUNS) {
   }
   const catSpend = {};
   const inc = new Float64Array(W), spend = new Float64Array(W), debtPay = new Float64Array(W),
-    special = new Float64Array(W), contrib = new Float64Array(W), debtBal = new Float64Array(W);
+    special = new Float64Array(W), contrib = new Float64Array(W), rothC = new Float64Array(W), debtBal = new Float64Array(W);
   const events = Array.from({ length: W }, () => []);
 
   const debts = s.liabilities.map(l => ({ label: l.label || 'Loan', bal: n(l.balance), r: n(l.rate) / 100, pay: loanPayment(l), endT: has(l.endYear) ? Math.max(1, n(l.endYear) - Y0) : Infinity }));
@@ -703,16 +889,41 @@ function project(s, NR = RUNS) {
     } while (step > 0 && y <= until && ++guard < 200);
   }
 
+  // Pay, contributions and estimated taxes for year t (t = 0 is this year, as entered)
+  const grossBasis = (s.incomeBasis || 'gross') === 'gross', filing = two ? 'joint' : 'single';
+  const stateRate = n(A.stateTax) / 100, flatRate = has(A.payTaxRate) ? n(A.payTaxRate) / 100 : null;
+  function money_in(t) {
+    const f = Math.pow(1 + infl, t), wages = { p1: 0, p2: 0, joint: 0 };
+    let other = 0, ben = 0, you = 0, emp = 0, pre = 0, roth = 0;
+    for (const i of s.income) {
+      if (!incomeActive(i, t)) continue;
+      const amt = n(i.amount) * (i.type === 'salary' ? Math.pow(1 + eg, t) : f);
+      if (i.type === 'salary') wages[i.owner || 'p1'] += amt; else if (i.type === 'benefit') ben += amt; else other += amt;
+    }
+    for (const a of s.assets) if (a.kind === 'retirement' && working(a.owner || 'p1', t)) {
+      const mine = n(a.contribution) * f, theirs = n(a.employerContribution) * f;
+      you += mine; emp += theirs;
+      if (a.taxType === 'roth') roth += mine + theirs; else pre += mine;   // employer money never reduces your taxes
+    }
+    const total = wages.p1 + wages.p2 + wages.joint + other + ben;
+    let tx = 0;
+    if (grossBasis && total > 0) {
+      if (flatRate !== null) tx = flatRate * (wages.p1 + wages.p2 + wages.joint + other + ben * cfgNum(TX.taxableShareOfBenefits, 50) / 100);
+      else tx = estimateTaxes({ wages: [wages.p1 / f, wages.p2 / f, wages.joint / f], other: other / f, benefits: ben / f, pretax: pre / f, filing, stateRate }) * f;
+    }
+    return { total, tax: tx, you, emp, roth };
+  }
+  const taxes = new Float64Array(W), youC = new Float64Array(W);
   for (let t = 1; t < W; t++) {
     const f = Math.pow(1 + infl, t);
-    for (const i of s.income) if (incomeActive(i, t)) inc[t] += n(i.amount) * (i.type === 'salary' ? Math.pow(1 + eg, t) : f);
+    const mi = money_in(t);
+    inc[t] = mi.total; taxes[t] = mi.tax; youC[t] = grossBasis ? mi.you : 0; contrib[t] = mi.you + mi.emp - mi.roth; rothC[t] = mi.roth;
     for (const x of s.spending) {
       if (!spendActive(x, t)) continue;
       const v = n(x.amount) * f, c = x.category || 'other';
       spend[t] += v;
       (catSpend[c] || (catSpend[c] = new Float64Array(W)))[t] += v;
     }
-    for (const a of s.assets) if (a.kind === 'retirement' && working(a.owner || 'p1', t)) contrib[t] += n(a.contribution) * f;
     let db = 0;
     for (const d of debts) {
       if (d.bal > 0.5) {
@@ -745,9 +956,9 @@ function project(s, NR = RUNS) {
   for (let t = 0; t <= H; t++) if (allRetired(t)) { retireT = t; break; }
 
   // Monte Carlo
-  let R0 = 0, N0 = 0, O0 = 0;
+  let R0 = 0, Q0 = 0, N0 = 0, O0 = 0;   // R: pre-tax retirement, Q: Roth, N: non-retirement, O: home and other
   for (const a of s.assets) {
-    if (a.kind === 'retirement') R0 += n(a.balance);
+    if (a.kind === 'retirement') { if (a.taxType === 'roth') Q0 += n(a.balance); else R0 += n(a.balance); }
     else if (a.kind === 'nonretirement') N0 += n(a.balance);
     else O0 += n(a.balance);
   }
@@ -767,35 +978,41 @@ function project(s, NR = RUNS) {
 
   const nw = new Float64Array(NR * W), liq = new Float64Array(NR * W), depl = new Float64Array(NR);
   for (let r = 0; r < NR; r++) {
-    let R = R0, N = N0, O = O0, dep = Infinity;
+    let R = R0, Q = Q0, N = N0, O = O0, dep = Infinity;
     const b = r * W;
-    nw[b] = R + N + O - debtBal[0]; liq[b] = R + N;
+    nw[b] = R + Q + N + O - debtBal[0]; liq[b] = R + Q + N;
     for (let t = 1; t < W; t++) {
       const z = gauss();
-      R *= Math.exp(muR + vol * z);
+      const gR = Math.exp(muR + vol * z); R *= gR; Q *= gR;
       N *= Math.exp(muN + vol * z);
       O *= 1 + og;
-      R += contrib[t];
-      const net = inc[t] - spend[t] - debtPay[t] - special[t];
+      R += contrib[t]; Q += rothC[t];
+      const net = inc[t] - taxes[t] - youC[t] - spend[t] - debtPay[t] - special[t];
       if (net >= 0) N += net;
       else {
         let need = -net;
         const fromN = Math.min(Math.max(N, 0), need); N -= fromN; need -= fromN;
         if (need > 0) {
+          // Pre-tax accounts next (taxed on the way out), then Roth (tax-free)
           const gross = need / (1 - tax);
-          if (R >= gross) R -= gross;
-          else { R = 0; if (dep === Infinity) dep = t; }
+          if (R >= gross) { R -= gross; need = 0; }
+          else { need -= R * (1 - tax); R = 0; }
+          if (need > 0) {
+            if (Q >= need) Q -= need;
+            else { Q = 0; if (dep === Infinity) dep = t; }
+          }
         }
       }
-      nw[b + t] = R + N + O - debtBal[t]; liq[b + t] = R + N;
+      nw[b + t] = R + Q + N + O - debtBal[t]; liq[b + t] = R + Q + N;
     }
     depl[r] = dep;
   }
   const ms = performance.now() - t0;
   const spendAt = t => s.spending.reduce((x, it) => x + (spendActive(it, t) ? n(it.amount) : 0), 0);
   const spendNow = spendAt(0), spendRet = retireT === null ? null : spendAt(Math.max(retireT, 1));
-  let incNow = 0;
-  for (const i of s.income) if (incomeActive(i, 0)) incNow += n(i.amount);
+  const now = money_in(0), incNow = now.total, taxNow = now.tax, youNow = grossBasis ? now.you : 0, empNow = now.emp;
+  // Loan payments over the next 12 months, in today's dollars (college and big purchases are treated as withdrawals from savings)
+  const outNext = W > 1 ? debtPay[1] / (1 + infl) : 0;
 
   const p10 = new Float64Array(W), p50 = new Float64Array(W), p90 = new Float64Array(W), liq50 = new Float64Array(W);
   const col = new Float64Array(NR), i10 = Math.floor(0.1 * (NR - 1)), i50 = Math.round(0.5 * (NR - 1)), i90 = Math.ceil(0.9 * (NR - 1));
@@ -815,7 +1032,7 @@ function project(s, NR = RUNS) {
     p10, p50, p90, liq50,
     success: ok / NR, deplMid: ds[i50], deplWorst: ds[i10],
     empty: s.assets.length === 0 && s.income.length === 0,
-    retire1: tr1, retire2: tr2, ms, incNow, spendNow, spendRet, catSpend
+    retire1: tr1, retire2: tr2, ms, incNow, taxNow, youNow, empNow, outNext, grossBasis, taxes, youC, spendNow, spendRet, catSpend
   };
 }
 
@@ -868,6 +1085,7 @@ function renameEverywhere(oldName, newName) {
   inputsEl.querySelectorAll('input[data-path$=".label"]').forEach(el => { el.value = getPath(state, el.dataset.path) || ''; });
 }
 const payPh = l => (!(has(l.monthlyPayment) && n(l.monthlyPayment) > 0) && has(l.endYear) && n(l.balance) > 0) ? `${Math.round(loanPayment({ ...l, monthlyPayment: null })).toLocaleString('en-US')} calculated` : '';
+const TAX_INFO = `<p>Leave blank to estimate automatically: ${esc(String(cfgNum((CFG.taxes || {}).taxYear, '')))} federal brackets and standard deduction, Social Security and Medicare, plus your state rate. Pre-tax retirement contributions lower the estimate, and part of Social Security and pension income is counted.</p><p>Or enter one overall rate that covers all taxes on your pay.</p>`;
 const VOL_INFO = `<p>How much returns swing from year to year (volatility). At 12%, about two years in three land within roughly 12 points of your typical return.</p><p>Rough guide: mostly stocks 15 to 18%, a 60/40 mix 10 to 12%, mostly bonds 5 to 7%. Higher numbers widen the gap between best and worst case.</p>`;
 const estChip = (key, i, it) => it && it.est ? `<span class="est" data-est="${key}.${i}" title="A starting guess from quick start. Edit it to make it yours.">Estimated</span>` : '';
 function clearEst(path) {
@@ -915,7 +1133,7 @@ function renderInputs() {
 
   const kindOpts = [['retirement', 'Retirement'], ['nonretirement', 'Non-retirement'], ['other', 'Home or other']];
   const assets = `
-    <p class="hint">Retirement: 401(k), IRA, Roth. Non-retirement: brokerage, savings, cash. Home or other: property, cars, anything you won't sell to fund retirement.</p>
+    <p class="hint">Retirement: 401(k), IRA, Roth. Non-retirement: brokerage, savings, cash. Home or other: property, cars, anything you won't sell to fund retirement. Pre-tax accounts lower your taxes now and are taxed when you withdraw; Roth accounts are paid with after-tax money and withdrawals are tax-free.</p>
     <div data-list="assets">${s.assets.map((a, i) => {
       const ret = a.kind === 'retirement';
       return `<div class="row">${rmBtn('assets', i, a.label || 'asset')}${estChip('assets', i, a)}<div class="grid">
@@ -923,7 +1141,8 @@ function renderInputs() {
         ${fld(`assets.${i}.kind`, 'Type', 'select', { options: kindOpts, rerender: true, cls: 's6' })}
         ${ret ? fld(`assets.${i}.owner`, 'Owner', 'select', { options: ownerOptions(a.owner), cls: 's6' }) : ''}
         ${fld(`assets.${i}.balance`, 'Balance now', 'money', { cls: 's6' })}
-        ${ret ? fld(`assets.${i}.contribution`, 'Added per year', 'money', { cls: 's6' }) : ''}
+        ${ret ? fld(`assets.${i}.taxType`, 'Tax treatment', 'select', { options: [['pretax', 'Pre-tax'], ['roth', 'Roth']], cls: 's6' }) : ''}
+        ${ret ? fld(`assets.${i}.contribution`, 'You add per year', 'money', { cls: 's6' }) + fld(`assets.${i}.employerContribution`, 'Employer adds per year', 'money', { cls: 's6' }) : ''}
       </div></div>`;
     }).join('')}</div>
     ${addBtn('assets', 'Add an asset')}
@@ -942,7 +1161,9 @@ function renderInputs() {
 
   const typeOpts = [['salary', 'Salary'], ['benefit', 'Social Security or pension'], ['other', 'Other income']];
   const income = `
-    <p class="hint">Enter take-home pay after taxes and retirement contributions. Salaries stop at retirement unless you set an end age. Other income is in today's dollars and keeps up with inflation.</p>
+    ${s.incomeBasis === 'net'
+      ? `<div class="legacy-note"><p>This plan was made with an older version that used take-home pay. Switch to pay before taxes to get automatic tax estimates.</p><button type="button" class="btn small" data-convert-gross>Switch to pay before taxes</button></div>`
+      : `<p class="hint">Enter pay before taxes. The planner estimates federal, Social Security, Medicare and state taxes for you (see Assumptions). Salaries stop at retirement unless you set an end age. Other income is in today's dollars and keeps up with inflation.</p>`}
     <div data-list="income">${s.income.map((i, k) => {
       const sal = i.type === 'salary';
       return `<div class="row">${rmBtn('income', k, i.label || 'income')}${estChip('income', k, i)}<div class="grid">
@@ -954,7 +1175,8 @@ function renderInputs() {
         ${fld(`income.${k}.endAge`, 'Until age', 'int', { ph: sal ? 'retirement' : 'for life', cls: 's4' })}
       </div></div>`;
     }).join('')}</div>
-    ${addBtn('income', 'Add income')}`;
+    ${addBtn('income', 'Add income')}
+    <div class="totals" id="incomeTotals"></div>`;
 
   const spending = `
     <p class="hint">Yearly amounts in today's dollars, not counting debt payments, college or big purchases. Retirement starts once ${two ? 'you have both' : 'you have'} retired. "Between ages" uses <span data-p1name>${esc(nm('p1'))}</span>'s age.</p>
@@ -1007,6 +1229,8 @@ function renderInputs() {
       ${fld('assumptions.earningsGrowth', 'Salary growth', 'pct', { cls: 's6' })}
       ${fld('assumptions.eduInflation', 'College cost inflation', 'pct', { cls: 's6' })}
       ${fld('assumptions.withdrawalTax', 'Tax on retirement withdrawals', 'pct', { cls: 's6' })}
+      ${fld('assumptions.stateTax', 'State and local income tax', 'pct', { cls: 's6' })}
+      ${fld('assumptions.payTaxRate', 'Taxes on pay', 'pct', { cls: 's6', ph: 'auto', info: TAX_INFO })}
     </div>
 `;
 
@@ -1031,7 +1255,20 @@ function renderSummaries() {
   const lt = s.liabilities.reduce((x, l) => x + n(l.balance), 0);
   set('sum-liabilities', s.liabilities.length ? money(lt) : 'None');
   const it = current ? current.incNow : 0;
-  set('sum-income', s.income.length ? `${money(it)} a year now` : 'None yet');
+  set('sum-income', s.income.length ? `${money(it)} a year${current && current.grossBasis ? ' before tax' : ''}` : 'None yet');
+  const itl = document.getElementById('incomeTotals');
+  if (itl) {
+    if (current && current.grossBasis && current.incNow > 0) {
+      const c = current, takeHome = c.incNow - c.taxNow - c.youNow;
+      const left = takeHome - c.spendNow - c.outNext, saving = c.youNow + c.empNow + left, rate = Math.round(saving / c.incNow * 100);
+      itl.innerHTML = `<div class="tl"><span>This year: before tax <b>${money(c.incNow)}</b></span><span>Taxes about <b>${money(c.taxNow)}</b> (${Math.round(c.taxNow / c.incNow * 100)}%)</span>${c.youNow ? `<span>Into retirement from pay <b>${money(c.youNow)}</b></span>` : ''}<span>Take-home <b>${money(takeHome)}</b></span></div>
+        <div class="tl save-line ${saving >= 0 ? (rate >= 15 ? 'good' : 'ok') : 'bad'}">${saving >= 0
+          ? `<span>Total saving about <b>${money(saving)}</b> a year, <b>${rate}%</b> of pay, before college and big purchases</span><span class="how-calc">${[c.youNow ? `${money(c.youNow)} from pay` : '', c.empNow ? `${money(c.empNow)} from your employer` : '', left >= 0 ? `${money(left)} left after spending and loan payments` : `minus ${money(-left)} spent beyond take-home`].filter(Boolean).join(' + ').replace('+ minus', '−')}</span>`
+          : `<span>Spending and loan payments are more than take-home by about <b>${money(-left)}</b> a year; the difference comes out of savings</span>`}</div>`;
+    } else itl.innerHTML = '';
+  }
+  const tp = document.getElementById('f_assumptions_payTaxRate');
+  if (tp && current) tp.placeholder = current.grossBasis && current.incNow > 0 ? `auto, about ${Math.round(current.taxNow / current.incNow * 100)}` : 'auto';
   set('sum-spending', s.spending.length ? `${money(current ? current.spendNow : 0)} a year now` : 'None yet');
   const stt = document.getElementById('spendTotals');
   if (stt && current && s.spending.length) {
@@ -1111,7 +1348,24 @@ inputsEl.addEventListener('toggle', e => {
 function closeInfo(except) { inputsEl.querySelectorAll('.info[aria-expanded="true"]').forEach(b => { if (b !== except) b.setAttribute('aria-expanded', 'false'); }); }
 document.addEventListener('pointerdown', e => { if (!e.target.closest('.info')) closeInfo(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeInfo(); });
+function convertToGross() {
+  const s = state, r = project(s, 50);
+  const N = r.incNow, C = s.assets.filter(a => a.kind === 'retirement').reduce((x, a) => x + n(a.contribution), 0);
+  if (N > 0) {
+    const two = s.people.p2.enabled, filing = two ? 'joint' : 'single', st = n(s.assumptions.stateTax) / 100;
+    let k = 1.3;
+    for (let it = 0; it < 25; it++) {
+      const tx = estimateTaxes({ wages: [N * k], other: 0, benefits: 0, pretax: C, filing, stateRate: st });
+      k = (N + tx + C) / N;
+    }
+    for (const i of s.income) if (i.type !== 'benefit') { i.amount = Math.round(n(i.amount) * k / 100) * 100; i.est = true; }
+  }
+  s.incomeBasis = 'gross';
+  renderInputs(); recompute();
+  notify('Switched to pay before taxes. We estimated the amounts from your take-home pay; please check them.');
+}
 inputsEl.addEventListener('click', e => {
+  if (e.target.closest('[data-convert-gross]')) { convertToGross(); return; }
   const info = e.target.closest('.info');
   if (info) { closeInfo(info); info.setAttribute('aria-expanded', String(info.getAttribute('aria-expanded') !== 'true')); return; }
   const add = e.target.closest('[data-add]');
@@ -1325,9 +1579,9 @@ function renderScenarios() {
 function renderTable() {
   const res = current, tb = $('#table');
   if (res.empty) { tb.innerHTML = ''; $('#tableHint').textContent = 'Your year-by-year projection will appear here.'; return; }
-  $('#tableHint').textContent = `Shown in ${mode === 'real' ? "today's dollars" : 'future dollars'}. Spending, income and payments are the same in every case; only net worth varies with markets.`;
+  $('#tableHint').textContent = `Shown in ${mode === 'real' ? "today's dollars" : 'future dollars'}. Income is before tax; taxes are estimated. Spending, income and payments are the same in every case; only net worth varies with markets.`;
   const D = (v, t) => disp(v, t, res);
-  let h = `<thead><tr><th>Year</th><th>${res.two ? 'Ages' : 'Age'}</th><th class="n">Income</th><th class="n">Spending</th><th class="n">Debt payments</th><th class="n">College and purchases</th><th class="n">Worst case</th><th class="n">Mid case</th><th class="n">Best case</th><th>Notes</th></tr></thead><tbody>`;
+  let h = `<thead><tr><th>Year</th><th>${res.two ? 'Ages' : 'Age'}</th><th class="n">Income</th><th class="n">Taxes</th><th class="n">Spending</th><th class="n">Debt payments</th><th class="n">College and purchases</th><th class="n">Worst case</th><th class="n">Mid case</th><th class="n">Best case</th><th>Notes</th></tr></thead><tbody>`;
   for (let t = 0; t <= res.H; t++) {
     const cell = v => `<td class="n${v < -0.5 ? ' neg' : ''}">${money(v)}</td>`;
     const blank = '<td class="n">–</td>';
@@ -1335,7 +1589,7 @@ function renderTable() {
     h += `<tr class="${t === res.retireT && t > 0 ? 'ret' : ''}">
       <td>${t === 0 ? 'Now' : Y0 + t}</td>
       <td>${res.a1 + t}${res.two ? ' / ' + (res.a2 + t) : ''}</td>
-      ${t === 0 ? blank + blank + blank + blank : cell(D(res.inc[t], t)) + cell(D(res.spend[t], t)) + cell(D(res.debtPay[t], t)) + cell(D(res.special[t], t))}
+      ${t === 0 ? blank + blank + blank + blank + blank : cell(D(res.inc[t], t)) + cell(D(res.taxes[t], t)) + cell(D(res.spend[t], t)) + cell(D(res.debtPay[t], t)) + cell(D(res.special[t], t))}
       ${cell(D(res.p10[t], t))}<td class="n mid${res.p50[t] < -0.5 ? ' neg' : ''}">${money(D(res.p50[t], t))}</td>${cell(D(res.p90[t], t))}
       <td class="notes">${[...res.events[t], outOfMoney ? 'Mid case savings used up' : ''].filter(Boolean).map(esc).join(', ')}</td></tr>`;
   }
@@ -1456,6 +1710,7 @@ function normalize(x) {
   const b = BLANK(); x = x || {};
   const arr = (v, mk) => (Array.isArray(v) ? v.filter(Boolean).map(r => ({ ...mk(), ...r })) : []);
   return {
+    incomeBasis: x.incomeBasis === 'gross' ? 'gross' : 'net',   // plans from before tax estimates used take-home pay
     people: { p1: { ...b.people.p1, ...(x.people && x.people.p1) }, p2: { ...b.people.p2, ...(x.people && x.people.p2) } },
     dependents: arr(x.dependents, NEW.dependents),
     assets: arr(x.assets, NEW.assets),
@@ -1535,6 +1790,7 @@ function restoreSaved() {
       state = normalize(o.state);
       scenarios = (o.scenarios || []).map(x => { const st = normalize(x.state); return { name: String(x.name || 'Scenario'), state: st, show: x.show !== false, res: project(st) }; });
       isExample = !!o.isExample; fileName = o.fileName || null; celebrated = !!o.celebrated;
+      if (isExample) state = EXAMPLE(); // always show the example as currently set in config.js
       return true;
     }
     const old = JSON.parse(localStorage.getItem('netWorthPlanner.lastFile') || 'null'); // saved by the previous version
@@ -1614,11 +1870,11 @@ $('#btnExport').addEventListener('click', async () => {
   const unit = mode === 'real' ? "today's dollars" : 'future dollars';
   const all = [current, ...scenarios.map(sc => sc.res)];
   const cats = SPEND_CATS.filter(([c]) => all.some(r => r.catSpend && r.catSpend[c]));
-  const rows = [['scenario', 'year', 'age_partner_1', 'age_partner_2', 'income', 'spending', ...cats.map(([, l]) => 'spending_' + l.toLowerCase().replace(/\W+/g, '_')), 'debt_payments', 'college_and_purchases', 'net_worth_worst', 'net_worth_mid', 'net_worth_best', 'savings_mid', 'notes', 'dollars']];
+  const rows = [['scenario', 'year', 'age_partner_1', 'age_partner_2', 'income', 'taxes', 'retirement_saving_from_pay', 'spending', ...cats.map(([, l]) => 'spending_' + l.toLowerCase().replace(/\W+/g, '_')), 'debt_payments', 'college_and_purchases', 'net_worth_worst', 'net_worth_mid', 'net_worth_best', 'savings_mid', 'notes', 'dollars']];
   const add = (name, res) => {
     for (let t = 0; t <= res.H; t++) {
       const D = v => Math.round(disp(v, t, res));
-      rows.push([name, Y0 + t, res.a1 + t, res.two ? res.a2 + t : '', D(res.inc[t]), D(res.spend[t]), ...cats.map(([c]) => D(res.catSpend && res.catSpend[c] ? res.catSpend[c][t] : 0)), D(res.debtPay[t]), D(res.special[t]), D(res.p10[t]), D(res.p50[t]), D(res.p90[t]), D(res.liq50[t]), res.events[t].join('; '), unit]);
+      rows.push([name, Y0 + t, res.a1 + t, res.two ? res.a2 + t : '', D(res.inc[t]), D(res.taxes[t]), D(res.youC ? res.youC[t] : 0), D(res.spend[t]), ...cats.map(([c]) => D(res.catSpend && res.catSpend[c] ? res.catSpend[c][t] : 0)), D(res.debtPay[t]), D(res.special[t]), D(res.p10[t]), D(res.p50[t]), D(res.p90[t]), D(res.liq50[t]), res.events[t].join('; '), unit]);
     }
   };
   add('Current inputs', current);
@@ -1653,8 +1909,8 @@ $('#btnReset').addEventListener('click', () => {
 const QS_STEPS = ['welcome', 'people', 'retire', 'kids', 'savings', 'home', 'income', 'spend'];
 const qs = { step: 0, d: null, canClose: false };
 function qsDefaults() {
-  return { name1: '', age1: null, two: false, name2: '', age2: null, retireAge: 65, kids: [], retSaved: null, otherSaved: null,
-    ownHome: false, homeValue: null, mortgage: null, mortgageRate: 4, mortgageEnd: Y0 + 25, takeHome: null, contrib: null, spend: null, spendTouched: false };
+  return { name1: '', age1: null, two: false, name2: '', age2: null, retireAge: cfgNum(QS.defaultRetireAge, 65), kids: [], retSaved: null, otherSaved: null,
+    ownHome: false, homeValue: null, mortgage: null, mortgageRate: cfgNum(QS.mortgageRate, 4), mortgageEnd: Y0 + cfgNum(QS.mortgageYearsLeft, 25), gross: null, yourContrib: null, employerContrib: null, spend: null, spendTouched: false };
 }
 function openQuickStart(canClose) {
   qs.step = 0; qs.d = qsDefaults(); qs.canClose = !!canClose;
@@ -1670,9 +1926,15 @@ const qText = (key, label, ph) => `<div class="fld"><label for="q_${key}">${labe
 const qToggle = (key, opts) => `<div class="qs-toggle">${opts.map(([v, t]) => `<button type="button" data-qset="${key}" data-val="${v}" aria-pressed="${String(qs.d[key]) === String(v)}">${t}</button>`).join('')}</div>`;
 
 function estMortgagePay(d) { return loanPayment({ balance: d.mortgage, rate: d.mortgageRate, monthlyPayment: null, endYear: d.mortgageEnd }); }
+function qsTakeHome(d) {
+  const g = n(d.gross); if (g <= 0) return 0;
+  const people = d.two ? 2 : 1, you = n(d.yourContrib);
+  const tax = estimateTaxes({ wages: Array(people).fill(g / people), other: 0, benefits: 0, pretax: you, filing: d.two ? 'joint' : 'single', stateRate: n(DEFAULT_ASSUMPTIONS().stateTax) / 100 });
+  return g - tax - you;
+}
 function estSpend(d) {
   const mort = d.ownHome ? estMortgagePay(d) * 12 : 0;
-  return Math.max(0, Math.round((n(d.takeHome) * 0.85 - mort) / 1000) * 1000);
+  return Math.max(0, Math.round((qsTakeHome(d) * cfgNum(QS.spendingPercentOfTakeHome, 85) / 100 - mort) / 1000) * 1000);
 }
 
 function renderQS() {
@@ -1682,6 +1944,10 @@ function renderQS() {
   if (step === 'welcome') h = `<div class="qs-emoji">🌱</div><h2 id="qsTitle">Let's sketch your future</h2>
     <p>Seven quick questions, about a minute. Rough numbers are fine; you can fine-tune everything later.</p>
     <p class="qs-private">🤫 Everything you type stays on this device. Nothing is sent anywhere, not even to us.</p>
+    <div class="qs-legal">
+      <p>${esc(DISCLAIMER_SHORT)}</p>
+      <label class="check"><input type="checkbox" id="qsAccept"${termsAccepted ? ' checked' : ''}> <span>I understand this is an educational tool, not advice, and I accept the <button type="button" class="link inline" data-terms>terms of use</button>.</span></label>
+    </div>
     <div class="qs-alt"><button type="button" class="link" data-qalt="example">Look at an example first</button><button type="button" class="link" data-qalt="open">Open a saved copy</button></div>`;
   if (step === 'people') h = `<h2 id="qsTitle">Who's planning?</h2><p>Your first name makes the plan feel like yours. It's optional.</p>
     <div class="qs-grid">${qText('name1', 'Your first name', 'e.g. Sam')}${qNum('age1', 'Your age', 'e.g. 40')}</div>
@@ -1704,14 +1970,16 @@ function renderQS() {
     ${qToggle('ownHome', [[true, 'Yes'], [false, 'No']])}
     ${d.ownHome ? `${qMoney('homeValue', "What it's worth today")}${qMoney('mortgage', 'Mortgage left', 'Enter 0 if it\'s paid off')}
       <div class="qs-grid">${qNum('mortgageEnd', 'Paid off by', String(Y0 + 25))}${qNum('mortgageRate', 'Interest', '4', '%')}</div>` : ''}`;
-  if (step === 'income') h = `<h2 id="qsTitle">What does your household take home?</h2><p>Yearly pay after taxes and retirement contributions${d.two ? ', for both of you together' : ''}. Your bank deposits × 12 is a good guess.</p>
-    ${qMoney('takeHome', 'Take-home pay per year')}
-    ${qMoney('contrib', 'Put into retirement accounts per year', 'Include any employer match')}`;
+  if (step === 'income') h = `<h2 id="qsTitle">What does your household earn?</h2><p>Yearly pay before taxes${d.two ? ', for both of you together' : ''}. Your offer letter or last year's W-2 is a good guide. We'll estimate taxes for you.</p>
+    ${qMoney('gross', 'Pay before taxes per year')}
+    ${qMoney('yourContrib', 'You put into retirement accounts per year', '401(k), 403(b), IRA and similar')}
+    ${qMoney('employerContrib', 'Your employer adds per year', 'Match or profit sharing. Enter 0 if none.')}`;
   if (step === 'spend') {
-    if (!d.spendTouched && d.spend === null && n(d.takeHome) > 0) d.spend = estSpend(d);
-    h = `<h2 id="qsTitle">And what do you spend in a year?</h2><p>Everything except ${d.ownHome ? 'mortgage payments and ' : ''}college. ${n(d.takeHome) > 0 ? "We've guessed from your pay; adjust if you know better." : ''}</p>
+    if (!d.spendTouched && d.spend === null && n(d.gross) > 0) d.spend = estSpend(d);
+    const th = qsTakeHome(d);
+    h = `<h2 id="qsTitle">And what do you spend in a year?</h2><p>Everything except ${d.ownHome ? 'mortgage payments and ' : ''}college. ${th > 0 ? `After estimated taxes and saving, you take home about ${money(th)} a year, so we've made a guess. Adjust it if you know better.` : ''}</p>
     ${qMoney('spend', 'Spending per year')}
-    <p class="hint2">In retirement we'll start you at 85% of this. You can itemize later: home, food, health, travel and more.</p>`;
+    <p class="hint2">In retirement we'll start you at ${cfgNum(QS.retirementSpendingPercent, 85)}% of this. You can itemize later: home, food, health, travel and more.</p>`;
   }
   $('#qsBody').innerHTML = h;
   $('#qsBody').style.animation = 'none'; void $('#qsBody').offsetWidth; $('#qsBody').style.animation = '';
@@ -1738,6 +2006,7 @@ $('#qsBody').addEventListener('click', e => {
   if (t.dataset.qset) { d[t.dataset.qset] = t.dataset.val === 'true'; renderQS(); }
   else if (t.hasAttribute('data-qkidadd')) { d.kids.push(null); renderQS(); const ins = $('#qsBody').querySelectorAll('[data-qkid]'); ins[ins.length - 1].focus(); }
   else if (t.dataset.qkiddel !== undefined) { d.kids.splice(+t.dataset.qkiddel, 1); renderQS(); }
+  else if (t.dataset.qalt && needAcceptance()) return;
   else if (t.dataset.qalt === 'example') {
     state = EXAMPLE(); scenarios = []; isExample = true; fileName = null; canPersist = true;
     closeQuickStart(); clearPlay(); renderInputs(); recompute();
@@ -1747,8 +2016,17 @@ $('#qsBody').addEventListener('click', e => {
 $('#qsBody').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); $('#qsNext').click(); } });
 $('#qsBack').addEventListener('click', () => { if (qs.step > 0) { qs.step--; renderQS(); } });
 $('#qsClose').addEventListener('click', closeQuickStart);
+function needAcceptance() {
+  const box = $('#qsAccept');
+  if (!box) return false;
+  if (box.checked) { acceptTerms(); return false; }
+  box.closest('.qs-legal').classList.add('shake'); setTimeout(() => box.closest('.qs-legal').classList.remove('shake'), 500);
+  box.focus();
+  return true;
+}
 $('#qsNext').addEventListener('click', () => {
   const step = QS_STEPS[qs.step], d = qs.d;
+  if (step === 'welcome' && needAcceptance()) return;
   if (step === 'people') {
     if (!(n(d.age1) >= 16 && n(d.age1) <= 100)) { const i = $('#q_age1'); i.focus(); i.closest('.inp').style.borderColor = 'var(--coral)'; return; }
     if (d.two && !(n(d.age2) >= 16 && n(d.age2) <= 100)) d.age2 = d.age1;
@@ -1758,32 +2036,32 @@ $('#qsNext').addEventListener('click', () => {
   finishQuickStart();
 });
 
-function socialSecurityGuess(takeHomeShare) {
-  // Very rough: gross pay is about take-home / 0.72, and Social Security replaces about 40% of it, within typical limits.
-  const gross = n(takeHomeShare) / 0.72;
-  return Math.round(Math.min(45000, Math.max(12000, gross * 0.4)) / 100) * 100;
+function socialSecurityGuess(grossShare) {
+  // Very rough: Social Security replaces a share of pre-tax pay, within typical limits (all set in config.js).
+  const v = n(grossShare) * cfgNum(QS.socialSecurityPercentOfPay, 40) / 100;
+  return Math.round(Math.min(cfgNum(QS.socialSecurityMax, 45000), Math.max(cfgNum(QS.socialSecurityMin, 12000), v)) / 100) * 100;
 }
 function finishQuickStart() {
   const d = qs.d, s = BLANK();
-  s.people.p1 = { name: d.name1.trim(), age: n(d.age1), retireAge: d.retireAge, planToAge: 95 };
-  if (d.two) s.people.p2 = { enabled: true, name: d.name2.trim(), age: n(d.age2), retireAge: d.retireAge, planToAge: 95 };
+  s.people.p1 = { name: d.name1.trim(), age: n(d.age1), retireAge: d.retireAge, planToAge: PLAN_TO };
+  if (d.two) s.people.p2 = { enabled: true, name: d.name2.trim(), age: n(d.age2), retireAge: d.retireAge, planToAge: PLAN_TO };
   state = s; // names are needed for labels below
   const est = true;
-  s.dependents = d.kids.map((a, i) => ({ name: `Child ${i + 1}`, age: a, college: true, collegeCost: 30000, collegeStartAge: 18, collegeYears: 4, est }));
-  if (n(d.retSaved) > 0 || n(d.contrib) > 0) s.assets.push({ label: d.two ? 'Retirement accounts' : `${nm('p1')}'s retirement accounts`, kind: 'retirement', owner: d.two ? 'joint' : 'p1', balance: n(d.retSaved), contribution: n(d.contrib), est });
+  s.dependents = d.kids.map((a, i) => ({ name: `Child ${i + 1}`, age: a, college: true, collegeCost: cfgNum(QS.collegeCostPerYear, 30000), collegeStartAge: cfgNum(QS.collegeStartAge, 18), collegeYears: cfgNum(QS.collegeYears, 4), est }));
+  if (n(d.retSaved) > 0 || n(d.yourContrib) > 0 || n(d.employerContrib) > 0) s.assets.push({ label: d.two ? 'Retirement accounts' : `${nm('p1')}'s retirement accounts`, kind: 'retirement', owner: d.two ? 'joint' : 'p1', balance: n(d.retSaved), contribution: n(d.yourContrib), employerContribution: n(d.employerContrib), est });
   if (n(d.otherSaved) > 0) s.assets.push({ label: 'Savings and investments', kind: 'nonretirement', owner: 'joint', balance: n(d.otherSaved), contribution: 0, est });
   if (d.ownHome && n(d.homeValue) > 0) s.assets.push({ label: 'Home', kind: 'other', owner: 'joint', balance: n(d.homeValue), contribution: 0, est });
-  if (d.ownHome && n(d.mortgage) > 0) s.liabilities.push({ label: 'Mortgage', balance: n(d.mortgage), rate: n(d.mortgageRate) || 4, monthlyPayment: null, endYear: has(d.mortgageEnd) ? n(d.mortgageEnd) : Y0 + 25, est });
-  if (n(d.takeHome) > 0) {
-    const owners = d.two ? ['p1', 'p2'] : ['p1'], share = n(d.takeHome) / owners.length;
+  if (d.ownHome && n(d.mortgage) > 0) s.liabilities.push({ label: 'Mortgage', balance: n(d.mortgage), rate: n(d.mortgageRate) || cfgNum(QS.mortgageRate, 4), monthlyPayment: null, endYear: has(d.mortgageEnd) ? n(d.mortgageEnd) : Y0 + cfgNum(QS.mortgageYearsLeft, 25), est });
+  if (n(d.gross) > 0) {
+    const owners = d.two ? ['p1', 'p2'] : ['p1'], share = n(d.gross) / owners.length;
     for (const o of owners) s.income.push({ label: '', type: 'salary', owner: o, amount: Math.round(share), startAge: null, endAge: null, est });
-    for (const o of owners) s.income.push({ label: '', type: 'benefit', owner: o, amount: socialSecurityGuess(share), startAge: 67, endAge: null, est });
+    for (const o of owners) s.income.push({ label: '', type: 'benefit', owner: o, amount: socialSecurityGuess(share), startAge: cfgNum(QS.socialSecurityStartAge, 67), endAge: null, est });
     for (const i of s.income) i.label = incomeLabel(i);
   }
   const sp = d.spend !== null ? n(d.spend) : estSpend(d);
   if (sp > 0) {
     s.spending.push({ label: 'Living expenses', category: 'other', when: 'pre', amount: sp, fromAge: null, toAge: null, est });
-    s.spending.push({ label: 'Living expenses in retirement', category: 'other', when: 'ret', amount: Math.round(sp * 0.85 / 1000) * 1000, fromAge: null, toAge: null, est });
+    s.spending.push({ label: 'Living expenses in retirement', category: 'other', when: 'ret', amount: Math.round(sp * cfgNum(QS.retirementSpendingPercent, 85) / 100 / 1000) * 1000, fromAge: null, toAge: null, est });
   }
   scenarios = []; isExample = false; fileName = null; canPersist = true; celebrated = false;
   closeQuickStart(); clearPlay(); renderInputs(); recompute();
@@ -1792,8 +2070,28 @@ function finishQuickStart() {
   revealHero(true);
 }
 
+/* ---------- Disclaimer and terms ---------- */
+const DISC = CFG.disclaimer || {};
+const DISCLAIMER_SHORT = DISC.short || 'For education only. Not financial, investment, tax or legal advice.';
+let termsAccepted = false;
+try { termsAccepted = !!localStorage.getItem('netWorthPlanner.termsAccepted'); } catch (e) { /* ignore */ }
+function acceptTerms() {
+  termsAccepted = true;
+  try { localStorage.setItem('netWorthPlanner.termsAccepted', new Date().toISOString()); } catch (e) { /* ignore */ }
+}
+$('#footLegal').textContent = DISCLAIMER_SHORT;
+$('#termsBody').innerHTML = (DISC.terms || [DISCLAIMER_SHORT]).map(t => `<p>${esc(t)}</p>`).join('');
+let termsReturn = null;
+document.addEventListener('click', e => {
+  if (e.target.closest('[data-terms]')) { e.preventDefault(); termsReturn = document.activeElement; $('#termsDlg').hidden = false; $('#termsClose').focus(); }
+});
+function closeTerms() { $('#termsDlg').hidden = true; if (termsReturn && termsReturn.focus) termsReturn.focus(); }
+$('#termsClose').addEventListener('click', closeTerms);
+$('#termsDlg').addEventListener('click', e => { if (e.target.id === 'termsDlg') closeTerms(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#termsDlg').hidden) closeTerms(); });
+
 /* ---------- Work-optional age ---------- */
-const WO_TARGET = 0.85;
+const WO_TARGET = cfgNum(CFG.workOptionalConfidence, 85) / 100;
 function workOptional(s) {
   const p1 = s.people.p1, r1 = n(p1.retireAge), a1 = n(p1.age), two = s.people.p2.enabled, r2 = n(s.people.p2.retireAge);
   const minA = Math.max(a1, 30), maxA = Math.min(80, Math.max(minA, n(p1.planToAge) - 1));
@@ -1827,7 +2125,7 @@ function renderHero() {
     num = `${wo}`;
     const when = yrs <= 0 ? 'That could be now' : `That's ${Y0 + yrs}, ${yrs} year${yrs === 1 ? '' : 's'} from now`;
     const vs = diff > 0 ? ` <span class="good">${diff} year${diff === 1 ? '' : 's'} before</span> the ${planned} you planned 🎉`
-      : diff === 0 ? ', right on your plan 👌' : ` <span class="later">${-diff} year${diff === -1 ? '' : 's'} after</span> the ${planned} you planned. The sliders below can close the gap.`;
+      : diff === 0 ? ' right on your plan 👌' : ` <span class="later">${-diff} year${diff === -1 ? '' : 's'} after</span> the ${planned} you planned. The sliders below can close the gap.`;
     say = `${when},${vs}`;
   }
   el.innerHTML = `<div class="big"><span class="kicker">${kicker}</span><span class="num" id="heroNum">${num}</span></div>
