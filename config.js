@@ -64,31 +64,31 @@ window.PLANNER_CONFIG = {
   // The made-up household people see when they tap "Look at an example first".
   // owner: 'you', 'partner' or 'joint'. Set partner to null for a single-person example.
   example: {
-    you:     { name: 'Sam',    age: 42, retireAge: 62, planUntilAge: 95 },
-    partner: { name: 'Jordan', age: 40, retireAge: 62, planUntilAge: 95 },
+    you:     { name: 'Sam',    age: 30, retireAge: 62, planUntilAge: 95 },
+    partner: { name: 'Jordan', age: 30, retireAge: 62, planUntilAge: 95 },
     kids: [
-      { name: 'Maya', age: 10, collegeCostPerYear: 40000 },
-      { name: 'Leo',  age: 7,  collegeCostPerYear: 40000 }
+      { name: 'Maya', age: 5, collegeCostPerYear: 40000 },
+      { name: 'Leo',  age: 3,  collegeCostPerYear: 40000 }
     ],
     // type: 'retirement', 'non_retirement' or 'home_or_other'
     // taxTreatment (retirement only): 'pre_tax' (traditional 401(k)/IRA, the default) or 'roth'
     assets: [
-      { name: "Sam's 401(k)",      type: 'retirement',     owner: 'you',     balance: 420000,  youAddPerYear: 24000, employerAddsPerYear: 8000 },
-      { name: "Jordan's 401(k)",   type: 'retirement',     owner: 'partner', balance: 260000,  youAddPerYear: 22000, employerAddsPerYear: 6000 },
-      { name: 'Roth IRAs',         type: 'retirement',     owner: 'joint',   balance: 90000,   youAddPerYear: 14000, employerAddsPerYear: 0, taxTreatment: 'roth' },
-      { name: 'Brokerage account', type: 'non_retirement', owner: 'joint',   balance: 150000 },
+      { name: "Sam's 401(k)",      type: 'retirement',     owner: 'you',     balance: 40000,  youAddPerYear: 24000, employerAddsPerYear: 8000 },
+      { name: "Jordan's 401(k)",   type: 'retirement',     owner: 'partner', balance: 40000,  youAddPerYear: 22000, employerAddsPerYear: 6000 },
+      { name: 'Roth IRAs',         type: 'retirement',     owner: 'joint',   balance: 10000,   youAddPerYear: 14000, employerAddsPerYear: 0, taxTreatment: 'roth' },
+      { name: 'Brokerage account', type: 'non_retirement', owner: 'joint',   balance: 15000 },
       { name: 'Savings',           type: 'non_retirement', owner: 'joint',   balance: 60000 },
-      { name: 'Home',              type: 'home_or_other',  owner: 'joint',   balance: 1400000 }
+      { name: 'Home',              type: 'home_or_other',  owner: 'joint',   balance: 400000 }
     ],
     // Give a monthlyPayment, or leave it null and give paidOffInYears to have the payment calculated.
     loans: [
-      { name: 'Mortgage', balance: 780000, interestRate: 3, monthlyPayment: null, paidOffInYears: 25 },
+      { name: 'Mortgage', balance: 100000, interestRate: 3, monthlyPayment: null, paidOffInYears: 25 },
       { name: 'Car loan', balance: 18000,  interestRate: 5, monthlyPayment: 600,  paidOffInYears: null }
     ],
     // type: 'salary' (before-tax pay, stops at retirement), 'social_security' (or pension) or 'other'
     income: [
-      { name: "Sam's salary",             type: 'salary',          owner: 'you',     perYear: 290000 },
-      { name: "Jordan's salary",          type: 'salary',          owner: 'partner', perYear: 200000 },
+      { name: "Sam's salary",             type: 'salary',          owner: 'you',     perYear: 100000 },
+      { name: "Jordan's salary",          type: 'salary',          owner: 'partner', perYear: 100000 },
       { name: "Sam's Social Security",    type: 'social_security', owner: 'you',     perYear: 40000, fromAge: 67 },
       { name: "Jordan's Social Security", type: 'social_security', owner: 'partner', perYear: 30000, fromAge: 67 }
     ],
