@@ -9,7 +9,7 @@ Your confidential companion 🤫 A retirement and net worth planner that runs en
 ## Put it on GitHub Pages (about 5 minutes)
 
 1. Sign in at github.com and click **New repository**. Name it, for example, `net-worth-planner`. Make it **Public** (free GitHub Pages needs a public repository; your *plans* are never in it, only the app's code).
-2. On the new repository page, click **uploading an existing file**. Drag in everything from this folder: `index.html`, `config.js`, `manifest.webmanifest`, `sw.js`, `.nojekyll`, `README.md` and the `icons` folder. Click **Commit changes**.
+2. On the new repository page, click **uploading an existing file**. Drag in everything from this folder: `index.html`, `config.js`, `model.js`, `manifest.webmanifest`, `sw.js`, `.nojekyll`, `README.md` and the `icons` folder. Click **Commit changes**.
    - Tip: `.nojekyll` is a hidden file. If your computer hides it, it's fine to skip it.
 3. Go to **Settings → Pages**. Under **Build and deployment**, set **Source** to *Deploy from a branch*, choose **main** and **/ (root)**, and click **Save**.
 4. After a minute or two the page shows your link, like `https://YOUR-NAME.github.io/net-worth-planner/`. That's the link to share.
@@ -36,7 +36,7 @@ Everything you might want to adjust lives in **`config.js`**, with a comment nex
 - **The example household:** names, ages, accounts, income, spending, loans and purchases.
 - **The disclaimer and terms of use.**
 
-To change something: edit `config.js` on GitHub (open the file, click the pencil icon, edit, **Commit changes**), then bump `VERSION` in `sw.js`. New settings apply to new plans and the example; people's existing plans keep the assumptions they already have.
+To change something: edit `config.js` on GitHub (open the file, click the pencil icon, edit, **Commit changes**), then bump `VERSION` in `sw.js`. If you work on your computer, also run `node evals/sync-builtin.js` and `node evals/run.js` (see `evals/README.md`). New settings apply to new plans and the example; people's existing plans keep the assumptions they already have.
 
 ## Updating the app later
 
@@ -51,6 +51,10 @@ People with the app open will see "A new version of the planner is ready" with a
 | --- | --- |
 | `index.html` | The whole app |
 | `config.js` | Admin settings: assumptions, example household, tax tables, disclaimer |
+| `model.js` | The projection math (used by the page and by the evals) |
+| `evals/` | Automated checks for the math; see `evals/README.md` |
+| `CLAUDE.md` | Project context for Claude (Cowork / Claude Code) |
+| `CHANGELOG.md` | What changed in each version |
 | `manifest.webmanifest` | Name, colors and icons for installing |
 | `sw.js` | Service worker that makes it work offline |
 | `icons/` | App icons |

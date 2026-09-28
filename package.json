@@ -1,0 +1,13 @@
+{
+  "name": "net-worth-planner",
+  "private": true,
+  "description": "Private, offline net worth and retirement planner (static site, no dependencies).",
+  "scripts": {
+    "test": "node evals/run.js",
+    "evals": "node evals/run.js",
+    "evals:update": "node evals/run.js --update",
+    "sensitivity": "node evals/sensitivity.js",
+    "sync-config": "node evals/sync-builtin.js",
+    "serve": "python3 -m http.server 8000"
+  }
+}

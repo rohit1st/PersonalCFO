@@ -61,6 +61,18 @@ window.PLANNER_CONFIG = {
     taxableShareOfBenefits: 50        // share of Social Security and pension income counted as taxable
   },
 
+  // Required minimum distributions (RMDs) from pre-tax retirement accounts. Roth accounts have none.
+  // Each year from the start age: last year-end balance ÷ the divisor for that age, taxed at the withdrawal rate.
+  requiredWithdrawals: {
+    startAge: 73,                     // born 1951 to 1959
+    startAgeBornFrom1960: 75,         // born 1960 or later (SECURE 2.0)
+    // IRS Uniform Lifetime Table (2022 onward): divisors for ages firstAge, firstAge + 1, ... (the last one repeats)
+    firstAge: 72,
+    divisors: [27.4, 26.5, 25.5, 24.6, 23.7, 22.9, 22.0, 21.1, 20.2, 19.4, 18.5, 17.7, 16.8, 16.0, 15.2, 14.4, 13.7, 12.9, 12.2, 11.5,
+               10.8, 10.1, 9.5, 8.9, 8.4, 7.8, 7.3, 6.8, 6.4, 6.0, 5.6, 5.2, 4.9, 4.6, 4.3, 4.1, 3.9, 3.7, 3.5, 3.4,
+               3.3, 3.1, 3.0, 2.9, 2.8, 2.7, 2.5, 2.3, 2.0]
+  },
+
   // The made-up household people see when they tap "Look at an example first".
   // owner: 'you', 'partner' or 'joint'. Set partner to null for a single-person example.
   example: {
@@ -95,16 +107,16 @@ window.PLANNER_CONFIG = {
     // category: home, food, health, transport, kids, travel, insurance, giving, other
     // when: 'always', 'before_retirement', 'in_retirement' or 'between_ages' (ages are "you")
     spending: [
-      { name: 'Home upkeep, property tax and insurance', category: 'home',      when: 'always',            perYear: 32000 },
-      { name: 'Groceries and dining',                    category: 'food',      when: 'always',            perYear: 30000 },
-      { name: 'Health care',                             category: 'health',    when: 'before_retirement', perYear: 9000 },
-      { name: 'Health insurance before Medicare',        category: 'health',    when: 'between_ages',      perYear: 22000, fromAge: 64, untilAge: 66 },
-      { name: 'Health care in retirement',               category: 'health',    when: 'in_retirement',     perYear: 15000 },
-      { name: 'Kids activities and childcare',           category: 'kids',      when: 'between_ages',      perYear: 30000, untilAge: 53 },
-      { name: 'Cars and transportation',                 category: 'transport', when: 'always',            perYear: 15000 },
-      { name: 'Travel and fun',                          category: 'travel',    when: 'before_retirement', perYear: 25000 },
-      { name: 'Travel in early retirement',              category: 'travel',    when: 'between_ages',      perYear: 40000, fromAge: 64, untilAge: 80 },
-      { name: 'Everything else',                         category: 'other',     when: 'always',            perYear: 58000 }
+      { name: 'Home upkeep, property tax and insurance', category: 'home',      when: 'always',            perYear: 19000 },
+      { name: 'Groceries and dining',                    category: 'food',      when: 'always',            perYear: 18000 },
+      { name: 'Health care',                             category: 'health',    when: 'before_retirement', perYear: 5000 },
+      { name: 'Health insurance before Medicare',        category: 'health',    when: 'between_ages',      perYear: 13000, fromAge: 64, untilAge: 66 },
+      { name: 'Health care in retirement',               category: 'health',    when: 'in_retirement',     perYear: 9000 },
+      { name: 'Kids activities and childcare',           category: 'kids',      when: 'between_ages',      perYear: 18000, untilAge: 53 },
+      { name: 'Cars and transportation',                 category: 'transport', when: 'always',            perYear: 9000 },
+      { name: 'Travel and fun',                          category: 'travel',    when: 'before_retirement', perYear: 15000 },
+      { name: 'Travel in early retirement',              category: 'travel',    when: 'between_ages',      perYear: 24000, fromAge: 64, untilAge: 80 },
+      { name: 'Everything else',                         category: 'other',     when: 'always',            perYear: 35000 }
     ],
     purchases: [
       { name: 'Kitchen remodel', inYears: 1, cost: 80000 },

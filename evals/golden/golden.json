@@ -1,0 +1,72 @@
+{
+  "example": {
+    "successPct": 92.3,
+    "workOptionalAge": 61,
+    "midAtRetirement": 3001418,
+    "worstAtEnd": 857484,
+    "midAtEnd": 2944240,
+    "bestAtEnd": 9130690,
+    "taxesThisYear": 39220,
+    "midSavingsRunOutAge": null
+  },
+  "single_renter_early_career": {
+    "successPct": 95.8,
+    "workOptionalAge": 62,
+    "midAtRetirement": 1747748,
+    "worstAtEnd": 318922,
+    "midAtEnd": 2472285,
+    "bestAtEnd": 8500653,
+    "taxesThisYear": 21658,
+    "midSavingsRunOutAge": null
+  },
+  "underfunded_family": {
+    "successPct": 0.8,
+    "workOptionalAge": null,
+    "midAtRetirement": 672207,
+    "worstAtEnd": 695835,
+    "midAtEnd": 695835,
+    "bestAtEnd": 695835,
+    "taxesThisYear": 24200,
+    "midSavingsRunOutAge": 71
+  },
+  "near_retirement_couple": {
+    "successPct": 96.8,
+    "workOptionalAge": 62,
+    "midAtRetirement": 3858884,
+    "worstAtEnd": 1838442,
+    "midAtEnd": 4448712,
+    "bestAtEnd": 10986154,
+    "taxesThisYear": 47455,
+    "midSavingsRunOutAge": null
+  },
+  "already_retired_single": {
+    "successPct": 75,
+    "workOptionalAge": null,
+    "midAtRetirement": 900000,
+    "worstAtEnd": 0,
+    "midAtEnd": 369576,
+    "bestAtEnd": 1628490,
+    "taxesThisYear": 750,
+    "midSavingsRunOutAge": null
+  },
+  "coast_fire_couple": {
+    "successPct": 95.2,
+    "workOptionalAge": 54,
+    "midAtRetirement": 4090635,
+    "worstAtEnd": 871108,
+    "midAtEnd": 6803321,
+    "bestAtEnd": 28620178,
+    "taxesThisYear": 86557,
+    "midSavingsRunOutAge": null
+  },
+  "high_earner_early_retirement": {
+    "successPct": 86.3,
+    "workOptionalAge": 44,
+    "midAtRetirement": 3695380,
+    "worstAtEnd": 0,
+    "midAtEnd": 6576218,
+    "bestAtEnd": 29547009,
+    "taxesThisYear": 132373,
+    "midSavingsRunOutAge": null
+  }
+}

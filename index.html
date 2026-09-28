@@ -390,6 +390,9 @@ body.qs-open .mobilebar{display:none}
 .save-line .how-calc{font-size:.78rem;color:var(--muted)}
 .legacy-note{background:#FBF0C9;border-radius:var(--r);padding:12px 14px;margin:0 0 12px;font-size:.84rem;color:var(--amber-deep)}
 .legacy-note p{margin:0 0 8px}
+.rmd-note{background:var(--teal-soft);border-radius:var(--r);padding:10px 14px;margin:12px 0 0;font-size:.82rem;color:var(--ink)}
+.rmd-note:empty{display:none}
+.row-note{margin:8px 0 0;font-size:.8rem;color:var(--amber-deep)}
 .qs-legal{margin-top:16px;padding:12px 14px;border-radius:var(--r);background:var(--well);font-size:.84rem;color:var(--muted)}
 .qs-legal p{margin:0 0 8px;color:var(--muted)}
 .qs-legal .check{align-items:flex-start;margin:0;color:var(--ink);font-size:.86rem}
@@ -446,10 +449,6 @@ body.qs-open .mobilebar{display:none}
   <section class="col results" id="results" aria-label="Projection">
     <div class="col-head">
       <h2>Your Projections</h2>
-      <div class="seg" role="group" aria-label="Dollar view">
-        <button type="button" data-mode="real" aria-pressed="true">Today's dollars</button>
-        <button type="button" data-mode="nominal" aria-pressed="false">Future dollars</button>
-      </div>
     </div>
     <ul class="warnings" id="warnings"></ul>
     <div class="hero" id="hero"></div>
@@ -469,6 +468,10 @@ body.qs-open .mobilebar{display:none}
       </div>
       <div class="chart-head">
         <div class="legend" id="legend"></div>
+        <div class="seg" role="group" aria-label="Dollar view">
+          <button type="button" data-mode="real" aria-pressed="true">Today's dollars</button>
+          <button type="button" data-mode="nominal" aria-pressed="false">Future dollars</button>
+        </div>
       </div>
       <div class="chart" id="chart"></div>
       <div class="chart-summary">
@@ -496,13 +499,14 @@ body.qs-open .mobilebar{display:none}
 
     <details class="card how">
       <summary>How the projection works</summary>
-      <p>The first row is today. Each row after that is a full year: account balances grow by that year's return, then the year's money in and out is added or taken at year end. Salaries grow at your salary growth rate and stop at retirement age. Everything else you enter in today's dollars (spending, benefits, purchases) rises with inflation, and college costs rise with college cost inflation.</p>
+      <p>The first row is today. Each row after that is a full year: account balances grow by that year's return, then the year's money in and out is added or taken at year end. Salaries grow at your salary growth rate and stop at retirement age (an end age can only stop them sooner). Everything else you enter in today's dollars (spending, benefits, purchases) rises with inflation, and college costs rise with college cost inflation.</p>
       <p>Income is entered before taxes. Each year the planner estimates taxes on pay (federal brackets and standard deduction, Social Security and Medicare, and your state rate), subtracts them along with what you put into retirement accounts, and uses the rest for spending and saving. Contributions to pre-tax accounts lower the tax estimate; Roth contributions don't, because they're made with after-tax money. "Total saving" under Income adds up what goes into retirement accounts from your pay, what your employer adds, and what's left of take-home pay after spending and loan payments. College and big purchases are left out of that figure because they're paid from savings when they happen. The tax rules live in config.js and are simplified: no itemized deductions, credits or local quirks. You can replace the estimate with one overall rate under Assumptions.</p>
       <p>Retirement contributions go into retirement accounts while their owner is working. Whatever is left over after spending, debt payments, college and purchases is added to non-retirement savings. When there's a shortfall, it comes out of non-retirement savings first, then pre-tax retirement accounts (with your withdrawal tax rate added on top), then Roth accounts, which are tax-free. Home and other assets grow but are never sold to cover spending.</p>
+      <p><b>Required withdrawals (RMDs).</b> From age 73 (75 if born in 1960 or later), the IRS requires a minimum to come out of pre-tax retirement accounts every year: last year-end's balance divided by a factor from the IRS Uniform Lifetime Table, about 3.8% at 73 and rising with age. The planner takes it each year for each person, taxes it at your withdrawal rate, uses it for that year's spending first and adds anything left over to non-retirement savings. If one partner's plan ends first, the other takes over their accounts. Roth accounts have no required withdrawals. It's simplified: withdrawals don't push the tax estimate into higher brackets, and there's no still-working exception.</p>
       <p>Loans are paid down month by month: each month interest is added at the yearly rate divided by 12, then the monthly payment is taken off, so payoff dates match a normal amortization schedule. If you give a paid-off year without a payment, the planner calculates the payment that clears the loan that year.</p>
       <p>To get best, mid and worst cases, the planner simulates 1,000 market paths every time an input changes. In each path, every year gets a random return drawn around your typical return, spread out by the market ups and downs you set (the same draw applies to retirement and non-retirement accounts, since they're in the same market). For each year it then ranks the 1,000 net worths: the best case is the 90th percentile, the mid case is the median, and the worst case is the 10th percentile. The random numbers use a fixed seed, so the same inputs always give the same answer, which keeps scenario comparisons fair.</p>
       <p><b>Privacy.</b> Your plan is saved automatically in this browser's storage on this device, and nowhere else. The page carries a security rule that tells the browser to block any attempt to send data over the network, so even the planner itself couldn't upload your numbers if it tried. Use Save a copy to keep a backup file or move your plan to another device.</p>
-      <p><b>Work-optional age</b> is the earliest age at which your savings would last the whole plan in at least 85 of 100 simulated markets, if you stopped working then (partners shift by the same number of years). Items marked Estimated are starting guesses from quick start; edit them to make them yours. The Social Security guess is very rough, so look up your real estimate at ssa.gov.</p>
+      <p><b>Work-optional age</b> is the earliest age at which your savings would last the whole plan in at least 85 of 100 simulated markets, if you stopped working then (partners shift by the same number of years, and so does the end of each person's last salary, like a lower-paying job before retiring). Items marked Estimated are starting guesses from quick start; edit them to make them yours. The Social Security guess is very rough (a share of your pay, within set limits), so look up your real estimate at ssa.gov.</p>
       <p>"Savings last" means there was always enough in savings and retirement accounts to cover the year. This is a simplified model for planning conversations, not tax or investment advice.</p>
     </details>
   </section>
@@ -543,223 +547,16 @@ body.qs-open .mobilebar{display:none}
 </div>
 
 <script src="config.js"></script>
+<script src="model.js"></script>
 <script>
 (() => {
 'use strict';
 
-const Y0 = new Date().getFullYear();
-const RUNS = 1000;
+// The projection model (math only, no page code) lives in model.js, so it can be tested on its own (see evals/).
+const M = NWPModel.create(window.PLANNER_CONFIG, { year: new Date().getFullYear() });
+const { Y0, RUNS, CFG, n, has, clone, nameOf, cfgNum, DEFAULT_ASSUMPTIONS, QS, PLAN_TO, EXAMPLE, BLANK, TX, estimateTaxes, loanPayment, project, WO_TARGET, workOptional, shiftRetirement } = M;
 const SC_COLORS = ['#5E7A8A', '#C0902A', '#3F8F86', '#9A7B63'];
 const PLAY_COLOR = '#B86E1F';
-
-/* ---------- Settings (config.js) ---------- */
-// Built-in copy of config.js, used if config.js is missing. The admin edits config.js, not this.
-const BUILTIN_CONFIG = {
-
-  // Starting assumptions for every new plan (quick start and "start over") and for the example.
-  // People can change these in their own plan under Assumptions.
-  assumptions: {
-    retirementReturn: 5,          // typical yearly return on 401(k), IRA, Roth, before inflation
-    nonRetirementReturn: 6,       // typical yearly return on brokerage and savings, before inflation
-    homeAndOtherGrowth: 3.5,      // yearly growth of home and other assets
-    inflation: 2.5,
-    salaryGrowth: 3.5,            // yearly raise on salaries
-    collegeInflation: 4.5,        // yearly rise in college costs
-    retirementWithdrawalTax: 18,  // tax on money taken out of retirement accounts
-    stateIncomeTax: 5,            // state and local income tax, as a share of taxable pay
-    taxesOnPay: null,             // null = estimate taxes automatically; or a number like 28 for a flat overall rate
-    marketUpsAndDowns: 12         // volatility; drives the gap between best and worst case
-  },
-
-  planUntilAge: 95,               // default "plan until" age for new plans
-  workOptionalConfidence: 85,     // work-optional = savings last in at least this many of 100 simulated markets
-
-  // Guesses used by quick start. Everything quick start guesses is marked "Estimated" for the user.
-  quickStart: {
-    defaultRetireAge: 65,
-    collegeCostPerYear: 30000,
-    collegeStartAge: 18,
-    collegeYears: 4,
-    socialSecurityStartAge: 67,
-    socialSecurityPercentOfPay: 40,   // rough share of pre-tax pay replaced by Social Security...
-    socialSecurityMin: 12000,         // ...but at least this...
-    socialSecurityMax: 45000,         // ...and at most this, per person
-    spendingPercentOfTakeHome: 85,    // first guess for spending: this share of take-home pay, minus the mortgage
-    retirementSpendingPercent: 85,    // retirement spending starts at this share of today's spending
-    mortgageRate: 4,
-    mortgageYearsLeft: 25
-  },
-
-  // US federal tax estimate (update each year). Amounts are in today's dollars.
-  // Brackets: each row is [taxable income up to, rate %]; use null for "and above".
-  taxes: {
-    taxYear: 2026,
-    standardDeduction: { single: 16100, joint: 32200 },
-    brackets: {
-      single: [[12400, 10], [50400, 12], [105700, 22], [201775, 24], [256225, 32], [640600, 35], [null, 37]],
-      joint:  [[24800, 10], [100800, 12], [211400, 22], [403550, 24], [512450, 32], [768700, 35], [null, 37]]
-    },
-    socialSecurityWageBase: 184500,
-    socialSecurityRate: 6.2,
-    medicareRate: 1.45,
-    additionalMedicareRate: 0.9,
-    additionalMedicareThreshold: { single: 200000, joint: 250000 },
-    taxableShareOfBenefits: 50        // share of Social Security and pension income counted as taxable
-  },
-
-  // The made-up household people see when they tap "Look at an example first".
-  // owner: 'you', 'partner' or 'joint'. Set partner to null for a single-person example.
-  example: {
-    you:     { name: 'Sam',    age: 42, retireAge: 62, planUntilAge: 95 },
-    partner: { name: 'Jordan', age: 40, retireAge: 62, planUntilAge: 95 },
-    kids: [
-      { name: 'Maya', age: 10, collegeCostPerYear: 40000 },
-      { name: 'Leo',  age: 7,  collegeCostPerYear: 40000 }
-    ],
-    // type: 'retirement', 'non_retirement' or 'home_or_other'
-    // taxTreatment (retirement only): 'pre_tax' (traditional 401(k)/IRA, the default) or 'roth'
-    assets: [
-      { name: "Sam's 401(k)",      type: 'retirement',     owner: 'you',     balance: 420000,  youAddPerYear: 24000, employerAddsPerYear: 8000 },
-      { name: "Jordan's 401(k)",   type: 'retirement',     owner: 'partner', balance: 260000,  youAddPerYear: 22000, employerAddsPerYear: 6000 },
-      { name: 'Roth IRAs',         type: 'retirement',     owner: 'joint',   balance: 90000,   youAddPerYear: 14000, employerAddsPerYear: 0, taxTreatment: 'roth' },
-      { name: 'Brokerage account', type: 'non_retirement', owner: 'joint',   balance: 150000 },
-      { name: 'Savings',           type: 'non_retirement', owner: 'joint',   balance: 60000 },
-      { name: 'Home',              type: 'home_or_other',  owner: 'joint',   balance: 1400000 }
-    ],
-    // Give a monthlyPayment, or leave it null and give paidOffInYears to have the payment calculated.
-    loans: [
-      { name: 'Mortgage', balance: 780000, interestRate: 3, monthlyPayment: null, paidOffInYears: 25 },
-      { name: 'Car loan', balance: 18000,  interestRate: 5, monthlyPayment: 600,  paidOffInYears: null }
-    ],
-    // type: 'salary' (before-tax pay, stops at retirement), 'social_security' (or pension) or 'other'
-    income: [
-      { name: "Sam's salary",             type: 'salary',          owner: 'you',     perYear: 290000 },
-      { name: "Jordan's salary",          type: 'salary',          owner: 'partner', perYear: 200000 },
-      { name: "Sam's Social Security",    type: 'social_security', owner: 'you',     perYear: 40000, fromAge: 67 },
-      { name: "Jordan's Social Security", type: 'social_security', owner: 'partner', perYear: 30000, fromAge: 67 }
-    ],
-    // category: home, food, health, transport, kids, travel, insurance, giving, other
-    // when: 'always', 'before_retirement', 'in_retirement' or 'between_ages' (ages are "you")
-    spending: [
-      { name: 'Home upkeep, property tax and insurance', category: 'home',      when: 'always',            perYear: 32000 },
-      { name: 'Groceries and dining',                    category: 'food',      when: 'always',            perYear: 30000 },
-      { name: 'Health care',                             category: 'health',    when: 'before_retirement', perYear: 9000 },
-      { name: 'Health insurance before Medicare',        category: 'health',    when: 'between_ages',      perYear: 22000, fromAge: 64, untilAge: 66 },
-      { name: 'Health care in retirement',               category: 'health',    when: 'in_retirement',     perYear: 15000 },
-      { name: 'Kids activities and childcare',           category: 'kids',      when: 'between_ages',      perYear: 30000, untilAge: 53 },
-      { name: 'Cars and transportation',                 category: 'transport', when: 'always',            perYear: 15000 },
-      { name: 'Travel and fun',                          category: 'travel',    when: 'before_retirement', perYear: 25000 },
-      { name: 'Travel in early retirement',              category: 'travel',    when: 'between_ages',      perYear: 40000, fromAge: 64, untilAge: 80 },
-      { name: 'Everything else',                         category: 'other',     when: 'always',            perYear: 58000 }
-    ],
-    purchases: [
-      { name: 'Kitchen remodel', inYears: 1, cost: 80000 },
-      { name: 'Replace a car',   inYears: 3, cost: 45000, repeatEveryYears: 8, untilInYears: 35 }
-    ],
-    assumptions: {}   // optional: override any of the assumptions above for the example only
-  },
-
-  // Legal text shown on the quick start welcome screen and at the bottom of every page.
-  // Have a lawyer review this before sharing widely.
-  disclaimer: {
-    short: 'For education and planning conversations only. This is not financial, investment, tax or legal advice, and projections are estimates, not guarantees.',
-    terms: [
-      'Net Worth Planner is an educational tool. It does not provide financial, investment, tax, legal or retirement advice, and it is not a substitute for advice from a qualified professional who knows your situation. Its creators and anyone who shares it are not acting as your financial adviser, broker, tax preparer or lawyer.',
-      'All results are hypothetical estimates based on the information and assumptions you enter and on simplified models of markets, inflation and taxes. They may be inaccurate or incomplete, and they are not predictions or guarantees of future results. Markets, tax laws and your circumstances will change.',
-      'Talk to a qualified financial, tax or legal professional before making any decision based on this tool. You are solely responsible for your decisions and their results.',
-      'The tool is provided "as is" and "as available", without warranties of any kind, express or implied, including accuracy, completeness, merchantability or fitness for a particular purpose.',
-      'To the fullest extent permitted by law, the creators and anyone who shares this tool are not liable for any loss or damage of any kind, direct or indirect, arising from your use of or reliance on the tool or its results.',
-      'Your information is stored only on your own device. You are responsible for keeping backup copies; lost data cannot be recovered by anyone else.',
-      'By using Net Worth Planner you agree to these terms. If you do not agree, please do not use it.'
-    ]
-  }
-};
-function mergeConfig(base, over) {
-  if (!over || typeof over !== 'object' || Array.isArray(over)) return base;
-  const out = { ...base };
-  for (const k of Object.keys(over)) {
-    const b = base[k], o = over[k];
-    out[k] = (b && typeof b === 'object' && !Array.isArray(b) && o && typeof o === 'object' && !Array.isArray(o)) ? mergeConfig(b, o) : o;
-  }
-  return out;
-}
-const CFG = mergeConfig(BUILTIN_CONFIG, window.PLANNER_CONFIG);
-const cfgNum = (v, d) => (v === null || v === undefined || v === '' || !Number.isFinite(+v)) ? d : +v;
-function assumptionsFrom(a) {
-  a = a || {};
-  return {
-    retReturn: cfgNum(a.retirementReturn, 6), nonReturn: cfgNum(a.nonRetirementReturn, 5), otherGrowth: cfgNum(a.homeAndOtherGrowth, 3),
-    inflation: cfgNum(a.inflation, 2.5), earningsGrowth: cfgNum(a.salaryGrowth, 3), eduInflation: cfgNum(a.collegeInflation, 4.5),
-    withdrawalTax: cfgNum(a.retirementWithdrawalTax, 15), stateTax: cfgNum(a.stateIncomeTax, 5),
-    payTaxRate: (a.taxesOnPay === null || a.taxesOnPay === undefined || a.taxesOnPay === '') ? null : cfgNum(a.taxesOnPay, null),
-    volatility: cfgNum(a.marketUpsAndDowns, 12)
-  };
-}
-const DEFAULT_ASSUMPTIONS = () => assumptionsFrom(CFG.assumptions);
-const QS = CFG.quickStart || {};
-const PLAN_TO = cfgNum(CFG.planUntilAge, 95);
-const OWNER = { you: 'p1', partner: 'p2', joint: 'joint' };
-const WHEN = { always: 'always', before_retirement: 'pre', in_retirement: 'ret', between_ages: 'ages' };
-const ASSET_KIND = { retirement: 'retirement', non_retirement: 'nonretirement', home_or_other: 'other' };
-const INCOME_TYPE = { salary: 'salary', social_security: 'benefit', pension: 'benefit', other: 'other' };
-const EXAMPLE = () => {
-  const e = CFG.example || {}, you = e.you || {}, pt = e.partner;
-  const person = (x, def) => ({ name: x.name || '', age: cfgNum(x.age, def), retireAge: cfgNum(x.retireAge, 65), planToAge: cfgNum(x.planUntilAge, PLAN_TO) });
-  return {
-    incomeBasis: 'gross',
-    people: {
-      p1: person(you, 42),
-      p2: pt ? { enabled: true, ...person(pt, 40) } : { enabled: false, name: '', age: 40, retireAge: 65, planToAge: PLAN_TO }
-    },
-    dependents: (e.kids || []).map(k => ({ name: k.name || '', age: cfgNum(k.age, 5), college: k.college !== false, collegeCost: cfgNum(k.collegeCostPerYear, cfgNum(QS.collegeCostPerYear, 30000)), collegeStartAge: cfgNum(k.collegeStartAge, cfgNum(QS.collegeStartAge, 18)), collegeYears: cfgNum(k.collegeYears, cfgNum(QS.collegeYears, 4)) })),
-    assets: (e.assets || []).map(x => ({ label: x.name || '', kind: ASSET_KIND[x.type] || 'nonretirement', owner: OWNER[x.owner] || 'joint', taxType: x.taxTreatment === 'roth' ? 'roth' : 'pretax', balance: cfgNum(x.balance, 0), contribution: cfgNum(x.youAddPerYear, 0), employerContribution: cfgNum(x.employerAddsPerYear, 0) })),
-    liabilities: (e.loans || []).map(x => ({ label: x.name || '', balance: cfgNum(x.balance, 0), rate: cfgNum(x.interestRate, 5), monthlyPayment: cfgNum(x.monthlyPayment, null), endYear: has(x.paidOffInYears) ? Y0 + n(x.paidOffInYears) : null })),
-    income: (e.income || []).map(x => ({ label: x.name || '', type: INCOME_TYPE[x.type] || 'other', owner: OWNER[x.owner] || 'p1', amount: cfgNum(x.perYear, 0), startAge: cfgNum(x.fromAge, null), endAge: cfgNum(x.untilAge, null) })),
-    spending: (e.spending || []).map(x => ({ label: x.name || '', category: x.category || 'other', when: WHEN[x.when] || 'always', amount: cfgNum(x.perYear, 0), fromAge: cfgNum(x.fromAge, null), toAge: cfgNum(x.untilAge, null) })),
-    purchases: (e.purchases || []).map(x => ({ label: x.name || '', year: Y0 + cfgNum(x.inYears, 1), amount: cfgNum(x.cost, 0), repeatEvery: cfgNum(x.repeatEveryYears, null), until: has(x.untilInYears) ? Y0 + n(x.untilInYears) : null })),
-    assumptions: { ...DEFAULT_ASSUMPTIONS(), ...assumptionsFrom({ ...CFG.assumptions, ...(e.assumptions || {}) }) }
-  };
-};
-
-const BLANK = () => ({
-  incomeBasis: 'gross',
-  people: {
-    p1: { name: '', age: 40, retireAge: cfgNum(QS.defaultRetireAge, 65), planToAge: PLAN_TO },
-    p2: { enabled: false, name: '', age: 40, retireAge: cfgNum(QS.defaultRetireAge, 65), planToAge: PLAN_TO }
-  },
-  dependents: [], assets: [], liabilities: [], income: [],
-  spending: [],
-  purchases: [],
-  assumptions: DEFAULT_ASSUMPTIONS()
-});
-
-/* ---------- Tax estimate ---------- */
-const TX = CFG.taxes || {};
-function bracketTax(taxable, filing) {
-  const rows = (TX.brackets && TX.brackets[filing]) || [];
-  let tax = 0, prev = 0;
-  for (const [top, rate] of rows) {
-    const cap = top === null || top === undefined ? Infinity : +top;
-    if (taxable <= prev) break;
-    tax += (Math.min(taxable, cap) - prev) * (+rate / 100);
-    prev = cap;
-  }
-  return tax;
-}
-// All amounts in today's dollars. wages: pay per person; other: other taxable income; benefits: Social Security and pensions;
-// pretax: retirement contributions taken from pay. Returns federal + Social Security/Medicare + state tax.
-function estimateTaxes({ wages, other, benefits, pretax, filing, stateRate }) {
-  const w = wages.reduce((a, b) => a + b, 0);
-  const agi = Math.max(0, w + other + benefits * cfgNum(TX.taxableShareOfBenefits, 50) / 100 - pretax);
-  const std = (TX.standardDeduction && TX.standardDeduction[filing]) || 0;
-  const fed = bracketTax(Math.max(0, agi - std), filing);
-  const base = cfgNum(TX.socialSecurityWageBase, Infinity);
-  let fica = 0;
-  for (const x of wages) fica += Math.min(x, base) * cfgNum(TX.socialSecurityRate, 6.2) / 100 + x * cfgNum(TX.medicareRate, 1.45) / 100;
-  const thr = (TX.additionalMedicareThreshold && TX.additionalMedicareThreshold[filing]) || Infinity;
-  fica += Math.max(0, w - thr) * cfgNum(TX.additionalMedicareRate, 0.9) / 100;
-  return fed + fica + agi * stateRate;
-}
 
 const NEW = {
   dependents: () => ({ name: '', age: 5, college: true, collegeCost: cfgNum(QS.collegeCostPerYear, 30000), collegeStartAge: cfgNum(QS.collegeStartAge, 18), collegeYears: cfgNum(QS.collegeYears, 4) }),
@@ -783,13 +580,9 @@ const closedSections = new Set();
 
 /* ---------- Helpers ---------- */
 const $ = s => document.querySelector(s);
-const n = v => { const x = +v; return Number.isFinite(x) ? x : 0; };
-const has = v => v !== null && v !== undefined && v !== '' && Number.isFinite(+v);
-const clone = o => JSON.parse(JSON.stringify(o));
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const getPath = (o, p) => p.split('.').reduce((a, k) => (a == null ? a : a[k]), o);
 function setPath(o, p, v) { const ks = p.split('.'); let x = o; for (let i = 0; i < ks.length - 1; i++) x = x[ks[i]]; x[ks[ks.length - 1]] = v; }
-const nameOf = (s, p) => (s.people[p].name || '').trim() || (p === 'p1' ? 'Partner 1' : 'Partner 2');
 const nm = p => nameOf(state, p);
 
 function money(v) {
@@ -806,235 +599,6 @@ function axisMoney(v) {
   return sg + '$' + Math.round(a);
 }
 const disp = (v, t, res) => mode === 'real' ? v / Math.pow(1 + res.infl, t) : v;
-
-/* ---------- Projection model ---------- */
-// Monthly payment: the one entered, or (if blank) the payment that pays the loan off by its end year.
-function loanPayment(l) {
-  if (has(l.monthlyPayment) && n(l.monthlyPayment) > 0) return n(l.monthlyPayment);
-  const B = n(l.balance), i = n(l.rate) / 1200;
-  if (!has(l.endYear) || B <= 0) return 0;
-  const m = Math.max(12, (n(l.endYear) - Y0) * 12);
-  return i === 0 ? B / m : B * i / (1 - Math.pow(1 + i, -m));
-}
-function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
-
-function project(s, NR = RUNS) {
-  const A = s.assumptions, p1 = s.people.p1, p2 = s.people.p2, two = !!p2.enabled;
-  const a1 = n(p1.age), a2 = n(p2.age);
-  const H = Math.max(1, Math.min(100, Math.max(n(p1.planToAge) - a1, two ? n(p2.planToAge) - a2 : 0)));
-  const W = H + 1;
-  const infl = n(A.inflation) / 100, eg = n(A.earningsGrowth) / 100, edu = n(A.eduInflation) / 100;
-
-  const working = (o, t) => {
-    if (o === 'p2') return two && a2 + t < n(p2.retireAge);
-    if (o === 'p1') return a1 + t < n(p1.retireAge);
-    return a1 + t < n(p1.retireAge) || (two && a2 + t < n(p2.retireAge));
-  };
-  const allRetired = t => !working('joint', t);
-  const ageNow = o => (o === 'p2' ? a2 : a1);
-
-  function incomeActive(i, t) {
-    const own = i.owner || 'p1';
-    if (own === 'p2' && !two) return false;
-    const who = own === 'p2' ? p2 : p1;
-    const age = ageNow(own) + t;
-    if (has(i.startAge) && age < n(i.startAge)) return false;
-    if (own !== 'joint' && age > n(who.planToAge)) return false;
-    if (has(i.endAge)) return age <= n(i.endAge);
-    if (i.type === 'salary') return working(own, t);
-    return true;
-  }
-
-  // Spending items: 'always', 'pre' (before everyone has retired), 'ret' (after), or 'ages' (Partner 1's ages)
-  function spendActive(x, t) {
-    const w = x.when || 'always';
-    if (w === 'pre') return !allRetired(t);
-    if (w === 'ret') return allRetired(t);
-    if (w === 'ages') { const a = a1 + t; return !(has(x.fromAge) && a < n(x.fromAge)) && !(has(x.toAge) && a > n(x.toAge)); }
-    return true;
-  }
-  const catSpend = {};
-  const inc = new Float64Array(W), spend = new Float64Array(W), debtPay = new Float64Array(W),
-    special = new Float64Array(W), contrib = new Float64Array(W), rothC = new Float64Array(W), debtBal = new Float64Array(W);
-  const events = Array.from({ length: W }, () => []);
-
-  const debts = s.liabilities.map(l => ({ label: l.label || 'Loan', bal: n(l.balance), r: n(l.rate) / 100, pay: loanPayment(l), endT: has(l.endYear) ? Math.max(1, n(l.endYear) - Y0) : Infinity }));
-  debtBal[0] = debts.reduce((x, d) => x + d.bal, 0);
-
-  // Retirement and benefit-start events
-  const tr1 = n(p1.retireAge) - a1, tr2 = two ? n(p2.retireAge) - a2 : -1;
-  if (two && tr1 === tr2 && tr1 >= 1 && tr1 <= H) events[tr1].push('Both retire');
-  else {
-    if (tr1 >= 1 && tr1 <= H) events[tr1].push(`${nameOf(s, 'p1')} retires`);
-    if (tr2 >= 1 && tr2 <= H) events[tr2].push(`${nameOf(s, 'p2')} retires`);
-  }
-  for (const i of s.income) {
-    if (i.type === 'salary' || !has(i.startAge)) continue;
-    if ((i.owner === 'p2') && !two) continue;
-    const t = n(i.startAge) - ageNow(i.owner || 'p1');
-    if (t >= 1 && t <= H) events[t].push(`${i.label || 'Income'} begins`);
-  }
-
-  // Purchases
-  const purch = new Float64Array(W);
-  for (const p of s.purchases) {
-    if (!has(p.year)) continue;
-    const step = Math.max(0, Math.round(n(p.repeatEvery)));
-    const until = has(p.until) ? n(p.until) : Y0 + H;
-    let y = n(p.year), guard = 0;
-    do {
-      const t = Math.max(1, y - Y0);
-      if (t <= H) { purch[t] += n(p.amount) * Math.pow(1 + infl, t); events[t].push(p.label || 'Purchase'); }
-      y += step;
-    } while (step > 0 && y <= until && ++guard < 200);
-  }
-
-  // Pay, contributions and estimated taxes for year t (t = 0 is this year, as entered)
-  const grossBasis = (s.incomeBasis || 'gross') === 'gross', filing = two ? 'joint' : 'single';
-  const stateRate = n(A.stateTax) / 100, flatRate = has(A.payTaxRate) ? n(A.payTaxRate) / 100 : null;
-  function money_in(t) {
-    const f = Math.pow(1 + infl, t), wages = { p1: 0, p2: 0, joint: 0 };
-    let other = 0, ben = 0, you = 0, emp = 0, pre = 0, roth = 0;
-    for (const i of s.income) {
-      if (!incomeActive(i, t)) continue;
-      const amt = n(i.amount) * (i.type === 'salary' ? Math.pow(1 + eg, t) : f);
-      if (i.type === 'salary') wages[i.owner || 'p1'] += amt; else if (i.type === 'benefit') ben += amt; else other += amt;
-    }
-    for (const a of s.assets) if (a.kind === 'retirement' && working(a.owner || 'p1', t)) {
-      const mine = n(a.contribution) * f, theirs = n(a.employerContribution) * f;
-      you += mine; emp += theirs;
-      if (a.taxType === 'roth') roth += mine + theirs; else pre += mine;   // employer money never reduces your taxes
-    }
-    const total = wages.p1 + wages.p2 + wages.joint + other + ben;
-    let tx = 0;
-    if (grossBasis && total > 0) {
-      if (flatRate !== null) tx = flatRate * (wages.p1 + wages.p2 + wages.joint + other + ben * cfgNum(TX.taxableShareOfBenefits, 50) / 100);
-      else tx = estimateTaxes({ wages: [wages.p1 / f, wages.p2 / f, wages.joint / f], other: other / f, benefits: ben / f, pretax: pre / f, filing, stateRate }) * f;
-    }
-    return { total, tax: tx, you, emp, roth };
-  }
-  const taxes = new Float64Array(W), youC = new Float64Array(W);
-  for (let t = 1; t < W; t++) {
-    const f = Math.pow(1 + infl, t);
-    const mi = money_in(t);
-    inc[t] = mi.total; taxes[t] = mi.tax; youC[t] = grossBasis ? mi.you : 0; contrib[t] = mi.you + mi.emp - mi.roth; rothC[t] = mi.roth;
-    for (const x of s.spending) {
-      if (!spendActive(x, t)) continue;
-      const v = n(x.amount) * f, c = x.category || 'other';
-      spend[t] += v;
-      (catSpend[c] || (catSpend[c] = new Float64Array(W)))[t] += v;
-    }
-    let db = 0;
-    for (const d of debts) {
-      if (d.bal > 0.5) {
-        // Standard monthly amortization: interest accrues monthly at rate/12, then the payment is applied.
-        let paid = 0;
-        for (let m = 0; m < 12 && d.bal > 0.005; m++) {
-          const due = d.bal * (1 + d.r / 12), pay = Math.min(d.pay, due);
-          d.bal = due - pay; paid += pay;
-        }
-        let lump = false;
-        if (t >= d.endT && d.bal > 0.5) { paid += d.bal; d.bal = 0; lump = true; } // anything left by the end year is paid in full
-        debtPay[t] += paid;
-        if (d.bal <= 0.5) { d.bal = 0; events[t].push(lump && paid > d.pay * 13 ? `${d.label} paid off with a lump sum` : `${d.label} paid off`); }
-      }
-      db += d.bal;
-    }
-    debtBal[t] = db;
-    for (const d of s.dependents) {
-      if (!d.college) continue;
-      const da = n(d.age) + t, st = n(d.collegeStartAge), yrs = n(d.collegeYears);
-      if (da >= st && da < st + yrs) {
-        special[t] += n(d.collegeCost) * Math.pow(1 + edu, t);
-        if (da === st) events[t].push(`${d.name || 'Dependent'} starts college`);
-      }
-    }
-    special[t] += purch[t];
-  }
-
-  let retireT = null;
-  for (let t = 0; t <= H; t++) if (allRetired(t)) { retireT = t; break; }
-
-  // Monte Carlo
-  let R0 = 0, Q0 = 0, N0 = 0, O0 = 0;   // R: pre-tax retirement, Q: Roth, N: non-retirement, O: home and other
-  for (const a of s.assets) {
-    if (a.kind === 'retirement') { if (a.taxType === 'roth') Q0 += n(a.balance); else R0 += n(a.balance); }
-    else if (a.kind === 'nonretirement') N0 += n(a.balance);
-    else O0 += n(a.balance);
-  }
-  const rr = n(A.retReturn) / 100, rn = n(A.nonReturn) / 100, og = n(A.otherGrowth) / 100,
-    vol = Math.max(0, n(A.volatility)) / 100, tax = Math.min(0.9, Math.max(0, n(A.withdrawalTax) / 100));
-  const muR = Math.log(Math.max(0.01, 1 + rr)), muN = Math.log(Math.max(0.01, 1 + rn));
-  const t0 = performance.now();
-  const rand = mulberry32(20240611);
-  let spare = null;
-  const gauss = () => {
-    if (spare !== null) { const v = spare; spare = null; return v; }
-    let u = 0; while (u === 0) u = rand();
-    const v = rand(), m = Math.sqrt(-2 * Math.log(u));
-    spare = m * Math.sin(2 * Math.PI * v);
-    return m * Math.cos(2 * Math.PI * v);
-  };
-
-  const nw = new Float64Array(NR * W), liq = new Float64Array(NR * W), depl = new Float64Array(NR);
-  for (let r = 0; r < NR; r++) {
-    let R = R0, Q = Q0, N = N0, O = O0, dep = Infinity;
-    const b = r * W;
-    nw[b] = R + Q + N + O - debtBal[0]; liq[b] = R + Q + N;
-    for (let t = 1; t < W; t++) {
-      const z = gauss();
-      const gR = Math.exp(muR + vol * z); R *= gR; Q *= gR;
-      N *= Math.exp(muN + vol * z);
-      O *= 1 + og;
-      R += contrib[t]; Q += rothC[t];
-      const net = inc[t] - taxes[t] - youC[t] - spend[t] - debtPay[t] - special[t];
-      if (net >= 0) N += net;
-      else {
-        let need = -net;
-        const fromN = Math.min(Math.max(N, 0), need); N -= fromN; need -= fromN;
-        if (need > 0) {
-          // Pre-tax accounts next (taxed on the way out), then Roth (tax-free)
-          const gross = need / (1 - tax);
-          if (R >= gross) { R -= gross; need = 0; }
-          else { need -= R * (1 - tax); R = 0; }
-          if (need > 0) {
-            if (Q >= need) Q -= need;
-            else { Q = 0; if (dep === Infinity) dep = t; }
-          }
-        }
-      }
-      nw[b + t] = R + Q + N + O - debtBal[t]; liq[b + t] = R + Q + N;
-    }
-    depl[r] = dep;
-  }
-  const ms = performance.now() - t0;
-  const spendAt = t => s.spending.reduce((x, it) => x + (spendActive(it, t) ? n(it.amount) : 0), 0);
-  const spendNow = spendAt(0), spendRet = retireT === null ? null : spendAt(Math.max(retireT, 1));
-  const now = money_in(0), incNow = now.total, taxNow = now.tax, youNow = grossBasis ? now.you : 0, empNow = now.emp;
-  // Loan payments over the next 12 months, in today's dollars (college and big purchases are treated as withdrawals from savings)
-  const outNext = W > 1 ? debtPay[1] / (1 + infl) : 0;
-
-  const p10 = new Float64Array(W), p50 = new Float64Array(W), p90 = new Float64Array(W), liq50 = new Float64Array(W);
-  const col = new Float64Array(NR), i10 = Math.floor(0.1 * (NR - 1)), i50 = Math.round(0.5 * (NR - 1)), i90 = Math.ceil(0.9 * (NR - 1));
-  for (let t = 0; t < W; t++) {
-    for (let r = 0; r < NR; r++) col[r] = nw[r * W + t];
-    col.sort(); p10[t] = col[i10]; p50[t] = col[i50]; p90[t] = col[i90];
-    for (let r = 0; r < NR; r++) col[r] = liq[r * W + t];
-    col.sort(); liq50[t] = col[i50];
-  }
-  let ok = 0; for (let r = 0; r < NR; r++) if (depl[r] === Infinity) ok++;
-  const ds = Float64Array.from(depl).sort();
-
-  return {
-    H, infl, two, a1, a2, retireT,
-    names: [nameOf(s, 'p1'), nameOf(s, 'p2')],
-    inc, spend, debtPay, special, debtBal, events,
-    p10, p50, p90, liq50,
-    success: ok / NR, deplMid: ds[i50], deplWorst: ds[i10],
-    empty: s.assets.length === 0 && s.income.length === 0,
-    retire1: tr1, retire2: tr2, ms, incNow, taxNow, youNow, empNow, outNext, grossBasis, taxes, youC, spendNow, spendRet, catSpend
-  };
-}
 
 /* ---------- Inputs rendering ---------- */
 const inputsEl = $('#inputs');
@@ -1086,13 +650,14 @@ function renameEverywhere(oldName, newName) {
 }
 const payPh = l => (!(has(l.monthlyPayment) && n(l.monthlyPayment) > 0) && has(l.endYear) && n(l.balance) > 0) ? `${Math.round(loanPayment({ ...l, monthlyPayment: null })).toLocaleString('en-US')} calculated` : '';
 const TAX_INFO = `<p>Leave blank to estimate automatically: ${esc(String(cfgNum((CFG.taxes || {}).taxYear, '')))} federal brackets and standard deduction, Social Security and Medicare, plus your state rate. Pre-tax retirement contributions lower the estimate, and part of Social Security and pension income is counted.</p><p>Or enter one overall rate that covers all taxes on your pay.</p>`;
+const SS_ROUGH = `Rough guess: about ${cfgNum(QS.socialSecurityPercentOfPay, 40)}% of pay, kept between ${'$' + cfgNum(QS.socialSecurityMin, 12000).toLocaleString('en-US')} and ${'$' + cfgNum(QS.socialSecurityMax, 45000).toLocaleString('en-US')} a year. Your real benefit depends on your whole work history; look up your estimate at ssa.gov and enter it here.`;
 const VOL_INFO = `<p>How much returns swing from year to year (volatility). At 12%, about two years in three land within roughly 12 points of your typical return.</p><p>Rough guide: mostly stocks 15 to 18%, a 60/40 mix 10 to 12%, mostly bonds 5 to 7%. Higher numbers widen the gap between best and worst case.</p>`;
 const estChip = (key, i, it) => it && it.est ? `<span class="est" data-est="${key}.${i}" title="A starting guess from quick start. Edit it to make it yours.">Estimated</span>` : '';
 function clearEst(path) {
   const m = path.match(/^(\w+)\.(\d+)\./);
   if (!m || !Array.isArray(state[m[1]])) return;
   const it = state[m[1]][+m[2]];
-  if (it && it.est) { delete it.est; const el = document.querySelector(`[data-est="${m[1]}.${m[2]}"]`); if (el) el.remove(); }
+  if (it && it.est) { delete it.est; document.querySelectorAll(`[data-est="${m[1]}.${m[2]}"]`).forEach(el => el.remove()); }
 }
 const rmBtn = (key, i, what) => `<button type="button" class="rm" data-remove="${key}.${i}" aria-label="Remove ${esc(what)}">×</button>`;
 const addBtn = (key, txt) => `<button type="button" class="add" data-add="${key}">${esc(txt)}</button>`;
@@ -1163,7 +728,7 @@ function renderInputs() {
   const income = `
     ${s.incomeBasis === 'net'
       ? `<div class="legacy-note"><p>This plan was made with an older version that used take-home pay. Switch to pay before taxes to get automatic tax estimates.</p><button type="button" class="btn small" data-convert-gross>Switch to pay before taxes</button></div>`
-      : `<p class="hint">Enter pay before taxes. The planner estimates federal, Social Security, Medicare and state taxes for you (see Assumptions). Salaries stop at retirement unless you set an end age. Other income is in today's dollars and keeps up with inflation.</p>`}
+      : `<p class="hint">Enter pay before taxes. The planner estimates federal, Social Security, Medicare and state taxes for you (see Assumptions). Salaries stop at retirement, or sooner if you set an end age. Planning a lower-paying job before you retire? Add it as a second salary with a From age; the Retire at slider moves its end along with your retirement. For paid work after retiring, use Other income. Other income is in today's dollars and keeps up with inflation.</p>`}
     <div data-list="income">${s.income.map((i, k) => {
       const sal = i.type === 'salary';
       return `<div class="row">${rmBtn('income', k, i.label || 'income')}${estChip('income', k, i)}<div class="grid">
@@ -1173,10 +738,11 @@ function renderInputs() {
         ${fld(`income.${k}.amount`, 'Per year', 'money', { cls: 's4' })}
         ${fld(`income.${k}.startAge`, 'From age', 'int', { ph: sal ? 'now' : 'e.g. 67', cls: 's4' })}
         ${fld(`income.${k}.endAge`, 'Until age', 'int', { ph: sal ? 'retirement' : 'for life', cls: 's4' })}
-      </div></div>`;
+      </div>${i.est && i.type === 'benefit' ? `<p class="row-note" data-est="income.${k}">${esc(SS_ROUGH)}</p>` : ''}</div>`;
     }).join('')}</div>
     ${addBtn('income', 'Add income')}
-    <div class="totals" id="incomeTotals"></div>`;
+    <div class="totals" id="incomeTotals"></div>
+    <p class="rmd-note" id="rmdNote"></p>`;
 
   const spending = `
     <p class="hint">Yearly amounts in today's dollars, not counting debt payments, college or big purchases. Retirement starts once ${two ? 'you have both' : 'you have'} retired. "Between ages" uses <span data-p1name>${esc(nm('p1'))}</span>'s age.</p>
@@ -1267,6 +833,8 @@ function renderSummaries() {
           : `<span>Spending and loan payments are more than take-home by about <b>${money(-left)}</b> a year; the difference comes out of savings</span>`}</div>`;
     } else itl.innerHTML = '';
   }
+  const rn = document.getElementById('rmdNote');
+  if (rn) rn.innerHTML = current ? rmdNote(s, current) : '';
   const tp = document.getElementById('f_assumptions_payTaxRate');
   if (tp && current) tp.placeholder = current.grossBasis && current.incNow > 0 ? `auto, about ${Math.round(current.taxNow / current.incNow * 100)}` : 'auto';
   set('sum-spending', s.spending.length ? `${money(current ? current.spendNow : 0)} a year now` : 'None yet');
@@ -1279,6 +847,19 @@ function renderSummaries() {
   set('sum-assumptions', `${n(s.assumptions.retReturn)}% return, ${n(s.assumptions.inflation)}% inflation`);
   const at = document.getElementById('assetTotals');
   if (at && s.assets.length) at.innerHTML = `<span>Retirement <b>${money(tot('retirement'))}</b></span><span>Non-retirement <b>${money(tot('nonretirement'))}</b></span><span>Home and other <b>${money(tot('other'))}</b></span>`;
+}
+
+// Required minimum distributions: when they start and roughly how much, for plans with pre-tax accounts
+function rmdNote(s, res) {
+  if (!s.assets.some(a => a.kind === 'retirement' && a.taxType !== 'roth' && (n(a.balance) > 0 || n(a.contribution) + n(a.employerContribution) > 0))) return '';
+  const who = [['p1', res.rmdAges[0], res.a1]];
+  if (res.two) who.push(['p2', res.rmdAges[1], res.a2]);
+  const when = who.length === 2 && who[0][1] === who[1][1] && who.every(w => w[2] < w[1])
+    ? `from age ${who[0][1]} for both of you`
+    : who.map(([p, a, now]) => `${now >= a ? 'already' : `from age ${a}`} for ${esc(nm(p))}`).join(' and ');
+  const t = res.rmd.findIndex((v, i) => i > 0 && v > 0);
+  const first = t > 0 ? ` In the mid case the first one is about <b>${money(res.rmd[t] / Math.pow(1 + res.infl, t))}</b> in today's dollars.` : '';
+  return `<b>Required withdrawals (RMDs):</b> ${when}, the planner takes the IRS minimum out of pre-tax retirement accounts each year. It's taxed at your withdrawal rate, and anything not spent goes into non-retirement savings. Roth accounts have none.${first}`;
 }
 
 function refreshNames() {
@@ -1973,7 +1554,8 @@ function renderQS() {
   if (step === 'income') h = `<h2 id="qsTitle">What does your household earn?</h2><p>Yearly pay before taxes${d.two ? ', for both of you together' : ''}. Your offer letter or last year's W-2 is a good guide. We'll estimate taxes for you.</p>
     ${qMoney('gross', 'Pay before taxes per year')}
     ${qMoney('yourContrib', 'You put into retirement accounts per year', '401(k), 403(b), IRA and similar')}
-    ${qMoney('employerContrib', 'Your employer adds per year', 'Match or profit sharing. Enter 0 if none.')}`;
+    ${qMoney('employerContrib', 'Your employer adds per year', 'Match or profit sharing. Enter 0 if none.')}
+    <p class="hint2">We'll also add a rough Social Security guess from age ${cfgNum(QS.socialSecurityStartAge, 67)}, based on this pay. It's only a placeholder: look up your real estimate at ssa.gov later and replace it under Income.</p>`;
   if (step === 'spend') {
     if (!d.spendTouched && d.spend === null && n(d.gross) > 0) d.spend = estSpend(d);
     const th = qsTakeHome(d);
@@ -2090,19 +1672,6 @@ $('#termsClose').addEventListener('click', closeTerms);
 $('#termsDlg').addEventListener('click', e => { if (e.target.id === 'termsDlg') closeTerms(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#termsDlg').hidden) closeTerms(); });
 
-/* ---------- Work-optional age ---------- */
-const WO_TARGET = cfgNum(CFG.workOptionalConfidence, 85) / 100;
-function workOptional(s) {
-  const p1 = s.people.p1, r1 = n(p1.retireAge), a1 = n(p1.age), two = s.people.p2.enabled, r2 = n(s.people.p2.retireAge);
-  const minA = Math.max(a1, 30), maxA = Math.min(80, Math.max(minA, n(p1.planToAge) - 1));
-  const test = A => { const c = clone(s); c.people.p1.retireAge = A; if (two) c.people.p2.retireAge = r2 + (A - r1); return project(c, 400).success >= WO_TARGET; };
-  if (!test(maxA)) return null;
-  if (test(minA)) return minA;
-  let lo = minA, hi = maxA;
-  while (hi - lo > 1) { const m = (lo + hi) >> 1; if (test(m)) hi = m; else lo = m; }
-  return hi;
-}
-
 /* ---------- Hero ---------- */
 function heroNumber(res) { return res.wo === null ? null : res.wo; }
 function renderHero() {
@@ -2172,8 +1741,8 @@ async function shareMilestone() {
 const play = { retire: null, spend: 0, ret: 0 };
 function playActive() { return (play.retire !== null && play.retire !== n(state.people.p1.retireAge)) || play.spend !== 0 || play.ret !== 0; }
 function applyPlay(s) {
-  const c = clone(s), p1 = c.people.p1;
-  if (play.retire !== null) { const d = play.retire - n(p1.retireAge); p1.retireAge = play.retire; if (c.people.p2.enabled) c.people.p2.retireAge = n(c.people.p2.retireAge) + d; }
+  // Moving retirement also moves partners and the end of each person's last salary (see shiftRetirement in model.js)
+  const c = play.retire !== null ? shiftRetirement(s, play.retire - n(s.people.p1.retireAge)) : clone(s);
   if (play.spend) c.spending.forEach(x => { x.amount = Math.round(n(x.amount) * (1 + play.spend / 100) / 100) * 100; });
   if (play.ret) { c.assumptions.retReturn = +(n(c.assumptions.retReturn) + play.ret).toFixed(2); c.assumptions.nonReturn = +(n(c.assumptions.nonReturn) + play.ret).toFixed(2); }
   return c;

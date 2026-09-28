@@ -1,0 +1,12 @@
+# Runs the evals on every push and pull request. Optional: delete this file if you don't want it.
+name: evals
+on: [push, pull_request]
+jobs:
+  evals:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node evals/run.js
