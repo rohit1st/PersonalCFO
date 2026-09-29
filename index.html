@@ -399,6 +399,47 @@ body.qs-open .mobilebar{display:none}
 .real-note{margin:4px 0 0;font-size:.78rem;color:var(--muted)}
 .real-note b{color:var(--ink);font-weight:600}
 .real-note.warn{color:var(--amber-deep)}
+
+/* ---------- What's new ---------- */
+.whatsnew{max-width:1392px;margin:0 auto 14px;display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 16px;border-radius:var(--r);background:var(--teal-soft);font-size:.88rem;animation:wnIn .5s ease both}
+.whatsnew .wn-k{font-weight:600;color:var(--teal-deep);margin-right:6px}
+@keyframes wnIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.whatsnew{animation:none}}
+
+/* ---------- Key result tiles ---------- */
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 20px}
+.tiles:empty{display:none}
+.tile{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:12px 14px;min-width:0}
+.tile .tk{display:block;font-size:.76rem;color:var(--muted)}
+.tile .tv{display:block;font-size:1.3rem;font-weight:650;line-height:1.25;margin:2px 0;color:var(--ink)}
+.tile .ts{display:block;font-size:.76rem;color:var(--muted);line-height:1.35}
+.tile.good .tv{color:var(--green-deep)}
+.tile.warn .tv{color:var(--amber-deep)}
+.tile.bad .tv{color:var(--coral-deep)}
+@media (max-width:760px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.tile{padding:10px 12px}.tile .tv{font-size:1.12rem}}
+
+/* ---------- Scenario details ---------- */
+.sc-open{display:inline-flex;align-items:center;gap:8px;border:0;background:none;padding:0;font:inherit;font-weight:600;color:var(--ink);cursor:pointer;text-align:left}
+.sc-open .car{display:inline-block;color:var(--muted);transition:transform .15s;font-size:.8rem}
+.sc-open[aria-expanded="true"] .car{transform:rotate(90deg)}
+.sc-open:hover .nm{text-decoration:underline;text-decoration-color:var(--teal)}
+.sc-table tr.sc-detail td{background:var(--well);white-space:normal;padding:12px 14px}
+.sc-d h4{margin:0 0 6px;font-size:.8rem;color:var(--muted);font-weight:600}
+.sc-d ul{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:4px}
+.sc-d li{font-size:.85rem}
+.sc-d li .sec{display:inline-block;min-width:88px;color:var(--muted);font-size:.76rem}
+.sc-d .arrow{color:var(--muted);margin:0 4px}
+.sc-d .res{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.sc-d .res div{background:var(--surface);border-radius:var(--r-sm);padding:8px 10px;font-size:.8rem}
+.sc-d .res span{display:block;color:var(--muted);font-size:.74rem}
+.sc-d .delta{font-size:.74rem;margin-left:4px}
+.sc-d .delta.good{color:var(--green-deep)}.sc-d .delta.bad{color:var(--coral-deep)}
+@media (max-width:600px){
+  .sc-table tr.sc-detail{display:block;padding:0}
+  .sc-table tr.sc-detail td{display:block}
+  .sc-d .res{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .sc-d li .sec{display:block;min-width:0}
+}
 .qs-legal{margin-top:16px;padding:12px 14px;border-radius:var(--r);background:var(--well);font-size:.84rem;color:var(--muted)}
 .qs-legal p{margin:0 0 8px;color:var(--muted)}
 .qs-legal .check{align-items:flex-start;margin:0;color:var(--ink);font-size:.86rem}
@@ -425,6 +466,7 @@ body.qs-open .mobilebar{display:none}
 </header>
 <div class="notice-wrap">
   <div id="notice" class="notice" role="status" hidden></div>
+  <div id="whatsNew" class="whatsnew" role="status" hidden></div>
   <div id="iosTip" class="ios-tip" hidden>
     <span><b>Keep it on your iPhone:</b> tap the Share button <span aria-hidden="true">⎋</span>, then <b>Add to Home Screen</b>. It opens like an app, works offline, and keeps your plan safe on this phone.</span>
     <button type="button" class="link" id="iosTipClose">Got it</button>
@@ -458,6 +500,7 @@ body.qs-open .mobilebar{display:none}
     </div>
     <ul class="warnings" id="warnings"></ul>
     <div class="hero" id="hero"></div>
+    <div class="tiles" id="tiles" aria-label="Key results"></div>
 
     <div class="card chart-card">
       <div class="play" id="play">
@@ -560,7 +603,7 @@ body.qs-open .mobilebar{display:none}
 
 // The projection model (math only, no page code) lives in model.js, so it can be tested on its own (see evals/).
 const M = NWPModel.create(window.PLANNER_CONFIG, { year: new Date().getFullYear() });
-const { Y0, RUNS, CFG, n, has, clone, nameOf, cfgNum, DEFAULT_ASSUMPTIONS, QS, PLAN_TO, EXAMPLE, BLANK, TX, estimateTaxes, loanPayment, project, WO_TARGET, workOptional, shiftRetirement, realRate, MIXES, mixAssumptions } = M;
+const { Y0, RUNS, CFG, n, has, clone, nameOf, cfgNum, DEFAULT_ASSUMPTIONS, QS, PLAN_TO, EXAMPLE, BLANK, TX, estimateTaxes, loanPayment, project, WO_TARGET, workOptional, shiftRetirement, realRate, MIXES, mixAssumptions, planDiff, keyResults } = M;
 const SC_COLORS = ['#5E7A8A', '#C0902A', '#3F8F86', '#9A7B63'];
 const PLAY_COLOR = '#B86E1F';
 
@@ -921,7 +964,8 @@ inputsEl.addEventListener('input', e => {
   let v;
   if (k === 'text') v = el.value;
   else {
-    const raw = el.value.replace(/[^0-9.\-]/g, '');
+    // Percent fields: some keyboards (region settings) type a comma as the decimal point
+    const raw = (k === 'pct' ? el.value.replace(/,/g, '.') : el.value).replace(/[^0-9.\-]/g, '');
     v = (raw === '' || raw === '-' || raw === '.') ? null : parseFloat(raw);
     if (!Number.isFinite(v)) v = null;
   }
@@ -1175,8 +1219,10 @@ function onHover(e) {
 const ICON_EYE = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
 const ICON_EYE_OFF = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M2 12s3.6-7 10-7c2 0 3.8.7 5.2 1.6M22 12s-3.6 7-10 7c-2 0-3.8-.7-5.2-1.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M4 4l16 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
 const ICON_TRASH = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 7h16M9 7V4.8h6V7M6.5 7l.9 12.2h9.2L17.5 7M10 10.5v5.5M14 10.5v5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-function scenarioRow(name, res, color, actions, hidden) {
-  const nameCell = `<td class="sc-n"><span class="sc-name"><i class="dot${hidden ? ' off' : ''}" style="--c:${color}"></i>${esc(name)}</span></td>`;
+function scenarioRow(name, res, color, actions, hidden, i) {
+  const dot = `<i class="dot${hidden ? ' off' : ''}" style="--c:${color}"></i>`;
+  const nameCell = i === undefined ? `<td class="sc-n"><span class="sc-name">${dot}${esc(name)}</span></td>`
+    : `<td class="sc-n"><button type="button" class="sc-open" data-sc="details" data-i="${i}" aria-expanded="${openScenario === i}" title="See what changed"><span class="car" aria-hidden="true">▶</span>${dot}<span class="nm">${esc(name)}</span></button></td>`;
   if (res.empty) return `<tr>${nameCell}<td data-l="Retired">–</td><td class="n" data-l="At retirement">–</td><td class="n" data-l="At end">–</td><td data-l="Savings last">–</td><td class="acts">${actions}</td></tr>`;
   const rt = res.retireT === null ? res.H : res.retireT;
   return `<tr>${nameCell}
@@ -1186,6 +1232,44 @@ function scenarioRow(name, res, color, actions, hidden) {
     <td data-l="Savings last">${esc(lastsText(res, res.deplMid))}</td>
     <td class="acts">${actions}</td></tr>`;
 }
+// Scenario details: what's different from the current plan, then how the results compare
+let openScenario = null;
+const ENUM_TEXT = {
+  retirement: 'Retirement', nonretirement: 'Non-retirement', other: 'Home or other', pretax: 'Pre-tax', roth: 'Roth',
+  salary: 'Salary', benefit: 'Social Security or pension', always: 'Always', pre: 'Before retirement', ret: 'In retirement', ages: 'Between ages', custom: 'Custom'
+};
+function diffValue(v, f, st) {
+  if (v === null || v === undefined) return 'blank';
+  if (f === 'pct') return `${pct1(v)}%`;
+  if (f === 'money') return money(v);
+  if (f === 'bool') return v ? 'Yes' : 'No';
+  if (f === 'owner') return v === 'joint' ? 'Joint' : nameOf(st, v);
+  if (f === 'enum') { const m = MIXES.find(x => x.id === v); return m ? m.label : ENUM_TEXT[v] || (String(v).charAt(0).toUpperCase() + String(v).slice(1)); }
+  return String(v);
+}
+function scenarioDetails(sc) {
+  const d = planDiff(state, sc.state), LIMIT = 12;
+  const items = d.slice(0, LIMIT).map(x => {
+    const what = x.change === 'added' ? `${esc(x.label)} <b>added</b>` : x.change === 'removed' ? `${esc(x.label)} <b>removed</b>`
+      : `${esc(x.label)} <b>${esc(diffValue(x.from, x.format, state))}</b><span class="arrow">→</span><b>${esc(diffValue(x.to, x.format, sc.state))}</b>`;
+    return `<li><span class="sec">${esc(x.section)}</span>${what}</li>`;
+  }).join('');
+  const more = d.length > LIMIT ? `<li>…and ${d.length - LIMIT} more change${d.length - LIMIT === 1 ? '' : 's'}</li>` : '';
+  if (sc.wo === undefined) sc.wo = sc.res.empty ? null : workOptional(sc.state);
+  const a = current, b = sc.res, ka = keyResults(a), kb = keyResults(b);
+  const delta = (x, y, better, dfmt) => (x === null || y === null || Math.abs(y - x) < 0.5 ? '' : `<span class="delta ${(y > x) === better ? 'good' : 'bad'}">${y > x ? '+' : '−'}${dfmt(Math.abs(y - x))}</span>`);
+  const cell = (label, from, to, fmt, better, none = '–', dfmt = fmt) => `<div><span>${label}</span>${from === null ? none : fmt(from)} → <b>${to === null ? none : fmt(to)}</b>${delta(from, to, better, dfmt)}</div>`;
+  const endA = ka ? disp(ka.atEnd, ka.H, a) : null, endB = kb ? disp(kb.atEnd, kb.H, b) : null;
+  const woA = a.retireT === 0 ? null : a.wo, woB = b.retireT === 0 ? null : sc.wo;
+  const results = `<div class="res">
+      ${cell('Work-optional age', woA, woB, v => String(v), false)}
+      ${cell('Savings last', Math.round(a.success * 100), Math.round(b.success * 100), v => v + '%', true, '–', v => `${v} pt${v === 1 ? '' : 's'}`)}
+      ${cell('Net worth at plan end', endA, endB, money, true)}
+      ${cell('Worst case runs out', ka && ka.worstRunOutAge, kb && kb.worstRunOutAge, v => 'at ' + v, true, 'Lasts', v => `${v} yr${v === 1 ? '' : 's'}`)}
+    </div>`;
+  return `<div class="sc-d"><h4>What's different from your current plan</h4><ul>${items || '<li>Same inputs as your current plan.</li>'}${more}</ul>
+    <h4>How it compares (current → ${esc(sc.name)}, mid case, ${mode === 'real' ? "today's" : 'future'} dollars)</h4>${results}</div>`;
+}
 function renderScenarios() {
   const wrap = $('#scWrap');
   if (!scenarios.length) { wrap.style.display = 'none'; return; }
@@ -1194,7 +1278,8 @@ function renderScenarios() {
   scenarios.forEach((sc, i) => {
     const lab = sc.show ? `Hide ${sc.name} from chart` : `Show ${sc.name} on chart`;
     const acts = `<button type="button" class="icon-btn" data-sc="show" data-i="${i}" aria-pressed="${sc.show}" aria-label="${esc(lab)}" title="${sc.show ? 'Shown on chart' : 'Hidden from chart'}">${sc.show ? ICON_EYE : ICON_EYE_OFF}</button><button type="button" class="icon-btn danger" data-sc="delete" data-i="${i}" aria-label="${esc('Delete ' + sc.name)}" title="Delete">${ICON_TRASH}</button>`;
-    rows += scenarioRow(sc.name, sc.res, SC_COLORS[i % 4], acts, !sc.show);
+    rows += scenarioRow(sc.name, sc.res, SC_COLORS[i % 4], acts, !sc.show, i);
+    if (openScenario === i) rows += `<tr class="sc-detail"><td colspan="6">${scenarioDetails(sc)}</td></tr>`;
   });
   wrap.innerHTML = `<table class="sc-table"><caption>Mid case, in ${mode === 'real' ? "today's" : 'future'} dollars</caption><thead><tr><th>Scenario</th><th>Retired</th><th class="n">Net worth at retirement</th><th class="n">Net worth at end</th><th>Savings last</th><th><span class="sr">Actions</span></th></tr></thead><tbody>${rows}</tbody></table>`;
 }
@@ -1226,8 +1311,27 @@ function renderMobileBar() {
   bar.innerHTML = `<span>Mid case at retirement <b>${money(disp(res.p50[rt], rt, res))}</b></span><span class="tag ${pctClass(res.success)}">Lasts in ${Math.round(res.success * 100)}%</span><button type="button" class="link" id="toTop">See chart</button>`;
 }
 
+/* ---------- Key result tiles ---------- */
+function renderTiles() {
+  const el = $('#tiles'), res = current, k = keyResults(res);
+  if (!k) { el.innerHTML = ''; return; }
+  const who = t => res.two ? `${res.names[0]} ${res.a1 + t}` : `age ${res.a1 + t}`, tiles = [];
+  if (k.retireT !== null && k.retireT > 0) tiles.push(['Net worth at retirement', money(disp(k.atRetirement, k.retireT, res)), `Mid case, ${Y0 + k.retireT} (${who(k.retireT)})`]);
+  else { const t = Math.min(10, k.H); tiles.push([`Net worth in ${t} years`, money(disp(res.p50[t], t, res)), `Mid case, ${Y0 + t} (${who(t)})`]); }
+  tiles.push(['Net worth at plan end', money(disp(k.atEnd, k.H, res)), `Mid case, ${Y0 + k.H} (${who(k.H)})`, k.atEnd < -0.5 ? 'bad' : '']);
+  tiles.push(k.worstRunOutAge === null
+    ? ['In tough markets', 'Lasts', 'Even in the worst 1 in 10 markets, savings last the whole plan', 'good']
+    : ['In tough markets', `Runs out at ${k.worstRunOutAge}`, `In the worst 1 in 10 markets, savings run out when ${esc(res.names[0])} is ${k.worstRunOutAge}`, k.worstRunOutAge - res.a1 >= k.H - 5 ? 'warn' : 'bad']);
+  if (k.drawRate !== null) {
+    const pct = Math.round(k.drawRate * 1000) / 10, first = k.retireT > 0 ? 'First year of retirement' : 'This year';
+    tiles.push(k.drawRate === 0 ? [first, 'Income covers it', 'Spending is covered by income, so savings keep growing', 'good']
+      : [first, `Draws ${pct}%`, 'of savings to cover spending and taxes. A common rule of thumb is about 4%', k.drawRate <= 0.04 ? 'good' : k.drawRate <= 0.05 ? 'warn' : 'bad']);
+  }
+  el.innerHTML = tiles.map(([key, val, sub, tone]) => `<div class="tile${tone ? ' ' + tone : ''}"><span class="tk">${key}</span><span class="tv">${val}</span><span class="ts">${sub}</span></div>`).join('');
+}
+
 function renderResults() {
-  renderHero(); renderVerdict(); renderWarnings(); renderLegend(); renderChart(); syncPlay(); renderPlayResult();
+  renderHero(); renderTiles(); renderVerdict(); renderWarnings(); renderLegend(); renderChart(); syncPlay(); renderPlayResult();
   renderScenarios(); renderTable(); renderMobileBar(); renderSummaries(); renderProgress();
   persist(); renderFileLabel();
 }
@@ -1256,6 +1360,8 @@ $('#scName').addEventListener('keydown', e => { if (e.key === 'Enter') $('#btnSc
 $('#scWrap').addEventListener('click', e => {
   const b = e.target.closest('[data-sc]'); if (!b) return;
   const i = +b.dataset.i, sc = scenarios[i];
+  if (b.dataset.sc === 'details') { openScenario = openScenario === i ? null : i; renderScenarios(); return; }
+  if (b.dataset.sc === 'delete') openScenario = null;
   if (b.dataset.sc === 'show') {
     sc.show = !sc.show; renderResults();
     const nb = $(`#scWrap [data-sc="show"][data-i="${i}"]`); if (nb) nb.focus();
@@ -1544,7 +1650,7 @@ function openQuickStart(canClose) {
 function closeQuickStart() { $('#qs').hidden = true; document.body.classList.remove('qs-open'); }
 
 const qMoney = (key, label, hint, ph) => `<div class="fld"><label for="q_${key}">${label}</label><div class="inp"><span class="pre">$</span><input id="q_${key}" type="text" inputmode="decimal" data-q="${key}" data-qk="money" value="${esc(fmtInput(qs.d[key], 'money'))}" placeholder="${esc(ph || '0')}" autocomplete="off"></div>${hint ? `<div class="hint2">${hint}</div>` : ''}</div>`;
-const qNum = (key, label, ph, suf) => `<div class="fld"><label for="q_${key}">${label}</label><div class="inp"><input id="q_${key}" type="text" inputmode="numeric" data-q="${key}" data-qk="num" value="${esc(fmtInput(qs.d[key]))}" placeholder="${esc(ph || '')}" autocomplete="off">${suf ? `<span class="suf">${suf}</span>` : ''}</div></div>`;
+const qNum = (key, label, ph, suf, dec) => `<div class="fld"><label for="q_${key}">${label}</label><div class="inp"><input id="q_${key}" type="text" inputmode="${dec ? 'decimal' : 'numeric'}" data-q="${key}" data-qk="${dec ? 'pct' : 'num'}" value="${esc(fmtInput(qs.d[key]))}" placeholder="${esc(ph || '')}" autocomplete="off">${suf ? `<span class="suf">${suf}</span>` : ''}</div></div>`;
 const qText = (key, label, ph) => `<div class="fld"><label for="q_${key}">${label}</label><div class="inp"><input id="q_${key}" type="text" data-q="${key}" data-qk="text" value="${esc(qs.d[key])}" placeholder="${esc(ph || '')}" autocomplete="off"></div></div>`;
 const qToggle = (key, opts) => `<div class="qs-toggle">${opts.map(([v, t]) => `<button type="button" data-qset="${key}" data-val="${v}" aria-pressed="${String(qs.d[key]) === String(v)}">${t}</button>`).join('')}</div>`;
 
@@ -1592,7 +1698,7 @@ function renderQS() {
   if (step === 'home') h = `<h2 id="qsTitle">Do you own a home?</h2><p>It counts toward your net worth, but the plan never sells it to pay the bills.</p>
     ${qToggle('ownHome', [[true, 'Yes'], [false, 'No']])}
     ${d.ownHome ? `${qMoney('homeValue', "What it's worth today")}${qMoney('mortgage', 'Mortgage left', 'Enter 0 if it\'s paid off')}
-      <div class="qs-grid">${qNum('mortgageEnd', 'Paid off by', String(Y0 + 25))}${qNum('mortgageRate', 'Interest', '4', '%')}</div>` : ''}`;
+      <div class="qs-grid">${qNum('mortgageEnd', 'Paid off by', String(Y0 + 25))}${qNum('mortgageRate', 'Interest', '4', '%', true)}</div>` : ''}`;
   if (step === 'income') h = `<h2 id="qsTitle">What does your household earn?</h2><p>Yearly pay before taxes${d.two ? ', for both of you together' : ''}. Your offer letter or last year's W-2 is a good guide. We'll estimate taxes for you.</p>
     ${qMoney('gross', 'Pay before taxes per year')}
     ${qMoney('yourContrib', 'You put into retirement accounts per year', '401(k), 403(b), IRA and similar')}
@@ -1619,7 +1725,7 @@ $('#qsBody').addEventListener('input', e => {
   const key = el.dataset.q; if (!key) return;
   const k = el.dataset.qk;
   if (k === 'text') d[key] = el.value;
-  else { const v = parseFloat(el.value.replace(/[^0-9.]/g, '')); d[key] = Number.isFinite(v) ? v : null; }
+  else { const v = parseFloat((k === 'pct' ? el.value.replace(/,/g, '.') : el.value).replace(/[^0-9.]/g, '')); d[key] = Number.isFinite(v) ? v : null; }
   if (key === 'spend') d.spendTouched = true;
   if (k === 'range') $('#qsRetOut').innerHTML = `${d.retireAge}<small>in ${Y0 + d.retireAge - n(d.age1)}</small>`;
 });
@@ -1786,7 +1892,7 @@ function applyPlay(s) {
   // Moving retirement also moves partners and the end of each person's last salary (see shiftRetirement in model.js)
   const c = play.retire !== null ? shiftRetirement(s, play.retire - n(s.people.p1.retireAge)) : clone(s);
   if (play.spend) c.spending.forEach(x => { x.amount = Math.round(n(x.amount) * (1 + play.spend / 100) / 100) * 100; });
-  if (play.ret) { c.assumptions.retReturn = +(n(c.assumptions.retReturn) + play.ret).toFixed(2); c.assumptions.nonReturn = +(n(c.assumptions.nonReturn) + play.ret).toFixed(2); }
+  if (play.ret) { c.assumptions.mix = 'custom'; c.assumptions.retReturn = +(n(c.assumptions.retReturn) + play.ret).toFixed(2); c.assumptions.nonReturn = +(n(c.assumptions.nonReturn) + play.ret).toFixed(2); }
   return c;
 }
 function playName() {
@@ -1944,6 +2050,18 @@ function maybeShowIOSTip() {
   if (ios && onWeb && !isStandalone() && !dismissed) $('#iosTip').hidden = false;
 }
 $('#iosTipClose').addEventListener('click', () => { $('#iosTip').hidden = true; try { localStorage.setItem('netWorthPlanner.iosTip', '1'); } catch (e) { /* ignore */ } });
+// "What's new": a short note, once per version, for people who used an earlier version (new visitors don't need it)
+function showWhatsNew(returning) {
+  const notes = (CFG.whatsNew || []).filter(x => x && x.version && x.note), KEY = 'netWorthPlanner.seenVersion';
+  if (!notes.length) return;
+  let seen = null; try { seen = localStorage.getItem(KEY); localStorage.setItem(KEY, notes[0].version); } catch (e) { return; }
+  if (seen === notes[0].version || (!seen && !returning)) return;
+  const i = seen ? notes.findIndex(x => x.version === seen) : -1, fresh = i > 0 ? notes.slice(0, i) : notes.slice(0, 1);
+  const el = $('#whatsNew');
+  el.innerHTML = `<span><span class="wn-k">What's new</span>${esc(fresh[0].note)}${fresh.length > 1 ? ` <span style="color:var(--muted)">Plus ${fresh.length - 1} more update${fresh.length > 2 ? 's' : ''} since your last visit.</span>` : ''}</span><button type="button" class="link" id="whatsNewClose">Nice!</button>`;
+  el.hidden = false;
+  $('#whatsNewClose').addEventListener('click', () => { el.hidden = true; });
+}
 function askPersistentStorage() { try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch (e) { /* ignore */ } }
 if ('serviceWorker' in navigator && onWeb) {
   navigator.serviceWorker.register('./sw.js').then(reg => {
@@ -1984,8 +2102,10 @@ const ro = new ResizeObserver(() => {
 });
 ro.observe($('#chart'));
 
-if (restoreSaved()) { canPersist = true; askPersistentStorage(); maybeShowIOSTip(); }
+const returning = restoreSaved();
+if (returning) { canPersist = true; askPersistentStorage(); maybeShowIOSTip(); }
 else { state = BLANK(); isExample = false; }
+showWhatsNew(returning);
 const phoneQuery = matchMedia('(max-width: 960px)');
 function syncYearByYear() { $('#yby').open = !phoneQuery.matches; }
 syncYearByYear();

@@ -32,6 +32,7 @@ Everything you might want to adjust lives in **`config.js`**, with a comment nex
 
 - **Starting assumptions** for new plans and the example: returns on retirement and non-retirement accounts, inflation, salary growth, college inflation, taxes, market ups and downs.
 - **Investment mixes:** the Mostly stocks / Balanced / Conservative presets under Assumptions (return after inflation and market ups and downs for each), and the range outside which a return gets a gentle note.
+- **What's new notes:** one short, friendly line per release that people see once after updating. Add one each time you bump `VERSION` in `sw.js` (the evals check they match).
 - **Required withdrawals (RMDs):** start ages and the IRS Uniform Lifetime Table.
 - **Quick start guesses:** default retirement age, college cost, Social Security estimate, spending guess, mortgage rate.
 - **Tax tables:** federal brackets, standard deduction, Social Security wage base. Update these each year.

@@ -51,6 +51,10 @@ Owner: the user (admin). They edit `config.js` for defaults and the example hous
 - Scenario table shows mid-case figures only, with a caption "Mid case, in today's dollars"; eye toggle and trash icons (delete has Undo). No "Load" action.
 - On phones, "Year by year" starts collapsed and uses the same left-caret collapse control as the input sections.
 - Assumptions: returns are stored before inflation (the model's inputs), but each return field shows the after-inflation rate, with an amber note outside `returnAfterInflationNote`. The Investment mix picker (presets in config `investmentMixes`, defined after inflation) fills both returns and ups and downs; `assumptions.mix` holds the choice ('custom' or missing = hand-set). Changing inflation re-derives preset returns; editing a return or ups and downs switches to Custom. Helpers `realRate`, `nominalRate`, `mixAssumptions` live in model.js.
+- Key result tiles under the headline card (`keyResults()` in model.js): net worth at retirement (or in 10 years if already retired), at plan end, tough markets (worst case lasts / runs out at), first-year draw from savings (tone: ≤4% green, ≤5% amber). They don't repeat the headline's work-optional age and chance of lasting. Two columns on phones.
+- Scenario details: tapping a saved scenario's name expands a row listing what differs from the current plan (`planDiff()` in model.js: sections, plain labels, before → after, items added/removed by position) and a current → scenario comparison of work-optional age, chance savings last, net worth at plan end and worst case.
+- "What's new": `whatsNew` in config.js (newest first, one per release, ≤160 characters, playful). Shown once at the top to people who had a saved plan from an earlier version; `netWorthPlanner.seenVersion` in localStorage remembers the last one seen. New visitors don't see it.
+- Number entry: percent fields use `inputmode="decimal"` and accept "," as the decimal point (some iOS keyboards); money fields treat "," as thousands.
 - Names flow everywhere: renaming a person updates labels like "Sam's 401(k)".
 - Quick start: welcome (privacy note, disclaimer, accept checkbox, example / open links) → people → retire age → kids → savings → home → pay before tax + your contributions + employer → spending (pre-filled guess). Guesses are tagged "Estimated" until edited. A plan-detail checklist in "Your plan" guides refinement.
 - Income summary: before tax, taxes (%), "Into retirement from pay", take-home, then a "Total saving" line (contributions + employer + what's left after spending and loan payments; college and big purchases excluded because they're paid from savings).
@@ -61,7 +65,7 @@ Owner: the user (admin). They edit `config.js` for defaults and the example hous
 
 - Before changing the math: write or update an eval first, run `node evals/run.js`, then change the code.
 - After editing `config.js`: `node evals/sync-builtin.js` (keeps model.js's fallback copy in sync), then `node evals/run.js`. Example-household golden results will move; update them with `--update` if intended.
-- Before shipping: evals pass; test the page at desktop and ~375px; check the browser console is clean; bump `VERSION` in `sw.js`; add a line to `CHANGELOG.md`.
+- Before shipping: evals pass; test the page at desktop and ~375px; check the browser console is clean; bump `VERSION` in `sw.js`; add a line to `CHANGELOG.md`; add a matching `whatsNew` note in `config.js` (the evals check it).
 - Test locally with `python3 -m http.server 8000` in this folder (service worker and install need http, not file://).
 - Keep everything dependency-free and in these few files unless there's a strong reason.
 

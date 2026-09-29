@@ -48,6 +48,13 @@ function create(userConfig, opts) {
     // A gentle note appears when a market return after inflation is outside this range
     returnAfterInflationNote: { below: 0.5, above: 6 },
   
+    // "What's new" note shown once to people who already use the planner, after an update. Newest first.
+    // Add one for every release, with version matching VERSION in sw.js (the evals check this). Keep it short and friendly.
+    whatsNew: [
+      { version: 'v8', note: "We listened 👂 Tap a scenario to see exactly what you changed, and your key numbers now have tiles of their own." },
+      { version: 'v7', note: "Fresh this week 🌱 Pick an investment mix under Assumptions, and every return now shows what's left after inflation." }
+    ],
+  
     planUntilAge: 95,               // default "plan until" age for new plans
     workOptionalConfidence: 85,     // work-optional = savings last in at least this many of 100 simulated markets
   
@@ -571,9 +578,86 @@ function create(userConfig, opts) {
     return hi;
   }
 
+  /* ---------- Scenario details: what differs between two plans ---------- */
+  // Returns rows { section, label, field, format, from, to, change: 'changed' | 'added' | 'removed' } in reading order.
+  // Values are raw (numbers, ids); the page formats them. Items in lists are matched by position.
+  const ASSUMPTION_LABELS = {
+    mix: 'Investment mix', retReturn: 'Retirement account return', nonReturn: 'Non-retirement return', otherGrowth: 'Home and other growth',
+    volatility: 'Market ups and downs', inflation: 'Inflation', earningsGrowth: 'Salary growth', eduInflation: 'College cost inflation',
+    withdrawalTax: 'Tax on retirement withdrawals', stateTax: 'State and local income tax', payTaxRate: 'Taxes on pay'
+  };
+  const PERSON_FIELDS = [['name', 'name', 'text'], ['age', 'age', 'age'], ['retireAge', 'retirement age', 'age'], ['planToAge', 'plan until age', 'age']];
+  const LISTS = [
+    ['dependents', 'Kids', 'Dependent', [['name', 'name', 'text'], ['age', 'age', 'age'], ['college', 'college', 'bool'], ['collegeCost', 'college cost per year', 'money'], ['collegeStartAge', 'college starts at', 'age'], ['collegeYears', 'years of college', 'int']]],
+    ['assets', 'Assets', 'Asset', [['label', 'name', 'text'], ['kind', 'type', 'enum'], ['owner', 'whose', 'owner'], ['taxType', 'tax treatment', 'enum'], ['balance', 'balance', 'money'], ['contribution', 'you add per year', 'money'], ['employerContribution', 'employer adds per year', 'money']]],
+    ['liabilities', 'Loans', 'Loan', [['label', 'name', 'text'], ['balance', 'balance', 'money'], ['rate', 'interest', 'pct'], ['monthlyPayment', 'monthly payment', 'money'], ['endYear', 'paid off by', 'year']]],
+    ['income', 'Income', 'Income', [['label', 'name', 'text'], ['type', 'type', 'enum'], ['owner', 'whose', 'owner'], ['amount', 'per year', 'money'], ['startAge', 'from age', 'age'], ['endAge', 'until age', 'age']]],
+    ['spending', 'Spending', 'Spending', [['label', 'name', 'text'], ['category', 'category', 'enum'], ['when', 'when', 'enum'], ['amount', 'per year', 'money'], ['fromAge', 'from age', 'age'], ['toAge', 'until age', 'age']]],
+    ['purchases', 'Big purchases', 'Purchase', [['label', 'name', 'text'], ['year', 'year', 'year'], ['amount', 'cost', 'money'], ['repeatEvery', 'repeats every (years)', 'int'], ['until', 'repeats until', 'year']]]
+  ];
+  const kindKind = k => (k === 'bool' ? 'bool' : ['text', 'enum', 'owner'].includes(k) ? 'text' : 'num');
+  function norm(v, k) {
+    if (v === undefined || v === null || v === '') return null;
+    if (k === 'bool') return !!v;
+    if (kindKind(k) === 'num') return has(v) ? +v : null;
+    return String(v);
+  }
+  function planDiff(a, b) {
+    const out = [];
+    const add = (section, label, field, format, from, to, change = 'changed') => out.push({ section, label, field, format, from, to, change });
+    const cmp = (section, label, field, format, x, y) => {
+      const f = norm(x, format), t = norm(y, format);
+      if (f !== t) add(section, label, field, format, f, t);
+    };
+    // People (names come from the scenario, so labels match what the person sees)
+    const two = !!(a.people.p2.enabled || b.people.p2.enabled);
+    if (!!a.people.p2.enabled !== !!b.people.p2.enabled) add('People', 'Partner included', 'people.p2.enabled', 'bool', !!a.people.p2.enabled, !!b.people.p2.enabled);
+    for (const p of two ? ['p1', 'p2'] : ['p1']) {
+      if (p === 'p2' && !(a.people.p2.enabled && b.people.p2.enabled)) continue;
+      const who = nameOf(b, p);
+      for (const [f, l, k] of PERSON_FIELDS) cmp('People', f === 'name' ? `${nameOf(a, p)}'s name` : `${who}'s ${l}`, `people.${p}.${f}`, k, a.people[p][f], b.people[p][f]);
+    }
+    for (const [key, section, noun, fields] of LISTS) {
+      const xa = a[key] || [], xb = b[key] || [], nameIt = (it, i) => ((it && (key === 'dependents' ? it.name : it.label)) || '').trim() || `${noun} ${i + 1}`;
+      for (let i = 0; i < Math.max(xa.length, xb.length); i++) {
+        if (i >= xa.length) { add(section, nameIt(xb[i], i), `${key}.${i}`, 'item', null, xb[i], 'added'); continue; }
+        if (i >= xb.length) { add(section, nameIt(xa[i], i), `${key}.${i}`, 'item', xa[i], null, 'removed'); continue; }
+        for (const [f, l, k] of fields) {
+          if ((f === 'label' || f === 'name')) { cmp(section, `${nameIt(xa[i], i)}: renamed`, `${key}.${i}.${f}`, k, xa[i][f], xb[i][f]); continue; }
+          if (f === 'taxType' && (xa[i].kind !== 'retirement' || xb[i].kind !== 'retirement')) continue;
+          cmp(section, `${nameIt(xb[i], i)}: ${l}`, `${key}.${i}.${f}`, k, xa[i][f], xb[i][f]);
+        }
+      }
+    }
+    const A = a.assumptions || {}, B = b.assumptions || {};
+    for (const [f, l] of Object.entries(ASSUMPTION_LABELS)) {
+      if (f === 'mix') cmp('Assumptions', l, 'assumptions.mix', 'enum', mixAssumptions(A.mix, 0) ? A.mix : 'custom', mixAssumptions(B.mix, 0) ? B.mix : 'custom');
+      else cmp('Assumptions', l, `assumptions.${f}`, 'pct', A[f], B[f]);
+    }
+    return out;
+  }
+
+  /* ---------- Key results (tiles under Your Projections) ---------- */
+  // All money in the projection's own (nominal) dollars; the page converts for display.
+  function keyResults(res) {
+    if (!res || res.empty) return null;
+    const rt = res.retireT, k = { retireT: rt, H: res.H, atRetirement: rt === null ? null : res.p50[rt], atEnd: res.p50[res.H],
+      success: res.success, worstRunOutAge: res.deplWorst === Infinity ? null : res.a1 + res.deplWorst, midRunOutAge: res.deplMid === Infinity ? null : res.a1 + res.deplMid, drawRate: null };
+    // First full year of retirement: spending, loan payments, college/purchases and taxes not covered by income,
+    // as a share of mid-case savings (not home) when retirement starts, in the same year's dollars
+    if (rt !== null) {
+      const t = Math.max(rt, 1);
+      if (t <= res.H && res.liq50[rt] > 0) {
+        const gap = res.spend[t] + res.debtPay[t] + res.special[t] + res.taxes[t] + (res.youC ? res.youC[t] : 0) - res.inc[t];
+        k.drawRate = Math.max(0, gap / Math.pow(1 + res.infl, t - rt)) / res.liq50[rt];
+      }
+    }
+    return k;
+  }
+
   return {
     Y0, RUNS, CFG, BUILTIN_CONFIG, n, has, clone, nameOf, cfgNum, assumptionsFrom, DEFAULT_ASSUMPTIONS, QS, PLAN_TO,
-    EXAMPLE, BLANK, TX, realRate, nominalRate, MIXES, mixAssumptions, bracketTax, estimateTaxes, loanPayment, rmdStartAge, rmdShare, shiftRetirement, mulberry32, project, WO_TARGET, workOptional
+    EXAMPLE, BLANK, TX, realRate, nominalRate, MIXES, mixAssumptions, bracketTax, estimateTaxes, loanPayment, rmdStartAge, rmdShare, shiftRetirement, planDiff, keyResults, mulberry32, project, WO_TARGET, workOptional
   };
 }
 

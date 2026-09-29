@@ -35,6 +35,13 @@ window.PLANNER_CONFIG = {
   // A gentle note appears when a market return after inflation is outside this range
   returnAfterInflationNote: { below: 0.5, above: 6 },
 
+  // "What's new" note shown once to people who already use the planner, after an update. Newest first.
+  // Add one for every release, with version matching VERSION in sw.js (the evals check this). Keep it short and friendly.
+  whatsNew: [
+    { version: 'v8', note: "We listened 👂 Tap a scenario to see exactly what you changed, and your key numbers now have tiles of their own." },
+    { version: 'v7', note: "Fresh this week 🌱 Pick an investment mix under Assumptions, and every return now shows what's left after inflation." }
+  ],
+
   planUntilAge: 95,               // default "plan until" age for new plans
   workOptionalConfidence: 85,     // work-optional = savings last in at least this many of 100 simulated markets
 

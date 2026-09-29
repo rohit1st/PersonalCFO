@@ -2,6 +2,14 @@
 
 Bump `VERSION` in `sw.js` with each release.
 
+## v8 — scenario details, key result tiles, what's new
+- Scenarios: tap a scenario's name to see what's different from your current plan (inputs, before → after, in plain words) and how the results compare (work-optional age, chance savings last, net worth at plan end, worst case).
+- Key result tiles under the headline: net worth at retirement (or in 10 years if retired), net worth at plan end, how savings hold up in tough markets, and how much the first year of retirement draws from savings.
+- "What's new" note: people who used an earlier version see a short note once after updating (`whatsNew` in `config.js`).
+- Fix: percent fields take a comma as the decimal point, and the quick start mortgage interest field now shows a keypad with a decimal point on iPhones.
+- What-ifs that change returns now mark the investment mix as Custom.
+- Evals: scenario differences, key results, and a check that `whatsNew` has a note for the version in `sw.js`.
+
 ## v7 — returns after inflation
 - Every return field under Assumptions shows what's left after inflation ("≈ 3.5% after 2.5% inflation"), and the Play with it returns slider does too ("6.1%, ≈3.5% after inflation").
 - Investment mix picker (Mostly stocks, Balanced, Conservative, Custom) sets both returns and market ups and downs together. Presets are defined after inflation in `config.js` (`investmentMixes`), so returns follow the plan's inflation; editing a return or ups and downs by hand switches to Custom.
