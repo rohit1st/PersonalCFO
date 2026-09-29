@@ -84,6 +84,37 @@ module.exports = [
     }
   },
   {
+    name: 'Milestones: net worth milestones mark the first year the mid case passes each round number, in today\'s dollars',
+    why: '$900k growing 10% a year, 2.5% inflation: real growth 7.3%, so $1M (today\'s dollars) is passed in year 2 and $2M in year 12. Round numbers already passed today are not shown.',
+    run() {
+      const s = flat({ people: { p1: { name: 'A', age: 40, retireAge: 80, planToAge: 60 } }, assets: [asset('nonretirement', 9e5)], assumptions: { nonReturn: 10, inflation: 2.5 } });
+      const r = M.project(s, 20), m = M.milestones(r).filter(x => x.kind === 'networth');
+      const real = t => r.p50[t] / Math.pow(1.025, t), first = v => { for (let t = 1; t <= r.H; t++) if (real(t) >= v) return t; return null; };
+      const got = m.map(x => `${x.amount / 1e6}M@${x.t}`).join(', ');
+      return [truthy(m.length >= 2 && m[0].amount === 1e6 && m[0].t === first(1e6) && m[1].amount === 2e6 && m[1].t === first(2e6), got, got),
+        truthy(M.milestones(M.project(flat({ ...s, assets: [asset('nonretirement', 1.5e6)] }), 20)).every(x => x.kind !== 'networth' || x.amount > 1e6), '$1M shown although already passed')];
+    }
+  },
+  {
+    name: 'Milestones: the 4% rule marks the first year savings reach 25× that year\'s spending',
+    why: 'Savings (not the home) of $500k plus $40k saved a year, spending $30k, no growth or inflation: 25 × $30k = $750k is reached in year 7 ($780k).',
+    run() {
+      const s = flat({ people: { p1: { name: 'A', age: 40, retireAge: 70, planToAge: 60 } }, assets: [asset('nonretirement', 5e5), asset('other', 2e6)],
+        income: [{ label: 'Pay', type: 'other', owner: 'p1', amount: 70000, startAge: null, endAge: null }], spending: [spendAlways(30000)],
+        assumptions: { nonReturn: 0, inflation: 0, otherGrowth: 0, payTaxRate: 0 } });
+      const m = M.milestones(M.project(s, 20)).filter(x => x.kind === 'fourPercent');
+      return truthy(m.length === 1 && m[0].t === 7, `got ${JSON.stringify(m)}`, `year ${m[0] && m[0].t}`);
+    }
+  },
+  {
+    name: 'Milestones: at most four net worth milestones, and none after savings run out',
+    why: 'Keeps the chart uncluttered: the high-earner household passes many round numbers; only four show.',
+    run() {
+      const r = M.project(personas.high_earner_early_retirement()), m = M.milestones(r), nw = m.filter(x => x.kind === 'networth');
+      return [truthy(nw.length <= 4, `${nw.length} shown`, `${nw.map(x => '$' + x.amount / 1e6 + 'M').join(', ')}`), truthy(m.every((x, i) => i === 0 || x.t >= m[i - 1].t), 'not in year order')];
+    }
+  },
+  {
     name: "What's new: the newest note matches the version in sw.js",
     why: 'Every release bumps VERSION in sw.js; config.js whatsNew needs a note for it so people see what changed.',
     run() {

@@ -2,6 +2,19 @@
 
 Bump `VERSION` in `sw.js` with each release.
 
+## v9 — reliable updates, milestones, share and erase
+- Chart milestones: net worth round numbers in today's dollars ($1M, $2M, $5M, $10M…, at most four) and the year savings reach the 4% rule (25× a year's spending), alongside work-optional age and life events. Listed in a strip under the chart so they show on phones too. (`milestones()` in model.js.)
+- Share with friends 💌 in the header: shares only the planner's link, with a note that nothing they entered is shared. Phones get the share sheet; desktop copies the link ("Link copied ✓"); if copying is blocked, a small dialog shows the link to copy. There's always visible feedback.
+- Erase my data: an Erase button in the Your plan toolbar and a footer link. Confirms (with "Save a copy first"), removes everything the planner stored in this browser, then shows an "All clear" screen.
+- The title now lines up with "Your plan" on wide screens.
+- Scenarios: "Current inputs" is now "Your plan".
+- Fix: saving a scenario briefly showed "Work-optional when … is undefined".
+- Fix: phones could stay on an old version. The "Update now" prompt disappeared after 20 seconds and never came back, and a phone that resumes the app from the background never reloads, so the new version could wait forever.
+- A downloaded update is now applied when the app opens or comes back to the screen; otherwise "Update now" stays until used. The app checks for new versions at those moments and hourly.
+- New versions download every file fresh (not from the browser's 10-minute cache), and each version's files are served together (no more one-file-at-a-time background refresh, which could mix versions).
+- Footer shows the version and a **Refresh app** link that reloads the latest version without touching saved plans.
+- Evals: `08-offline` runs the real `sw.js` against a stand-in browser (fresh downloads, no mixing, offline, cleanup) and checks the page's update handling. The eval runner now supports async evals.
+
 ## v8 — scenario details, key result tiles, what's new
 - Scenarios: tap a scenario's name to see what's different from your current plan (inputs, before → after, in plain words) and how the results compare (work-optional age, chance savings last, net worth at plan end, worst case).
 - Key result tiles under the headline: net worth at retirement (or in 10 years if retired), net worth at plan end, how savings hold up in tough markets, and how much the first year of retirement draws from savings.

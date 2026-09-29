@@ -45,8 +45,11 @@ To change something: edit `config.js` on GitHub (open the file, click the pencil
 
 1. Upload the changed files to the repository (same as step 2).
 2. Open `sw.js` and change `const VERSION = 'v1';` to `'v2'` (then `'v3'`, and so on). Commit.
+3. Add a one-line note for that version at the top of `whatsNew` in `config.js`.
 
-People with the app open will see "A new version of the planner is ready" with an **Update now** button. Their saved plans are kept.
+**Always bump `VERSION`**, even for a small edit to `config.js`: installed copies only pick up changes when it changes, and then they download every file fresh, together.
+
+The app checks for a new version when it opens, when it comes back to the screen, and every hour. It switches over by itself when it opens or comes back; if someone is using it at that moment, they see **Update now**. Saved plans are kept. If a phone still seems stuck on an old version, tap **Refresh app** at the bottom of the page (it keeps the saved plan).
 
 ## Files
 

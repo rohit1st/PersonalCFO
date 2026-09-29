@@ -36,7 +36,7 @@ button,input,select{font:inherit;color:inherit}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 
 /* Header */
-.top{max-width:1440px;margin:0 auto;padding:18px 28px 14px;display:flex;gap:16px 24px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap}
+.top{max-width:1360px;margin:0 auto;padding:18px 28px 14px;display:flex;gap:16px 24px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap}
 .top h1{margin:0;font-size:1.6rem;font-weight:650;letter-spacing:-.015em;line-height:1.2}
 .trust{margin:2px 0 0;color:var(--muted);font-size:.86rem}
 .file-actions{display:flex;gap:8px}
@@ -54,7 +54,7 @@ button,input,select{font:inherit;color:inherit}
   .tool .lbl{display:block;font-size:.7rem;font-weight:600}
   .col-left .col-head .file-actions .tool{width:auto;height:auto;min-width:56px;padding:7px 8px 5px}
   .col-left .col-head{flex-wrap:wrap}
-  .col-left .col-head .file-actions{width:100%;display:grid;grid-template-columns:repeat(4,1fr)}
+  .col-left .col-head .file-actions{width:100%;display:grid;grid-template-columns:repeat(5,1fr)}
   .tool:hover::after,.tool:focus-visible::after{opacity:0}
 }
 .btn{border:0;border-radius:999px;padding:8px 16px;background:var(--teal-deep);color:#fff;font-weight:600;font-size:.88rem;cursor:pointer;transition:background .15s}
@@ -62,7 +62,7 @@ button,input,select{font:inherit;color:inherit}
 .btn.ghost{background:var(--surface);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
 .btn.ghost:hover{background:var(--well)}
 .btn.warn{background:var(--coral-deep);color:#fff}
-.notice{max-width:1392px;margin:0 auto 14px;padding:10px 16px;border-radius:var(--r);background:var(--teal-soft);font-size:.9rem}
+.notice{max-width:1304px;margin:0 auto 14px;padding:10px 16px;border-radius:var(--r);background:var(--teal-soft);font-size:.9rem}
 .notice.error{background:var(--coral-soft);color:var(--coral-deep)}
 .notice-wrap{padding:0 28px}
 
@@ -286,7 +286,7 @@ mark.bad{background:linear-gradient(transparent 58%,var(--coral-soft) 58%)}
 
 /* ---------- Install ---------- */
 .btn.install{align-self:center}
-.ios-tip{max-width:1392px;margin:0 auto 14px;display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 16px;border-radius:var(--r);background:var(--green-soft);font-size:.88rem}
+.ios-tip{max-width:1304px;margin:0 auto 14px;display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 16px;border-radius:var(--r);background:var(--green-soft);font-size:.88rem}
 
 /* ---------- Estimated chip ---------- */
 .row:has(> .est){padding-top:34px}
@@ -400,8 +400,28 @@ body.qs-open .mobilebar{display:none}
 .real-note b{color:var(--ink);font-weight:600}
 .real-note.warn{color:var(--amber-deep)}
 
+/* ---------- Share and erase ---------- */
+.top-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn.soft{background:var(--teal-soft);color:var(--teal-deep)}
+.btn.soft:hover{background:#C3E1EC}
+.btn.danger{background:var(--coral-deep)}
+.btn.danger:hover{background:#8E3030}
+.tool.erase:hover{background:var(--coral-soft);color:var(--coral-deep)}
+.erase-card .modal-actions{flex-wrap:wrap}
+.erase-card p{margin:10px 0 0;font-size:.9rem}
+.cleared{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:var(--bg);padding:24px;text-align:center}
+.cleared .card{max-width:420px}
+.cleared h2{margin:6px 0 8px;font-size:1.3rem}
+.cleared p{color:var(--muted);margin:0 0 16px}
+
+/* ---------- Chart milestones strip ---------- */
+.ms-strip{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0;padding:0;list-style:none}
+.ms-strip:empty{display:none}
+.ms-strip li{background:var(--well);border-radius:999px;padding:3px 10px;font-size:.78rem;color:var(--ink)}
+.ms-strip li span{color:var(--muted);margin-left:4px}
+
 /* ---------- What's new ---------- */
-.whatsnew{max-width:1392px;margin:0 auto 14px;display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 16px;border-radius:var(--r);background:var(--teal-soft);font-size:.88rem;animation:wnIn .5s ease both}
+.whatsnew{max-width:1304px;margin:0 auto 14px;display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 16px;border-radius:var(--r);background:var(--teal-soft);font-size:.88rem;animation:wnIn .5s ease both}
 .whatsnew .wn-k{font-weight:600;color:var(--teal-deep);margin-right:6px}
 @keyframes wnIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.whatsnew{animation:none}}
@@ -462,7 +482,10 @@ body.qs-open .mobilebar{display:none}
     <h1>Net Worth Planner</h1>
     <p class="trust">Your confidential companion 🤫 You can run me without wifi.</p>
   </div>
-  <button type="button" class="btn install" id="btnInstall" hidden>Install app</button>
+  <div class="top-actions">
+    <button type="button" class="btn soft" id="btnShareApp" title="Share the planner's link. Your plan and numbers are never shared.">Share with friends 💌</button>
+    <button type="button" class="btn install" id="btnInstall" hidden>Install app</button>
+  </div>
 </header>
 <div class="notice-wrap">
   <div id="notice" class="notice" role="status" hidden></div>
@@ -482,6 +505,7 @@ body.qs-open .mobilebar{display:none}
           <button id="btnSave" class="tool primary" type="button" aria-label="Save a copy" data-tip="Save a copy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v10.5M7.8 10.3 12 14.5l4.2-4.2M4.5 15.5v4h15v-4"/></svg><span class="lbl">Copy</span></button>
           <button id="btnExport" class="tool" type="button" aria-label="Export projections as CSV" data-tip="Export projections (CSV)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9.5h16M4 14.8h16M10 9.5V20"/></svg><span class="lbl">Export</span></button>
           <button id="btnReset" class="tool" type="button" aria-label="Start blank" data-tip="Start blank"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.8 12a7.2 7.2 0 1 0 2.1-5.1M4.8 4.6v3.7h3.7"/></svg><span class="lbl">Reset</span></button>
+          <button id="btnErase" class="tool erase" type="button" aria-label="Erase my data from this device" data-tip="Erase my data"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4.8h6V7M6.5 7l.9 12.2h9.2L17.5 7M10 10.5v5.5M14 10.5v5.5"/></svg><span class="lbl">Erase</span></button>
           <input type="file" id="fileIn" accept=".csv,text/csv" hidden>
         </div>
     </div>
@@ -523,6 +547,7 @@ body.qs-open .mobilebar{display:none}
         </div>
       </div>
       <div class="chart" id="chart"></div>
+      <ul class="ms-strip" id="msStrip" aria-label="Milestones"></ul>
       <div class="chart-summary">
         <p class="verdict" id="verdict"></p>
         <p class="verdict-sub" id="verdictSub"></p>
@@ -532,7 +557,7 @@ body.qs-open .mobilebar{display:none}
 
     <div class="card block">
       <h2>Scenarios</h2>
-      <p class="hint">Save your current inputs, change something, then compare. Scenarios are saved with your plan.</p>
+      <p class="hint">Save your plan as it is now, change something, then compare. Scenarios are saved with your plan.</p>
       <div class="save-row">
         <div class="inp"><input id="scName" type="text" placeholder="Name this scenario, e.g. Retire at 60" aria-label="Scenario name" autocomplete="off"></div>
         <button id="btnScSave" class="btn" type="button">Save scenario</button>
@@ -563,7 +588,37 @@ body.qs-open .mobilebar{display:none}
 <footer class="foot">
   <p class="foot-love">Built with love ❤️</p>
   <p class="foot-legal"><span id="footLegal"></span> <button type="button" class="link" data-terms>Terms of use</button></p>
+  <p class="foot-legal"><button type="button" class="link" id="btnEraseFoot">Erase my data</button> · <span id="appVersion"></span> <button type="button" class="link" id="btnRefreshApp" title="Load the latest version. Your saved plan stays on this device.">Refresh app</button></p>
 </footer>
+<div class="modal" id="shareDlg" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
+    <h3 id="shareTitle">Share the planner</h3>
+    <p class="hint" style="margin:8px 0 10px">Copy this and send it to friends and family. Only the link is shared; your plan stays on this device.</p>
+    <textarea id="shareText" readonly rows="4" style="width:100%;resize:none;font:inherit;font-size:.85rem;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--well)"></textarea>
+    <div class="modal-actions"><button type="button" class="btn ghost" id="shareClose">Close</button><button type="button" class="btn" id="shareCopy">Copy</button></div>
+  </div>
+</div>
+<div class="modal" id="eraseDlg" hidden>
+  <div class="modal-card erase-card" role="dialog" aria-modal="true" aria-labelledby="eraseTitle">
+    <h3 id="eraseTitle">Erase your data from this device?</h3>
+    <p>This deletes your plan, scenarios and settings from this browser. They were never stored anywhere else, so once they're gone, they're gone.</p>
+    <p>Want to keep them? Save a copy first; you can open it again any time.</p>
+    <div class="modal-actions">
+      <button type="button" class="btn ghost" id="eraseCancel">Cancel</button>
+      <button type="button" class="btn soft" id="eraseSave">Save a copy first</button>
+      <button type="button" class="btn danger" id="eraseGo">Erase everything</button>
+    </div>
+  </div>
+</div>
+<div class="cleared" id="cleared" hidden>
+  <div class="card">
+    <div class="qs-emoji">🧹</div>
+    <h2>All clear</h2>
+    <p>Everything you entered has been erased from this device. You can close this tab or app now.</p>
+    <button type="button" class="btn" id="clearedClose">Close</button>
+    <button type="button" class="btn ghost" id="clearedAgain">Start fresh</button>
+  </div>
+</div>
 <div class="modal" id="termsDlg" hidden>
   <div class="modal-card terms-card" role="dialog" aria-modal="true" aria-labelledby="termsTitle">
     <h3 id="termsTitle">Terms of use</h3>
@@ -603,7 +658,7 @@ body.qs-open .mobilebar{display:none}
 
 // The projection model (math only, no page code) lives in model.js, so it can be tested on its own (see evals/).
 const M = NWPModel.create(window.PLANNER_CONFIG, { year: new Date().getFullYear() });
-const { Y0, RUNS, CFG, n, has, clone, nameOf, cfgNum, DEFAULT_ASSUMPTIONS, QS, PLAN_TO, EXAMPLE, BLANK, TX, estimateTaxes, loanPayment, project, WO_TARGET, workOptional, shiftRetirement, realRate, MIXES, mixAssumptions, planDiff, keyResults } = M;
+const { Y0, RUNS, CFG, n, has, clone, nameOf, cfgNum, DEFAULT_ASSUMPTIONS, QS, PLAN_TO, EXAMPLE, BLANK, TX, estimateTaxes, loanPayment, project, WO_TARGET, workOptional, shiftRetirement, realRate, MIXES, mixAssumptions, planDiff, keyResults, milestones } = M;
 const SC_COLORS = ['#5E7A8A', '#C0902A', '#3F8F86', '#9A7B63'];
 const PLAY_COLOR = '#B86E1F';
 
@@ -1173,9 +1228,18 @@ function renderChart() {
     else if (/paid off/.test(e)) ms.push([t, /mortgage|home/i.test(e) ? '🏡' : '✅', e]);
     else if (/ begins$/.test(e)) ms.push([t, '💵', e]);
   }));
-  const t1m = mid.findIndex(v => v >= 1e6);
-  if (t1m > 0) ms.push([t1m, '💰', 'First $1M in the mid case']);
-  if (res.wo !== null && res.wo !== undefined) { const tw = res.wo - res.a1; if (tw >= 0 && tw <= H) ms.push([tw, '🎉', 'Work-optional']); }
+  const fun = [];   // the ones also listed under the chart
+  for (const m of milestones(res)) {
+    if (m.t > H) continue;
+    const x = m.kind === 'networth' ? [m.t, '💰', `${moneyWord(m.amount)} in today's dollars`, `${moneyWord(m.amount)} net worth`]
+      : [m.t, '🏁', "4% rule: savings reach 25× a year's spending", '4% rule reached'];
+    ms.push(x); fun.push(x);
+  }
+  if (res.wo !== null && res.wo !== undefined && res.retireT !== 0) { const tw = res.wo - res.a1; if (tw >= 0 && tw <= H) { const x = [tw, '🎉', 'Work-optional']; ms.push(x); fun.push(x); } }
+  msByYear = {};
+  for (const [t, emo, label] of ms) (msByYear[t] = msByYear[t] || []).push(`${emo} ${label}`);
+  const strip = $('#msStrip');
+  if (strip) strip.innerHTML = fun.sort((a, b) => a[0] - b[0]).map(([t, emo, label, short]) => `<li title="${esc(label)}">${emo} ${esc(short || label)}<span>${Y0 + t}</span></li>`).join('');
   const stack = {};
   for (const [t, emo, label] of ms) {
     const k = stack[t] = (stack[t] || 0) + 1;
@@ -1194,6 +1258,8 @@ function renderChart() {
   svg.addEventListener('pointerleave', e => { if (e.pointerType !== 'touch') hideHover(); });
 }
 
+let msByYear = {};
+const moneyWord = v => v >= 1e6 ? `$${+(v / 1e6).toFixed(1)}M` : money(v);
 function hideHover() { const h = $('#hov'), tp = $('#tip'); if (h) h.style.display = 'none'; if (tp) tp.hidden = true; }
 document.addEventListener('pointerdown', e => { if (!e.target.closest('#chart')) hideHover(); });
 function onHover(e) {
@@ -1208,7 +1274,8 @@ function onHover(e) {
   const ages = res.two ? `${esc(res.names[0])} ${res.a1 + t}, ${esc(res.names[1])} ${res.a2 + t}` : `${esc(res.names[0])} ${res.a1 + t}`;
   let rows = `<div class="tr"><span>Best case</span><b>${money(geo.hi[t])}</b></div><div class="tr"><span>Mid case</span><b>${money(geo.mid[t])}</b></div><div class="tr"><span>Worst case</span><b>${money(geo.lo[t])}</b></div>`;
   for (const o of geo.ovs) if (o.vals[t] !== undefined) rows += `<div class="tr"><span>${esc(o.name)}</span><b>${money(o.vals[t])}</b></div>`;
-  const ev = res.events[t].length ? `<div style="margin-top:4px;color:var(--muted)">${res.events[t].map(esc).join(', ')}</div>` : '';
+  const notes = [...(msByYear[t] || []).filter(x => /💰|🏁|🎉/.test(x)), ...res.events[t]];
+  const ev = notes.length ? `<div style="margin-top:4px;color:var(--muted)">${notes.map(esc).join(', ')}</div>` : '';
   const tip = $('#tip');
   tip.innerHTML = `<h4>${Y0 + t} <span style="font-weight:400;color:var(--muted)">${ages}</span></h4>${rows}${ev}`;
   tip.hidden = false;
@@ -1267,14 +1334,14 @@ function scenarioDetails(sc) {
       ${cell('Net worth at plan end', endA, endB, money, true)}
       ${cell('Worst case runs out', ka && ka.worstRunOutAge, kb && kb.worstRunOutAge, v => 'at ' + v, true, 'Lasts', v => `${v} yr${v === 1 ? '' : 's'}`)}
     </div>`;
-  return `<div class="sc-d"><h4>What's different from your current plan</h4><ul>${items || '<li>Same inputs as your current plan.</li>'}${more}</ul>
-    <h4>How it compares (current → ${esc(sc.name)}, mid case, ${mode === 'real' ? "today's" : 'future'} dollars)</h4>${results}</div>`;
+  return `<div class="sc-d"><h4>What's different from your plan</h4><ul>${items || '<li>Same inputs as your plan.</li>'}${more}</ul>
+    <h4>How it compares (your plan → ${esc(sc.name)}, mid case, ${mode === 'real' ? "today's" : 'future'} dollars)</h4>${results}</div>`;
 }
 function renderScenarios() {
   const wrap = $('#scWrap');
   if (!scenarios.length) { wrap.style.display = 'none'; return; }
   wrap.style.display = '';
-  let rows = scenarioRow('Current inputs', current, 'var(--teal-deep)', '');
+  let rows = scenarioRow('Your plan', current, 'var(--teal-deep)', '');
   scenarios.forEach((sc, i) => {
     const lab = sc.show ? `Hide ${sc.name} from chart` : `Show ${sc.name} on chart`;
     const acts = `<button type="button" class="icon-btn" data-sc="show" data-i="${i}" aria-pressed="${sc.show}" aria-label="${esc(lab)}" title="${sc.show ? 'Shown on chart' : 'Hidden from chart'}">${sc.show ? ICON_EYE : ICON_EYE_OFF}</button><button type="button" class="icon-btn danger" data-sc="delete" data-i="${i}" aria-label="${esc('Delete ' + sc.name)}" title="Delete">${ICON_TRASH}</button>`;
@@ -1345,7 +1412,7 @@ function recompute() {
 
 /* ---------- Scenarios ---------- */
 $('#btnScSave').addEventListener('click', () => {
-  clearTimeout(timer); current = project(state);
+  clearTimeout(timer); current = project(state); current.wo = current.empty ? null : workOptional(state);
   let name = $('#scName').value.trim() || `Scenario ${scenarios.length + 1}`;
   const base = name; let k = 2;
   while (scenarios.some(s => s.name === name)) name = `${base} (${k++})`;
@@ -1606,7 +1673,7 @@ $('#btnExport').addEventListener('click', async () => {
       rows.push([name, Y0 + t, res.a1 + t, res.two ? res.a2 + t : '', D(res.inc[t]), D(res.taxes[t]), D(res.youC ? res.youC[t] : 0), D(res.spend[t]), ...cats.map(([c]) => D(res.catSpend && res.catSpend[c] ? res.catSpend[c][t] : 0)), D(res.debtPay[t]), D(res.special[t]), D(res.p10[t]), D(res.p50[t]), D(res.p90[t]), D(res.liq50[t]), res.events[t].join('; '), unit]);
     }
   };
-  add('Current inputs', current);
+  add('Your plan', current);
   for (const sc of scenarios) if (!sc.res.empty) add(sc.name, sc.res);
   const saved = await saveFile(`net-worth-projections-${stamp()}.csv`, toCSV(rows), 'Export projections');
   if (!saved) return;
@@ -2063,18 +2130,95 @@ function showWhatsNew(returning) {
   $('#whatsNewClose').addEventListener('click', () => { el.hidden = true; });
 }
 function askPersistentStorage() { try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch (e) { /* ignore */ } }
+// Updates. Phones often resume the app from the background without reloading it, so:
+// apply a downloaded update when the app opens or comes back to the screen (plans are saved as you type),
+// check for new versions at those moments and hourly, and otherwise offer "Update now" until it's used.
 if ('serviceWorker' in navigator && onWeb) {
-  navigator.serviceWorker.register('./sw.js').then(reg => {
-    reg.addEventListener('updatefound', () => {
-      const w = reg.installing;
-      if (w) w.addEventListener('statechange', () => {
-        if (w.state === 'installed' && navigator.serviceWorker.controller) notify('A new version of the planner is ready.', false, ['Update now', () => w.postMessage('skipWaiting')], 20000);
-      });
-    });
-  }).catch(() => {});
   let reloading = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => { if (!reloading) { reloading = true; location.reload(); } });
+  const openedAt = Date.now(), apply = w => { if (w) w.postMessage('skipWaiting'); };
+  const offer = w => {
+    if (!w || !navigator.serviceWorker.controller) return;
+    if (document.visibilityState === 'hidden' || Date.now() - openedAt < 10000) apply(w);
+    else notify('A new version of the planner is ready.', false, ['Update now', () => apply(w)], Infinity);
+  };
+  navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(reg => {
+    offer(reg.waiting);
+    reg.addEventListener('updatefound', () => {
+      const w = reg.installing;
+      if (w) w.addEventListener('statechange', () => { if (w.state === 'installed') offer(w); });
+    });
+    const check = () => reg.update().catch(() => {});
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState !== 'visible') return;
+      if (reg.waiting && navigator.serviceWorker.controller) apply(reg.waiting); else check();
+    });
+    setInterval(check, 60 * 60 * 1000);
+  }).catch(() => {});
 }
+// "Refresh app" in the footer: drop the offline copy and load the latest version. Saved plans are untouched.
+async function refreshApp() {
+  try {
+    if ('serviceWorker' in navigator) for (const r of await navigator.serviceWorker.getRegistrations()) await r.unregister();
+    if (window.caches) for (const k of await caches.keys()) if (k.startsWith('net-worth-planner-')) await caches.delete(k);
+  } catch (e) { /* reload anyway */ }
+  location.reload();
+}
+document.addEventListener('click', e => { if (e.target.id === 'btnRefreshApp') refreshApp(); });
+
+// Share the planner: only its link goes out, through the phone's own share sheet (or copied on desktop)
+const SHARE_TEXT = "I've been using Net Worth Planner to sketch retirement and net worth. It runs privately on your own device: nothing you type is ever sent anywhere.";
+// Phones: the share sheet. Desktop (or if the sheet fails): copy the link. If copying is blocked too: show it to copy.
+const shareDlg = $('#shareDlg');
+$('#btnShareApp').addEventListener('click', async () => {
+  const url = location.origin + location.pathname;
+  if (navigator.share && matchMedia('(pointer:coarse)').matches) {
+    try { await navigator.share({ title: 'Net Worth Planner', text: SHARE_TEXT, url }); return; }
+    catch (e) { if (e && e.name === 'AbortError') return; }   // they closed the sheet; otherwise fall back to copying
+  }
+  try {
+    await navigator.clipboard.writeText(`${SHARE_TEXT} ${url}`);
+    notify('Link copied ✓ Paste it into a message or email. Only the link is shared; your plan stays on this device.', false, null, 6000);
+  } catch (e) {
+    const box = $('#shareText');
+    box.value = `${SHARE_TEXT} ${url}`;
+    shareDlg.hidden = false; box.focus(); box.select();
+  }
+});
+$('#shareCopy').addEventListener('click', () => {
+  const box = $('#shareText'); box.focus(); box.select();
+  let ok = false; try { ok = document.execCommand('copy'); } catch (e) { /* not allowed */ }
+  $('#shareCopy').textContent = ok ? 'Copied ✓' : 'Select and copy';
+});
+$('#shareClose').addEventListener('click', () => { shareDlg.hidden = true; $('#shareCopy').textContent = 'Copy'; });
+shareDlg.addEventListener('click', e => { if (e.target === shareDlg) shareDlg.hidden = true; });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !shareDlg.hidden) shareDlg.hidden = true; });
+
+// Erase my data: everything this app stored in this browser, after a clear confirmation
+const eraseDlg = $('#eraseDlg');
+const openErase = () => { eraseDlg.hidden = false; $('#eraseCancel').focus(); };
+const closeErase = () => { eraseDlg.hidden = true; };
+$('#btnErase').addEventListener('click', openErase);
+$('#btnEraseFoot').addEventListener('click', openErase);
+$('#eraseCancel').addEventListener('click', closeErase);
+eraseDlg.addEventListener('click', e => { if (e.target === eraseDlg) closeErase(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !eraseDlg.hidden) closeErase(); });
+$('#eraseSave').addEventListener('click', () => { closeErase(); $('#btnSave').click(); });
+$('#eraseGo').addEventListener('click', () => {
+  canPersist = false; clearTimeout(timer);                  // nothing may be saved again after this
+  try { for (const k of Object.keys(localStorage)) if (k.startsWith('netWorthPlanner.')) localStorage.removeItem(k); } catch (e) { /* nothing stored */ }
+  try { sessionStorage.clear(); } catch (e) { /* ignore */ }
+  closeErase();
+  state = BLANK(); scenarios = [];
+  $('#cleared').hidden = false; $('#clearedClose').focus();
+});
+$('#clearedClose').addEventListener('click', () => {
+  window.close();   // works when the app opened this window; otherwise the browser keeps it open
+  setTimeout(() => notify('Your data is erased. Close this tab or swipe the app away to finish.', false, null, 8000), 200);
+});
+$('#clearedAgain').addEventListener('click', () => location.reload());
+const APP_VERSION = ((CFG.whatsNew || [])[0] || {}).version;
+if (APP_VERSION) $('#appVersion').textContent = `Version ${APP_VERSION}`;
 
 /* ---------- Notices ---------- */
 let noteTimer = null;
@@ -2089,7 +2233,7 @@ function notify(msg, isError, action, duration) {
   }
   el.classList.toggle('error', !!isError);
   clearTimeout(noteTimer);
-  noteTimer = setTimeout(() => { el.hidden = true; }, duration || (isError ? 7000 : action ? 7000 : 4500));
+  if (duration !== Infinity) noteTimer = setTimeout(() => { el.hidden = true; }, duration || (isError ? 7000 : action ? 7000 : 4500));
 }
 
 window.addEventListener('beforeunload', e => { if (dirty && !storageOk) { e.preventDefault(); e.returnValue = ''; } });

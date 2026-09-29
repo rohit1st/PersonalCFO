@@ -51,6 +51,7 @@ function create(userConfig, opts) {
     // "What's new" note shown once to people who already use the planner, after an update. Newest first.
     // Add one for every release, with version matching VERSION in sw.js (the evals check this). Keep it short and friendly.
     whatsNew: [
+      { version: 'v9', note: "Milestones on your chart 🏁, a Share button, and smoother updates. If the planner ever seems stuck, tap Refresh app at the bottom." },
       { version: 'v8', note: "We listened 👂 Tap a scenario to see exactly what you changed, and your key numbers now have tiles of their own." },
       { version: 'v7', note: "Fresh this week 🌱 Pick an investment mix under Assumptions, and every return now shows what's left after inflation." }
     ],
@@ -655,9 +656,30 @@ function create(userConfig, opts) {
     return k;
   }
 
+  /* ---------- Chart milestones ---------- */
+  // Round-number net worth milestones (today's dollars, mid case) and the year savings reach 25× spending (the 4% rule).
+  // Returns [{ t, kind: 'networth' | 'fourPercent', amount? }] in year order. Life events (college, loans, benefits) come from res.events.
+  const NW_MILESTONES = [1e6, 2e6, 5e6, 1e7, 2.5e7, 5e7, 1e8];
+  function milestones(res) {
+    if (!res || res.empty) return [];
+    const real = t => res.p50[t] / Math.pow(1 + res.infl, t);
+    let nw = [];
+    for (const v of NW_MILESTONES) {
+      if (real(0) >= v) continue;                       // already there today
+      for (let t = 1; t <= res.H; t++) if (real(t) >= v) { nw.push({ t, kind: 'networth', amount: v }); break; }
+    }
+    if (nw.length > 4) nw = [nw[0], ...nw.slice(-3)];    // the first one, and the three biggest
+    const out = nw;
+    // 4% rule: mid-case savings (not the home) × 4% cover that year's spending and loan payments
+    const costs = t => res.spend[t] + res.debtPay[t];
+    const already = res.H >= 1 && costs(1) > 0 && res.liq50[0] * 0.04 * (1 + res.infl) >= costs(1);
+    if (!already) for (let t = 1; t <= res.H; t++) if (costs(t) > 0 && res.liq50[t] * 0.04 >= costs(t)) { out.push({ t, kind: 'fourPercent' }); break; }
+    return out.sort((a, b) => a.t - b.t);
+  }
+
   return {
     Y0, RUNS, CFG, BUILTIN_CONFIG, n, has, clone, nameOf, cfgNum, assumptionsFrom, DEFAULT_ASSUMPTIONS, QS, PLAN_TO,
-    EXAMPLE, BLANK, TX, realRate, nominalRate, MIXES, mixAssumptions, bracketTax, estimateTaxes, loanPayment, rmdStartAge, rmdShare, shiftRetirement, planDiff, keyResults, mulberry32, project, WO_TARGET, workOptional
+    EXAMPLE, BLANK, TX, realRate, nominalRate, MIXES, mixAssumptions, bracketTax, estimateTaxes, loanPayment, rmdStartAge, rmdShare, shiftRetirement, planDiff, keyResults, milestones, mulberry32, project, WO_TARGET, workOptional
   };
 }
 

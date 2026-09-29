@@ -25,6 +25,7 @@ let hardFail = 0, softFail = 0, passed = 0;
 const md = [`# Eval report`, ``, `Run: ${new Date().toISOString()}`, ``];
 const t0 = Date.now();
 
+(async () => {
 for (const file of suites) {
   const evals = require(path.join(dir, file));
   const title = file.replace(/\.js$/, '').replace(/^\d+-/, '');
@@ -33,7 +34,7 @@ for (const file of suites) {
   for (const e of evals) {
     if (only && !e.name.toLowerCase().includes(only)) continue;
     let results;
-    try { results = [].concat(e.run(ctx)); }
+    try { results = [].concat(await e.run(ctx)); }   // evals may be async
     catch (err) { results = [{ pass: false, detail: `crashed: ${err.message}` }]; }
     const ok = results.every(r => r && r.pass);
     const soft = e.severity === 'soft';
@@ -52,3 +53,4 @@ md.splice(3, 0, `**${summary}**`, '');
 fs.mkdirSync(path.join(__dirname, 'reports'), { recursive: true });
 fs.writeFileSync(path.join(__dirname, 'reports', 'latest.md'), md.join('\n') + '\n');
 process.exit(hardFail ? 1 : 0);
+})();
