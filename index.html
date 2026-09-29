@@ -54,7 +54,7 @@ button,input,select{font:inherit;color:inherit}
   .tool .lbl{display:block;font-size:.7rem;font-weight:600}
   .col-left .col-head .file-actions .tool{width:auto;height:auto;min-width:56px;padding:7px 8px 5px}
   .col-left .col-head{flex-wrap:wrap}
-  .col-left .col-head .file-actions{width:100%;display:grid;grid-template-columns:repeat(5,1fr)}
+  .col-left .col-head .file-actions{width:100%;display:grid;grid-template-columns:repeat(4,1fr)}
   .tool:hover::after,.tool:focus-visible::after{opacity:0}
 }
 .btn{border:0;border-radius:999px;padding:8px 16px;background:var(--teal-deep);color:#fff;font-weight:600;font-size:.88rem;cursor:pointer;transition:background .15s}
@@ -317,6 +317,7 @@ mark.bad{background:linear-gradient(transparent 58%,var(--coral-soft) 58%)}
 
 /* ---------- Play panel ---------- */
 .play{border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:14px}
+.chart-card .play{border-bottom:0;border-top:1px solid var(--line);padding:14px 0 0;margin:12px 0 0}
 .play-top{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;margin-bottom:10px}
 .play h3{margin:0;font-size:1rem;font-weight:600}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
@@ -436,6 +437,12 @@ body.qs-open .mobilebar{display:none}
 .tile.good .tv{color:var(--green-deep)}
 .tile.warn .tv{color:var(--amber-deep)}
 .tile.bad .tv{color:var(--coral-deep)}
+.tile.wo{background:linear-gradient(135deg,#DDEFF5 0%,#E3F4EA 100%)}
+.tile.wo .tk{color:var(--teal-deep);font-weight:600}
+.tile.wo .tv{font-size:2.3rem;font-weight:700;line-height:1.05;letter-spacing:-.02em;color:var(--ink);font-variant-numeric:tabular-nums}
+.tile.wo.bad .tv{color:var(--coral-deep)}
+.tile.wo .good{color:var(--green-deep)}.tile.wo .later{color:var(--amber-deep)}
+.tile.wo .link{padding:0 0 0 4px;font-size:.76rem}
 @media (max-width:760px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.tile{padding:10px 12px}.tile .tv{font-size:1.12rem}}
 
 /* ---------- Scenario details ---------- */
@@ -469,6 +476,8 @@ body.qs-open .mobilebar{display:none}
 @keyframes shake{25%{transform:translateX(-5px)}50%{transform:translateX(5px)}75%{transform:translateX(-3px)}}
 .foot{max-width:760px;margin:0 auto}
 .foot p{margin:0 0 6px}
+.foot .share-link{font-weight:600}
+.share-done{display:inline-block;background:var(--teal-soft);color:var(--ink);border-radius:var(--r);padding:8px 14px;font-size:.86rem;animation:wnIn .3s ease both}
 .foot-legal{font-size:.78rem;line-height:1.5}
 .foot-legal .link{font-size:.78rem;padding:0 2px;text-decoration:underline}
 .terms-card{width:min(620px,100%);max-height:calc(100vh - 32px);display:flex;flex-direction:column}
@@ -482,10 +491,7 @@ body.qs-open .mobilebar{display:none}
     <h1>Net Worth Planner</h1>
     <p class="trust">Your confidential companion 🤫 You can run me without wifi.</p>
   </div>
-  <div class="top-actions">
-    <button type="button" class="btn soft" id="btnShareApp" title="Share the planner's link. Your plan and numbers are never shared.">Share with friends 💌</button>
-    <button type="button" class="btn install" id="btnInstall" hidden>Install app</button>
-  </div>
+  <button type="button" class="btn install" id="btnInstall" hidden>Install app</button>
 </header>
 <div class="notice-wrap">
   <div id="notice" class="notice" role="status" hidden></div>
@@ -504,7 +510,6 @@ body.qs-open .mobilebar{display:none}
           <button id="btnOpen" class="tool" type="button" aria-label="Open a saved copy" data-tip="Open a saved copy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7V18a1.5 1.5 0 0 0 1.5 1.5h14a1.5 1.5 0 0 0 1.5-1.5V9.5A1.5 1.5 0 0 0 19 8h-7l-2-2.5H5A1.5 1.5 0 0 0 3.5 7z"/><path d="M12 16.5v-5M9.8 13.5 12 11.3l2.2 2.2"/></svg><span class="lbl">Open</span></button>
           <button id="btnSave" class="tool primary" type="button" aria-label="Save a copy" data-tip="Save a copy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v10.5M7.8 10.3 12 14.5l4.2-4.2M4.5 15.5v4h15v-4"/></svg><span class="lbl">Copy</span></button>
           <button id="btnExport" class="tool" type="button" aria-label="Export projections as CSV" data-tip="Export projections (CSV)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9.5h16M4 14.8h16M10 9.5V20"/></svg><span class="lbl">Export</span></button>
-          <button id="btnReset" class="tool" type="button" aria-label="Start blank" data-tip="Start blank"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.8 12a7.2 7.2 0 1 0 2.1-5.1M4.8 4.6v3.7h3.7"/></svg><span class="lbl">Reset</span></button>
           <button id="btnErase" class="tool erase" type="button" aria-label="Erase my data from this device" data-tip="Erase my data"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4.8h6V7M6.5 7l.9 12.2h9.2L17.5 7M10 10.5v5.5M14 10.5v5.5"/></svg><span class="lbl">Erase</span></button>
           <input type="file" id="fileIn" accept=".csv,text/csv" hidden>
         </div>
@@ -523,10 +528,16 @@ body.qs-open .mobilebar{display:none}
       <h2>Your Projections</h2>
     </div>
     <ul class="warnings" id="warnings"></ul>
-    <div class="hero" id="hero"></div>
-    <div class="tiles" id="tiles" aria-label="Key results"></div>
-
     <div class="card chart-card">
+      <div class="chart-head">
+        <div class="legend" id="legend"></div>
+        <div class="seg" role="group" aria-label="Dollar view">
+          <button type="button" data-mode="real" aria-pressed="true">Today's dollars</button>
+          <button type="button" data-mode="nominal" aria-pressed="false">Future dollars</button>
+        </div>
+      </div>
+      <div class="chart" id="chart"></div>
+      <ul class="ms-strip" id="msStrip" aria-label="Milestones"></ul>
       <div class="play" id="play">
         <div class="play-top">
           <h3>Play with it</h3>
@@ -539,21 +550,13 @@ body.qs-open .mobilebar{display:none}
         </div>
         <div class="play-result" id="playResult" hidden></div>
       </div>
-      <div class="chart-head">
-        <div class="legend" id="legend"></div>
-        <div class="seg" role="group" aria-label="Dollar view">
-          <button type="button" data-mode="real" aria-pressed="true">Today's dollars</button>
-          <button type="button" data-mode="nominal" aria-pressed="false">Future dollars</button>
-        </div>
-      </div>
-      <div class="chart" id="chart"></div>
-      <ul class="ms-strip" id="msStrip" aria-label="Milestones"></ul>
       <div class="chart-summary">
         <p class="verdict" id="verdict"></p>
-        <p class="verdict-sub" id="verdictSub"></p>
       </div>
-      <p class="chart-note" id="chartNote"></p>
+      <p class="chart-note"><button type="button" class="link" id="howLink">How is this calculated?</button></p>
     </div>
+
+    <div class="tiles" id="tiles" aria-label="Key results"></div>
 
     <div class="card block">
       <h2>Scenarios</h2>
@@ -571,14 +574,14 @@ body.qs-open .mobilebar{display:none}
       <div class="scroll table-scroll"><table class="proj" id="table"></table></div>
     </details>
 
-    <details class="card how">
+    <details class="card how" id="how">
       <summary>How the projection works</summary>
       <p>The first row is today. Each row after that is a full year: account balances grow by that year's return, then the year's money in and out is added or taken at year end. Salaries grow at your salary growth rate and stop at retirement age (an end age can only stop them sooner). Everything else you enter in today's dollars (spending, benefits, purchases) rises with inflation, and college costs rise with college cost inflation.</p>
       <p>Income is entered before taxes. Each year the planner estimates taxes on pay (federal brackets and standard deduction, Social Security and Medicare, and your state rate), subtracts them along with what you put into retirement accounts, and uses the rest for spending and saving. Contributions to pre-tax accounts lower the tax estimate; Roth contributions don't, because they're made with after-tax money. "Total saving" under Income adds up what goes into retirement accounts from your pay, what your employer adds, and what's left of take-home pay after spending and loan payments. College and big purchases are left out of that figure because they're paid from savings when they happen. The tax rules live in config.js and are simplified: no itemized deductions, credits or local quirks. You can replace the estimate with one overall rate under Assumptions.</p>
       <p>Retirement contributions go into retirement accounts while their owner is working. Whatever is left over after spending, debt payments, college and purchases is added to non-retirement savings. When there's a shortfall, it comes out of non-retirement savings first, then pre-tax retirement accounts (with your withdrawal tax rate added on top), then Roth accounts, which are tax-free. Home and other assets grow but are never sold to cover spending.</p>
       <p><b>Required withdrawals (RMDs).</b> From age 73 (75 if born in 1960 or later), the IRS requires a minimum to come out of pre-tax retirement accounts every year: last year-end's balance divided by a factor from the IRS Uniform Lifetime Table, about 3.8% at 73 and rising with age. The planner takes it each year for each person, taxes it at your withdrawal rate, uses it for that year's spending first and adds anything left over to non-retirement savings. If one partner's plan ends first, the other takes over their accounts. Roth accounts have no required withdrawals. It's simplified: withdrawals don't push the tax estimate into higher brackets, and there's no still-working exception.</p>
       <p>Loans are paid down month by month: each month interest is added at the yearly rate divided by 12, then the monthly payment is taken off, so payoff dates match a normal amortization schedule. If you give a paid-off year without a payment, the planner calculates the payment that clears the loan that year.</p>
-      <p>To get best, mid and worst cases, the planner simulates 1,000 market paths every time an input changes. In each path, every year gets a random return drawn around your typical return, spread out by the market ups and downs you set (the same draw applies to retirement and non-retirement accounts, since they're in the same market). For each year it then ranks the 1,000 net worths: the best case is the 90th percentile, the mid case is the median, and the worst case is the 10th percentile. The random numbers use a fixed seed, so the same inputs always give the same answer, which keeps scenario comparisons fair.</p>
+      <p>To get best, mid and worst cases, the planner simulates 1,000 market paths every time an input changes. In each path, every year gets a random return drawn around your typical return, spread out by the market ups and downs you set (the same draw applies to retirement and non-retirement accounts, since they're in the same market). For each year it then ranks the 1,000 net worths: the best case is the 90th percentile, the mid case is the median, and the worst case is the 10th percentile. The random numbers use a fixed seed, so the same inputs always give the same answer, which keeps scenario comparisons fair.<span id="runNote"></span> "Savings last in X% of markets" is the share of the 1,000 paths in which savings never run out.</p>
       <p><b>Privacy.</b> Your plan is saved automatically in this browser's storage on this device, and nowhere else. The page carries a security rule that tells the browser to block any attempt to send data over the network, so even the planner itself couldn't upload your numbers if it tried. Use Save a copy to keep a backup file or move your plan to another device.</p>
       <p><b>Work-optional age</b> is the earliest age at which your savings would last the whole plan in at least 85 of 100 simulated markets, if you stopped working then (partners shift by the same number of years, and so does the end of each person's last salary, like a lower-paying job before retiring). Items marked Estimated are starting guesses from quick start; edit them to make them yours. The Social Security guess is very rough (a share of your pay, within set limits), so look up your real estimate at ssa.gov.</p>
       <p>"Savings last" means there was always enough in savings and retirement accounts to cover the year. This is a simplified model for planning conversations, not tax or investment advice.</p>
@@ -586,7 +589,8 @@ body.qs-open .mobilebar{display:none}
   </section>
 </main>
 <footer class="foot">
-  <p class="foot-love">Built with love ❤️</p>
+  <p class="foot-love">Built with love ❤️ for friends and family. <button type="button" class="link share-link" id="btnShareApp" title="Shares the planner's link only. Your plan and numbers stay on this device."><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="vertical-align:-3px;margin-right:4px"><path d="M12 3.5v11M8 7.3 12 3.5l4 3.8M7 10.5H5.8A1.8 1.8 0 0 0 4 12.3v6.4a1.8 1.8 0 0 0 1.8 1.8h12.4a1.8 1.8 0 0 0 1.8-1.8v-6.4a1.8 1.8 0 0 0-1.8-1.8H17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Click to share</button></p>
+  <p class="share-done" id="shareDone" role="status" hidden></p>
   <p class="foot-legal"><span id="footLegal"></span> <button type="button" class="link" data-terms>Terms of use</button></p>
   <p class="foot-legal"><button type="button" class="link" id="btnEraseFoot">Erase my data</button> · <span id="appVersion"></span> <button type="button" class="link" id="btnRefreshApp" title="Load the latest version. Your saved plan stays on this device.">Refresh app</button></p>
 </footer>
@@ -1115,10 +1119,9 @@ function pctClass(p) { return p >= 0.85 ? 'good' : p >= 0.7 ? 'warn' : 'bad'; }
 function lastsText(res, t) { return t === Infinity ? 'Whole plan' : `Until ${res.names[0]} is ${res.a1 + t}`; }
 
 function renderVerdict() {
-  const res = current, v = $('#verdict'), sub = $('#verdictSub');
+  const res = current, v = $('#verdict');
   if (res.empty) {
-    v.textContent = 'Add what you own, what you earn and what you spend, and your projection will show up here.';
-    sub.textContent = 'Start with Household, then Assets and Income. Everything stays on this device.';
+    v.textContent = 'Add what you own, what you earn and what you spend (start with Household, then Assets and Income), and your projection will show up here.';
     return;
   }
   const [n1, n2] = res.names, rt = res.retireT;
@@ -1131,9 +1134,6 @@ function renderVerdict() {
     ? ` Savings last through ${Y0 + res.H}, the end of the plan${res.two ? ` (${esc(n1)} ${endAge}, ${esc(n2)} ${res.a2 + res.H})` : ''}.`
     : ` Savings run out in ${Y0 + res.deplMid}, when ${esc(n1)} is <mark class="bad">${res.a1 + res.deplMid}</mark>.`;
   v.innerHTML = lead + mid;
-  const pc = Math.round(res.success * 100);
-  const worst = res.deplWorst === Infinity ? 'even the worst case lasts the whole plan' : `in the worst case savings run out when ${esc(n1)} is ${res.a1 + res.deplWorst}`;
-  sub.innerHTML = `Across 1,000 simulated markets, the money lasts the whole plan <mark class="${pctClass(res.success)}">${pc}% of the time</mark>, and ${worst}.`;
 }
 
 function renderWarnings() {
@@ -1173,7 +1173,7 @@ function niceTicks(lo, hi, count) {
 let geo = null;
 function renderChart() {
   const box = $('#chart'), res = current;
-  $('#chartNote').textContent = res.empty ? '' : `Based on ${RUNS.toLocaleString('en-US')} simulated market paths, computed in ${Math.max(1, Math.round(res.ms))} ms on this device. Best case is the 90th percentile, mid case the median, worst case the 10th percentile.`;
+  const rn = $('#runNote'); if (rn) rn.textContent = res.empty ? '' : ` On this device, the last run took ${Math.max(1, Math.round(res.ms))} ms.`;
   if (res.empty) {
     box.innerHTML = `<div class="chart-empty"><div><strong>No projection yet</strong>Add at least one asset or income to see best, mid and worst cases.</div></div>`;
     geo = null; return;
@@ -1382,23 +1382,37 @@ function renderMobileBar() {
 function renderTiles() {
   const el = $('#tiles'), res = current, k = keyResults(res);
   if (!k) { el.innerHTML = ''; return; }
-  const who = t => res.two ? `${res.names[0]} ${res.a1 + t}` : `age ${res.a1 + t}`, tiles = [];
-  if (k.retireT !== null && k.retireT > 0) tiles.push(['Net worth at retirement', money(disp(k.atRetirement, k.retireT, res)), `Mid case, ${Y0 + k.retireT} (${who(k.retireT)})`]);
-  else { const t = Math.min(10, k.H); tiles.push([`Net worth in ${t} years`, money(disp(res.p50[t], t, res)), `Mid case, ${Y0 + t} (${who(t)})`]); }
-  tiles.push(['Net worth at plan end', money(disp(k.atEnd, k.H, res)), `Mid case, ${Y0 + k.H} (${who(k.H)})`, k.atEnd < -0.5 ? 'bad' : '']);
-  tiles.push(k.worstRunOutAge === null
-    ? ['In tough markets', 'Lasts', 'Even in the worst 1 in 10 markets, savings last the whole plan', 'good']
-    : ['In tough markets', `Runs out at ${k.worstRunOutAge}`, `In the worst 1 in 10 markets, savings run out when ${esc(res.names[0])} is ${k.worstRunOutAge}`, k.worstRunOutAge - res.a1 >= k.H - 5 ? 'warn' : 'bad']);
-  if (k.drawRate !== null) {
-    const pct = Math.round(k.drawRate * 1000) / 10, first = k.retireT > 0 ? 'First year of retirement' : 'This year';
-    tiles.push(k.drawRate === 0 ? [first, 'Income covers it', 'Spending is covered by income, so savings keep growing', 'good']
-      : [first, `Draws ${pct}%`, 'of savings to cover spending and taxes. A common rule of thumb is about 4%', k.drawRate <= 0.04 ? 'good' : k.drawRate <= 0.05 ? 'warn' : 'bad']);
+  const who = t => res.two ? `${esc(res.names[0])} ${res.a1 + t}` : `age ${res.a1 + t}`, tiles = [], pc = Math.round(res.success * 100);
+  const worst = k.worstRunOutAge === null ? 'Worst case: lasts the whole plan' : `Worst case: runs out at ${k.worstRunOutAge}`;
+  const WO_DEF = `Work-optional: savings would last the whole plan in at least ${Math.round(WO_TARGET * 100)} of 100 simulated markets if you stopped working then.`;
+  // 1. The headline: work-optional age (or, once retired, the chance savings last)
+  if (res.retireT === 0) {
+    tiles.push({ key: "You're retired 🌴", val: `<span id="heroNum">${pc}</span>%`, sub: 'chance your savings last the whole plan', tone: pctClass(res.success), cls: 'wo' });
+  } else if (res.wo === null) {
+    tiles.push({ key: 'Work-optional', val: '<span id="heroNum">80+</span>', sub: 'Runs short even working to 80. Try the sliders below.', tone: 'bad', cls: 'wo', title: WO_DEF });
+  } else {
+    const planned = n(state.people.p1.retireAge), diff = planned - res.wo, yrs = res.wo - res.a1;
+    const vs = diff > 0 ? `<b class="good">${diff} yr${diff === 1 ? '' : 's'} before</b> the ${planned} you planned 🎉` : diff === 0 ? 'right on your plan 👌' : `<b class="later">${-diff} yr${diff === -1 ? '' : 's'} after</b> the ${planned} you planned`;
+    tiles.push({ key: res.two ? `Work-optional when ${esc(res.names[0])} is` : 'Work-optional at', val: `<span id="heroNum">${res.wo}</span>`,
+      sub: `${yrs <= 0 ? 'Could be now' : Y0 + yrs}, ${vs} <button type="button" class="link" id="btnShare">Share</button>`, cls: 'wo', title: WO_DEF });
   }
-  el.innerHTML = tiles.map(([key, val, sub, tone]) => `<div class="tile${tone ? ' ' + tone : ''}"><span class="tk">${key}</span><span class="tv">${val}</span><span class="ts">${sub}</span></div>`).join('');
+  // 2. How often savings last (or, once retired, tough markets)
+  if (res.retireT === 0) tiles.push({ key: 'In tough markets', val: k.worstRunOutAge === null ? 'Lasts' : `Runs out at ${k.worstRunOutAge}`, sub: k.worstRunOutAge === null ? 'Even in the worst 1 in 10 markets, savings last the whole plan' : `In the worst 1 in 10 markets, savings run out when ${esc(res.names[0])} is ${k.worstRunOutAge}`, tone: k.worstRunOutAge === null ? 'good' : 'bad' });
+  else tiles.push({ key: 'Savings last', val: `${pc}%`, sub: `of 1,000 simulated markets. ${worst}`, tone: pctClass(res.success) });
+  // 3. Net worth at retirement (or in 10 years if already retired)
+  if (k.retireT !== null && k.retireT > 0) tiles.push({ key: 'Net worth at retirement', val: money(disp(k.atRetirement, k.retireT, res)), sub: `Mid case, ${Y0 + k.retireT} (${who(k.retireT)})` });
+  else { const t = Math.min(10, k.H); tiles.push({ key: `Net worth in ${t} years`, val: money(disp(res.p50[t], t, res)), sub: `Mid case, ${Y0 + t} (${who(t)})` }); }
+  // 4. First year of retirement: how much it draws from savings (or net worth at plan end if there's no retirement year)
+  if (k.drawRate !== null) {
+    const p = Math.round(k.drawRate * 1000) / 10, first = k.retireT > 0 ? 'First year of retirement' : 'This year';
+    tiles.push(k.drawRate === 0 ? { key: first, val: 'Income covers it', sub: 'Spending is covered by income, so savings keep growing', tone: 'good' }
+      : { key: first, val: `Draws ${p}%`, sub: 'of savings to cover spending and taxes. A common rule of thumb is about 4%', tone: k.drawRate <= 0.04 ? 'good' : k.drawRate <= 0.05 ? 'warn' : 'bad' });
+  } else tiles.push({ key: 'Net worth at plan end', val: money(disp(k.atEnd, k.H, res)), sub: `Mid case, ${Y0 + k.H} (${who(k.H)})`, tone: k.atEnd < -0.5 ? 'bad' : '' });
+  el.innerHTML = tiles.map(x => `<div class="tile${x.cls ? ' ' + x.cls : ''}${x.tone ? ' ' + x.tone : ''}"${x.title ? ` title="${esc(x.title)}"` : ''}><span class="tk">${x.key}</span><span class="tv">${x.val}</span><span class="ts">${x.sub}</span></div>`).join('');
 }
 
 function renderResults() {
-  renderHero(); renderTiles(); renderVerdict(); renderWarnings(); renderLegend(); renderChart(); syncPlay(); renderPlayResult();
+  renderTiles(); renderVerdict(); renderWarnings(); renderLegend(); renderChart(); syncPlay(); renderPlayResult();
   renderScenarios(); renderTable(); renderMobileBar(); renderSummaries(); renderProgress();
   persist(); renderFileLabel();
 }
@@ -1644,7 +1658,7 @@ function loadBackupText(text) {
       const st = normalize(unflatten(pairs.filter(p => p[0] !== '_show')));
       scenarios.push({ name, state: st, show: show ? show[1] === 'true' : true, res: project(st) });
     }
-    dirty = false; isExample = false; updateResetBtn();
+    dirty = false; isExample = false;
     renderInputs(); recompute();
 }
 const scCount = () => scenarios.length ? ` with ${scenarios.length} scenario${scenarios.length > 1 ? 's' : ''}` : '';
@@ -1678,27 +1692,6 @@ $('#btnExport').addEventListener('click', async () => {
   const saved = await saveFile(`net-worth-projections-${stamp()}.csv`, toCSV(rows), 'Export projections');
   if (!saved) return;
   notify(`Exported ${saved} in ${unit}${scenarios.length ? `, including ${scenarios.length} scenario${scenarios.length > 1 ? 's' : ''}` : ''}.`);
-});
-
-/* ---------- Reset: start over with quick start ---------- */
-let armed = null;
-function updateResetBtn() {
-  const b = $('#btnReset');
-  b.classList.remove('armed');
-  b.dataset.tip = 'Reset and start over'; b.setAttribute('aria-label', 'Reset and start over');
-  b.querySelector('.lbl').textContent = 'Reset';
-}
-$('#btnReset').addEventListener('click', () => {
-  const b = $('#btnReset');
-  if (!armed) {
-    b.dataset.tip = 'Click again to start over'; b.setAttribute('aria-label', 'Click again to start over');
-    b.querySelector('.lbl').textContent = 'Sure?';
-    b.classList.add('armed');
-    armed = setTimeout(() => { armed = null; updateResetBtn(); }, 4000);
-    return;
-  }
-  clearTimeout(armed); armed = null; updateResetBtn();
-  openQuickStart(true);
 });
 
 /* ---------- Quick start ---------- */
@@ -1807,7 +1800,7 @@ $('#qsBody').addEventListener('click', e => {
   else if (t.dataset.qalt === 'example') {
     state = EXAMPLE(); scenarios = []; isExample = true; fileName = null; canPersist = true;
     closeQuickStart(); clearPlay(); renderInputs(); recompute();
-    notify('This is a made-up household. Press Reset whenever you want to start your own.');
+    notify('This is a made-up household. Tap "Start your own plan" whenever you want to make yours.');
   } else if (t.dataset.qalt === 'open') $('#fileIn').click();
 });
 $('#qsBody').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); $('#qsNext').click(); } });
@@ -1887,36 +1880,7 @@ $('#termsClose').addEventListener('click', closeTerms);
 $('#termsDlg').addEventListener('click', e => { if (e.target.id === 'termsDlg') closeTerms(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#termsDlg').hidden) closeTerms(); });
 
-/* ---------- Hero ---------- */
-function heroNumber(res) { return res.wo === null ? null : res.wo; }
-function renderHero() {
-  const el = $('#hero'), res = current;
-  if (res.empty) { el.innerHTML = ''; return; }
-  const p1 = state.people.p1, planned = n(p1.retireAge), n1 = res.names[0], two = res.two, wo = res.wo;
-  const pc = Math.round(res.success * 100);
-  let kicker, num, say;
-  if (res.retireT === 0) {
-    kicker = "You're retired";
-    num = `${pc}<small>%</small>`;
-    say = `Your savings last the whole plan in ${pc} of 100 simulated markets.`;
-  } else if (wo === null) {
-    kicker = 'Work-optional';
-    num = `80+`;
-    say = `Even working until 80, this plan runs short in too many markets. Try the sliders below: a little less spending goes a long way.`;
-  } else {
-    const diff = planned - wo, yrs = wo - res.a1;
-    kicker = two ? `Work-optional when ${esc(n1)} is` : 'You could be work-optional at';
-    num = `${wo}`;
-    const when = yrs <= 0 ? 'That could be now' : `That's ${Y0 + yrs}, ${yrs} year${yrs === 1 ? '' : 's'} from now`;
-    const vs = diff > 0 ? ` <span class="good">${diff} year${diff === 1 ? '' : 's'} before</span> the ${planned} you planned 🎉`
-      : diff === 0 ? ' right on your plan 👌' : ` <span class="later">${-diff} year${diff === -1 ? '' : 's'} after</span> the ${planned} you planned. The sliders below can close the gap.`;
-    say = `${when},${vs}`;
-  }
-  el.innerHTML = `<div class="big"><span class="kicker">${kicker}</span><span class="num" id="heroNum">${num}</span></div>
-    <div><p class="say">${say}</p>
-      <div class="meta"><span>Savings last the whole plan in <b>${pc}%</b> of markets</span>${wo !== null && res.retireT !== 0 ? '<button type="button" class="link" id="btnShare">Share this milestone</button>' : ''}</div>
-      <div class="def">Work-optional means your savings would last the whole plan in at least ${Math.round(WO_TARGET * 100)} of 100 simulated markets, if you stopped working then.</div></div>`;
-}
+/* ---------- Work-optional (first key result tile) ---------- */
 function revealHero(celebrate) {
   const res = current, el = $('#heroNum');
   if (!el || res.empty) return;
@@ -2165,11 +2129,19 @@ async function refreshApp() {
   location.reload();
 }
 document.addEventListener('click', e => { if (e.target.id === 'btnRefreshApp') refreshApp(); });
+document.addEventListener('click', e => { if (e.target.id === 'howLink') { const d = $('#how'); d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); } });
 
 // Share the planner: only its link goes out, through the phone's own share sheet (or copied on desktop)
 const SHARE_TEXT = "I've been using Net Worth Planner to sketch retirement and net worth. It runs privately on your own device: nothing you type is ever sent anywhere.";
 // Phones: the share sheet. Desktop (or if the sheet fails): copy the link. If copying is blocked too: show it to copy.
 const shareDlg = $('#shareDlg');
+// "Link copied" shows next to the button that was clicked (the footer), not at the top of the page
+let shareTimer = null;
+function shareCopied(msg) {
+  const el = $('#shareDone');
+  el.textContent = msg; el.hidden = false;
+  clearTimeout(shareTimer); shareTimer = setTimeout(() => { el.hidden = true; }, 6000);
+}
 $('#btnShareApp').addEventListener('click', async () => {
   const url = location.origin + location.pathname;
   if (navigator.share && matchMedia('(pointer:coarse)').matches) {
@@ -2178,7 +2150,7 @@ $('#btnShareApp').addEventListener('click', async () => {
   }
   try {
     await navigator.clipboard.writeText(`${SHARE_TEXT} ${url}`);
-    notify('Link copied ✓ Paste it into a message or email. Only the link is shared; your plan stays on this device.', false, null, 6000);
+    shareCopied('Link copied ✓ Paste it into a message or email. Only the link is shared; your plan stays on this device.');
   } catch (e) {
     const box = $('#shareText');
     box.value = `${SHARE_TEXT} ${url}`;
@@ -2256,7 +2228,6 @@ syncYearByYear();
 if (phoneQuery.addEventListener) phoneQuery.addEventListener('change', syncYearByYear);
 renderInputs(); recompute();
 dirty = false;
-updateResetBtn();
 renderFileLabel();
 if (canPersist) revealHero(false); else openQuickStart(false);
 })();

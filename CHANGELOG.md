@@ -2,6 +2,13 @@
 
 Bump `VERSION` in `sw.js` with each release.
 
+## v10 — clearer layout
+- Results start with the chart card (chart, milestones, then the Play with it sliders right under it, so the what-if line moves in view), then the key result tiles. Less to scroll past before seeing results, especially on phones.
+- The work-optional age is now the first of the four tiles (same green, 🎉 and number reveal), replacing the big headline card. The tiles: work-optional, savings last (% of markets and the worst case), net worth at retirement, first-year draw. Net worth at plan end moved out (it's where the chart ends).
+- Under the chart: one sentence plus "How is this calculated?", which opens How the projection works. The 1,000-simulation details and run time live there now.
+- Share moved from the header to the footer: "Built with love ❤️ for friends and family. ⇪ Click to share", with a share arrow; "Link copied ✓" now appears right there instead of at the top of the page.
+- The Reset button is gone; Erase (and "Start your own plan" for the example) covers starting over.
+
 ## v9 — reliable updates, milestones, share and erase
 - Chart milestones: net worth round numbers in today's dollars ($1M, $2M, $5M, $10M…, at most four) and the year savings reach the 4% rule (25× a year's spending), alongside work-optional age and life events. Listed in a strip under the chart so they show on phones too. (`milestones()` in model.js.)
 - Share with friends 💌 in the header: shares only the planner's link, with a note that nothing they entered is shared. Phones get the share sheet; desktop copies the link ("Link copied ✓"); if copying is blocked, a small dialog shows the link to copy. There's always visible feedback.

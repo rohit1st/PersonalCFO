@@ -51,6 +51,7 @@ function create(userConfig, opts) {
     // "What's new" note shown once to people who already use the planner, after an update. Newest first.
     // Add one for every release, with version matching VERSION in sw.js (the evals check this). Keep it short and friendly.
     whatsNew: [
+      { version: 'v10', note: "A tidier look ✨ Your chart comes first, and your work-optional age now sits with your key numbers underneath." },
       { version: 'v9', note: "Milestones on your chart 🏁, a Share button, and smoother updates. If the planner ever seems stuck, tap Refresh app at the bottom." },
       { version: 'v8', note: "We listened 👂 Tap a scenario to see exactly what you changed, and your key numbers now have tiles of their own." },
       { version: 'v7', note: "Fresh this week 🌱 Pick an investment mix under Assumptions, and every return now shows what's left after inflation." }
