@@ -2,6 +2,12 @@
 
 Bump `VERSION` in `sw.js` with each release.
 
+## v7 — returns after inflation
+- Every return field under Assumptions shows what's left after inflation ("≈ 3.5% after 2.5% inflation"), and the Play with it returns slider does too ("6.1%, ≈3.5% after inflation").
+- Investment mix picker (Mostly stocks, Balanced, Conservative, Custom) sets both returns and market ups and downs together. Presets are defined after inflation in `config.js` (`investmentMixes`), so returns follow the plan's inflation; editing a return or ups and downs by hand switches to Custom.
+- A gentle note when a market return after inflation is below 0.5% or above 6% (`returnAfterInflationNote` in `config.js`).
+- Evals: before/after inflation conversion and the mix presets. No change to projections for existing plans.
+
 ## v6 — required withdrawals, projection check
 - Required minimum distributions (RMDs): from 73 (75 if born 1960 or later), the IRS minimum comes out of each person's pre-tax accounts every year (Uniform Lifetime Table in `config.js`), taxed at the withdrawal rate, used for spending first, remainder saved. A surviving partner takes over the other's accounts. Noted under Income with the first year's mid-case amount, and as a milestone on the chart.
 - Social Security guesses are labelled as rough, in quick start and on each estimated row under Income.

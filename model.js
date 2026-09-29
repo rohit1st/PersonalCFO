@@ -38,6 +38,16 @@ function create(userConfig, opts) {
       marketUpsAndDowns: 12         // volatility; drives the gap between best and worst case
     },
   
+    // Investment mix presets offered under Assumptions. Returns here are AFTER inflation: the typical (median, compound)
+    // yearly growth. Picking one sets both return fields to this plus the plan's inflation, and sets market ups and downs.
+    investmentMixes: [
+      { id: 'stocks',       label: 'Mostly stocks', returnAfterInflation: 4.5, marketUpsAndDowns: 16, description: 'About 80% or more in stock funds.' },
+      { id: 'balanced',     label: 'Balanced',      returnAfterInflation: 3.5, marketUpsAndDowns: 11, description: 'Roughly 60% stocks and 40% bonds.' },
+      { id: 'conservative', label: 'Conservative',  returnAfterInflation: 2,   marketUpsAndDowns: 6,  description: 'Mostly bonds and cash.' }
+    ],
+    // A gentle note appears when a market return after inflation is outside this range
+    returnAfterInflationNote: { below: 0.5, above: 6 },
+  
     planUntilAge: 95,               // default "plan until" age for new plans
     workOptionalConfidence: 85,     // work-optional = savings last in at least this many of 100 simulated markets
   
@@ -211,6 +221,21 @@ function create(userConfig, opts) {
     purchases: [],
     assumptions: DEFAULT_ASSUMPTIONS()
   });
+
+  /* ---------- Before and after inflation ---------- */
+  // Rates in percent: what's left after inflation, and back again
+  const realRate = (nominal, inflation) => ((1 + n(nominal) / 100) / (1 + n(inflation) / 100) - 1) * 100;
+  const nominalRate = (real, inflation) => ((1 + n(real) / 100) * (1 + n(inflation) / 100) - 1) * 100;
+  const MIXES = (Array.isArray(CFG.investmentMixes) ? CFG.investmentMixes : [])
+    .filter(m => m && m.id && has(m.returnAfterInflation) && has(m.marketUpsAndDowns))
+    .map(m => ({ ...m, returnAfterInflation: +m.returnAfterInflation, marketUpsAndDowns: +m.marketUpsAndDowns }));
+  // Assumption values for an investment mix preset at this inflation (returns shown to 0.1%), or null for custom
+  function mixAssumptions(id, inflation) {
+    const m = MIXES.find(x => x.id === id);
+    if (!m) return null;
+    const r = Math.round(nominalRate(m.returnAfterInflation, inflation) * 10) / 10;
+    return { retReturn: r, nonReturn: r, volatility: m.marketUpsAndDowns };
+  }
 
   /* ---------- Tax estimate ---------- */
   const TX = CFG.taxes || {};
@@ -548,7 +573,7 @@ function create(userConfig, opts) {
 
   return {
     Y0, RUNS, CFG, BUILTIN_CONFIG, n, has, clone, nameOf, cfgNum, assumptionsFrom, DEFAULT_ASSUMPTIONS, QS, PLAN_TO,
-    EXAMPLE, BLANK, TX, bracketTax, estimateTaxes, loanPayment, rmdStartAge, rmdShare, shiftRetirement, mulberry32, project, WO_TARGET, workOptional
+    EXAMPLE, BLANK, TX, realRate, nominalRate, MIXES, mixAssumptions, bracketTax, estimateTaxes, loanPayment, rmdStartAge, rmdShare, shiftRetirement, mulberry32, project, WO_TARGET, workOptional
   };
 }
 

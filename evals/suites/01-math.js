@@ -116,6 +116,32 @@ module.exports = [
     run() { return approx(M.estimateTaxes({ wages: [0], other: 0, benefits: 60000, pretax: 0, filing: 'joint', stateRate: 0.05 }), 1500, { abs: 0.01 }); }
   },
   {
+    name: 'After inflation: 6% before inflation with 3% inflation leaves about 2.91%',
+    why: 'Real rate = (1 + nominal) ÷ (1 + inflation) − 1, and nominal = (1 + real) × (1 + inflation) − 1 turns it back.',
+    run() {
+      return [approx(M.realRate(6, 3), (1.06 / 1.03 - 1) * 100, { rel: 1e-12, abs: 1e-12 }), approx(M.nominalRate(M.realRate(6, 3), 3), 6, { rel: 1e-12, abs: 1e-12 })];
+    }
+  },
+  {
+    name: 'Investment mix presets set before-inflation returns from their after-inflation rate and the plan\'s inflation',
+    why: 'Balanced (3.5% after inflation, 11% ups and downs) at 2.5% inflation: (1.035 × 1.025 − 1) = 6.09%, shown as 6.1% for both kinds of account. Unknown or "custom" mixes change nothing.',
+    run() {
+      const b = M.mixAssumptions('balanced', 2.5), none = M.mixAssumptions('custom', 2.5);
+      return [approx(b.retReturn, 6.1, { abs: 1e-9 }), approx(b.nonReturn, 6.1, { abs: 1e-9 }), approx(b.volatility, 11, { abs: 0 }),
+        approx(M.mixAssumptions('balanced', 4).retReturn, 7.6, { abs: 1e-9 }), truthy(none === null && M.mixAssumptions('nope', 2.5) === null, 'a non-preset mix returned values')];
+    }
+  },
+  {
+    name: 'Investment mix presets are sensible: more expected growth comes with bigger ups and downs',
+    why: 'Each preset (config.js) is between 0% and 7% after inflation and 0–30% ups and downs, and the ranking of growth matches the ranking of ups and downs.',
+    run() {
+      const mixes = M.MIXES.slice().sort((a, b) => a.returnAfterInflation - b.returnAfterInflation);
+      return [truthy(mixes.length >= 2, 'fewer than two presets'),
+        ...mixes.map(m => truthy(m.returnAfterInflation >= 0 && m.returnAfterInflation <= 7 && m.marketUpsAndDowns >= 0 && m.marketUpsAndDowns <= 30, `${m.id}: ${m.returnAfterInflation}% / ${m.marketUpsAndDowns}%`)),
+        truthy(mixes.every((m, i) => i === 0 || m.marketUpsAndDowns > mixes[i - 1].marketUpsAndDowns), 'ups and downs are not in the same order as returns', mixes.map(m => m.id).join(' < '))];
+    }
+  },
+  {
     name: 'Built-in settings match config.js',
     why: 'model.js carries a copy of config.js as a fallback if config.js fails to load. Run: node evals/sync-builtin.js',
     severity: 'soft',

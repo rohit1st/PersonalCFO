@@ -25,6 +25,16 @@ window.PLANNER_CONFIG = {
     marketUpsAndDowns: 12         // volatility; drives the gap between best and worst case
   },
 
+  // Investment mix presets offered under Assumptions. Returns here are AFTER inflation: the typical (median, compound)
+  // yearly growth. Picking one sets both return fields to this plus the plan's inflation, and sets market ups and downs.
+  investmentMixes: [
+    { id: 'stocks',       label: 'Mostly stocks', returnAfterInflation: 4.5, marketUpsAndDowns: 16, description: 'About 80% or more in stock funds.' },
+    { id: 'balanced',     label: 'Balanced',      returnAfterInflation: 3.5, marketUpsAndDowns: 11, description: 'Roughly 60% stocks and 40% bonds.' },
+    { id: 'conservative', label: 'Conservative',  returnAfterInflation: 2,   marketUpsAndDowns: 6,  description: 'Mostly bonds and cash.' }
+  ],
+  // A gentle note appears when a market return after inflation is outside this range
+  returnAfterInflationNote: { below: 0.5, above: 6 },
+
   planUntilAge: 95,               // default "plan until" age for new plans
   workOptionalConfidence: 85,     // work-optional = savings last in at least this many of 100 simulated markets
 

@@ -31,6 +31,8 @@ Each person's plan lives only on their own device. Nobody (including you) can se
 Everything you might want to adjust lives in **`config.js`**, with a comment next to each setting:
 
 - **Starting assumptions** for new plans and the example: returns on retirement and non-retirement accounts, inflation, salary growth, college inflation, taxes, market ups and downs.
+- **Investment mixes:** the Mostly stocks / Balanced / Conservative presets under Assumptions (return after inflation and market ups and downs for each), and the range outside which a return gets a gentle note.
+- **Required withdrawals (RMDs):** start ages and the IRS Uniform Lifetime Table.
 - **Quick start guesses:** default retirement age, college cost, Social Security estimate, spending guess, mortgage rate.
 - **Tax tables:** federal brackets, standard deduction, Social Security wage base. Update these each year.
 - **The example household:** names, ages, accounts, income, spending, loans and purchases.

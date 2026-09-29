@@ -1,3 +1,5 @@
 evals/reports/
 .DS_Store
 .claude/
+# Personal test plans: real household data, never publish
+evals/Test cases/
