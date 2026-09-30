@@ -2,6 +2,12 @@
 
 Bump `VERSION` in `sw.js` with each release.
 
+## v11 — simpler results, quick start steps
+- Quick start shows "Step 3 of 7" next to the progress bar (the welcome screen isn't numbered; it promises seven questions).
+- The four key result tiles are above the chart again, with the chart card (chart, then Play with it) below them.
+- The milestone pills under the chart are gone; milestones stay as icons on the chart and in the hover tip.
+- Play with it is just the three sliders; the preset chips (Retire 2 years sooner, Work 3 more years, Spend 10% less, Tough markets) are gone.
+
 ## v10 — clearer layout
 - Results start with the chart card (chart, milestones, then the Play with it sliders right under it, so the what-if line moves in view), then the key result tiles. Less to scroll past before seeing results, especially on phones.
 - The work-optional age is now the first of the four tiles (same green, 🎉 and number reveal), replacing the big headline card. The tiles: work-optional, savings last (% of markets and the worst case), net worth at retirement, first-year draw. Net worth at plan end moved out (it's where the chart ends).

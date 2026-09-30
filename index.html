@@ -347,6 +347,8 @@ body.qs-open .mobilebar{display:none}
 .qs-progress{flex:1;height:6px;background:var(--well);border-radius:99px;overflow:hidden}
 .qs-progress span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--green));transition:width .35s ease}
 .qs-close{position:static}
+.qs-step{font-size:.78rem;font-weight:600;color:var(--teal-deep);white-space:nowrap}
+.qs-step:empty{display:none}
 .qs-body{flex:1;animation:qsIn .3s ease}
 @keyframes qsIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .qs-body h2{margin:0 0 6px;font-size:1.5rem;font-weight:650;letter-spacing:-.015em;line-height:1.25}
@@ -414,12 +416,6 @@ body.qs-open .mobilebar{display:none}
 .cleared .card{max-width:420px}
 .cleared h2{margin:6px 0 8px;font-size:1.3rem}
 .cleared p{color:var(--muted);margin:0 0 16px}
-
-/* ---------- Chart milestones strip ---------- */
-.ms-strip{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0;padding:0;list-style:none}
-.ms-strip:empty{display:none}
-.ms-strip li{background:var(--well);border-radius:999px;padding:3px 10px;font-size:.78rem;color:var(--ink)}
-.ms-strip li span{color:var(--muted);margin-left:4px}
 
 /* ---------- What's new ---------- */
 .whatsnew{max-width:1304px;margin:0 auto 14px;display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 16px;border-radius:var(--r);background:var(--teal-soft);font-size:.88rem;animation:wnIn .5s ease both}
@@ -528,6 +524,7 @@ body.qs-open .mobilebar{display:none}
       <h2>Your Projections</h2>
     </div>
     <ul class="warnings" id="warnings"></ul>
+    <div class="tiles" id="tiles" aria-label="Key results"></div>
     <div class="card chart-card">
       <div class="chart-head">
         <div class="legend" id="legend"></div>
@@ -537,11 +534,9 @@ body.qs-open .mobilebar{display:none}
         </div>
       </div>
       <div class="chart" id="chart"></div>
-      <ul class="ms-strip" id="msStrip" aria-label="Milestones"></ul>
       <div class="play" id="play">
         <div class="play-top">
           <h3>Play with it</h3>
-          <div class="chips" id="playChips"></div>
         </div>
         <div class="sliders">
           <div class="sl"><label for="plRetire">Retire at <output id="plRetireOut"></output></label><input type="range" id="plRetire" min="30" max="80" step="1"></div>
@@ -556,7 +551,6 @@ body.qs-open .mobilebar{display:none}
       <p class="chart-note"><button type="button" class="link" id="howLink">How is this calculated?</button></p>
     </div>
 
-    <div class="tiles" id="tiles" aria-label="Key results"></div>
 
     <div class="card block">
       <h2>Scenarios</h2>
@@ -634,6 +628,7 @@ body.qs-open .mobilebar{display:none}
 <div class="qs" id="qs" hidden>
   <div class="qs-card" role="dialog" aria-modal="true" aria-labelledby="qsTitle">
     <div class="qs-top">
+      <span class="qs-step" id="qsStep" aria-live="polite"></span>
       <div class="qs-progress" aria-hidden="true"><span id="qsBar"></span></div>
       <button type="button" class="rm qs-close" id="qsClose" aria-label="Close quick start" hidden>×</button>
     </div>
@@ -1228,18 +1223,16 @@ function renderChart() {
     else if (/paid off/.test(e)) ms.push([t, /mortgage|home/i.test(e) ? '🏡' : '✅', e]);
     else if (/ begins$/.test(e)) ms.push([t, '💵', e]);
   }));
-  const fun = [];   // the ones also listed under the chart
   for (const m of milestones(res)) {
     if (m.t > H) continue;
     const x = m.kind === 'networth' ? [m.t, '💰', `${moneyWord(m.amount)} in today's dollars`, `${moneyWord(m.amount)} net worth`]
       : [m.t, '🏁', "4% rule: savings reach 25× a year's spending", '4% rule reached'];
-    ms.push(x); fun.push(x);
+    ms.push(x);
   }
-  if (res.wo !== null && res.wo !== undefined && res.retireT !== 0) { const tw = res.wo - res.a1; if (tw >= 0 && tw <= H) { const x = [tw, '🎉', 'Work-optional']; ms.push(x); fun.push(x); } }
+  if (res.wo !== null && res.wo !== undefined && res.retireT !== 0) { const tw = res.wo - res.a1; if (tw >= 0 && tw <= H) ms.push([tw, '🎉', 'Work-optional']); }
   msByYear = {};
   for (const [t, emo, label] of ms) (msByYear[t] = msByYear[t] || []).push(`${emo} ${label}`);
-  const strip = $('#msStrip');
-  if (strip) strip.innerHTML = fun.sort((a, b) => a[0] - b[0]).map(([t, emo, label, short]) => `<li title="${esc(label)}">${emo} ${esc(short || label)}<span>${Y0 + t}</span></li>`).join('');
+
   const stack = {};
   for (const [t, emo, label] of ms) {
     const k = stack[t] = (stack[t] || 0) + 1;
@@ -1729,6 +1722,7 @@ function estSpend(d) {
 function renderQS() {
   const d = qs.d, step = QS_STEPS[qs.step], who = d.name1.trim() || 'you';
   $('#qsBar').style.width = `${(qs.step / (QS_STEPS.length)) * 100}%`;
+  $('#qsStep').textContent = qs.step === 0 ? '' : `Step ${qs.step} of ${QS_STEPS.length - 1}`;
   let h = '';
   if (step === 'welcome') h = `<div class="qs-emoji">🌱</div><h2 id="qsTitle">Let's sketch your future</h2>
     <p>Seven quick questions, about a minute. Rough numbers are fine; you can fine-tune everything later.</p>
@@ -1934,12 +1928,6 @@ function playName() {
   const t = bits.join(', ');
   return t.charAt(0).toUpperCase() + t.slice(1);
 }
-const PRESETS = [
-  ['sooner', 'Retire 2 years sooner', () => ({ retire: n(state.people.p1.retireAge) - 2, spend: 0, ret: 0 })],
-  ['later', 'Work 3 more years', () => ({ retire: n(state.people.p1.retireAge) + 3, spend: 0, ret: 0 })],
-  ['less', 'Spend 10% less', () => ({ retire: null, spend: -10, ret: 0 })],
-  ['tough', 'Tough markets', () => ({ retire: null, spend: 0, ret: -1.5 })]
-];
 function syncPlay() {
   const p1 = state.people.p1, r = $('#plRetire'), planned = n(p1.retireAge);
   r.min = Math.max(30, n(p1.age)); r.max = 80;
@@ -1954,10 +1942,6 @@ function syncPlay() {
   $('#plRet').value = play.ret;
   const rNow = +(n(state.assumptions.retReturn) + play.ret).toFixed(1), pts = Math.abs(play.ret);
   $('#plRetOut').textContent = `${rNow}%${play.ret ? ` (${play.ret > 0 ? '+' : '−'}${pts} ${pts === 1 ? 'pt' : 'pts'})` : ''}, ≈${pct1(realRate(rNow, state.assumptions.inflation))}% after inflation`;
-  $('#playChips').innerHTML = PRESETS.map(([id, label, fn]) => {
-    const v = fn(), on = (v.retire === null ? (play.retire === null || play.retire === planned) : play.retire === v.retire) && play.spend === v.spend && play.ret === v.ret;
-    return `<button type="button" class="chip" data-preset="${id}" aria-pressed="${on}">${label}</button>`;
-  }).join('');
   $('#play').hidden = current.empty;
 }
 let playTimer = null;
@@ -1993,11 +1977,7 @@ $('#play').addEventListener('input', e => {
 });
 $('#play').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
-  if (b.dataset.preset) {
-    const pre = PRESETS.find(p => p[0] === b.dataset.preset);
-    if (b.getAttribute('aria-pressed') === 'true') clearPlay(); else Object.assign(play, pre[2]());
-    refreshPlay();
-  } else if (b.id === 'plClear') { clearPlay(); refreshPlay(); }
+  if (b.id === 'plClear') { clearPlay(); refreshPlay(); }
   else if (b.id === 'plApply') {
     const before = clone(state);
     state = applyPlay(state); clearPlay(); renderInputs(); recompute();
