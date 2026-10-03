@@ -27,6 +27,8 @@ A report is written to `evals/reports/latest.md` (and `sensitivity-*.md/.csv`).
 | `06-reconcile` | An independent, plain year-by-year recalculation of a detailed couple (pay, taxes, saving, spending windows, mortgage, college, purchases, retirement, Social Security, shortfalls, RMDs) must match `project()` to the dollar in every year | Hard |
 | `07-features` | Scenario details list exactly what changed (names, before → after, added/removed items); key result tiles match the projection; the newest "what's new" note matches `VERSION` in `sw.js` | Hard |
 | `08-offline` | Runs the real `sw.js` against a stand-in browser: new versions download fresh files, a version never mixes with newer files, works offline, old caches are deleted; and the page applies waiting updates | Hard |
+| `09-themes` | Every color theme in config.js has all its colors, passes WCAG AA contrast for text and buttons, keeps backgrounds light, and uses no purple | Hard |
+| `10-life-ideas` | Future loans, homes bought or sold later, and each life idea (kid, new home, career break, windfall, stacking): right items, right years, original plan untouched, every idea works on every test household | Hard |
 
 **Hard** evals must pass; the run exits with an error otherwise. **Soft** evals print warnings: they flag results worth a second look, not necessarily bugs.
 

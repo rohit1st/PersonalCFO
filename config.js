@@ -35,9 +35,45 @@ window.PLANNER_CONFIG = {
   // A gentle note appears when a market return after inflation is outside this range
   returnAfterInflationNote: { below: 0.5, above: 6 },
 
+  // Suggested values for the life ideas in Scenarios (people can change every one). Dollar amounts in today's dollars.
+  lifeIdeas: {
+    childcarePerYear: 18000, childcareUntilAge: 5,      // another kid: childcare until this age
+    kidCostsPerYear: 10000, kidCostsUntilAge: 18,       // ...and everyday costs until this age
+    newHomeVsCurrentPct: 30, newHomePriceIfNone: 600000, // new home: this much more than the current home (or this price)
+    homeDownPaymentPct: 20, homeCostsPct: 5,            // down payment; closing, moving and selling costs
+    mortgageRate: 6.5, mortgageYears: 30, homeUpkeepPct: 1.5,
+    moveLivingCostChangePct: 10, movingCost: 15000,      // move: change in yearly spending, one-time moving cost
+    downsizeAge: 70, downsizePricePct: 60, downsizeCostsPct: 6,
+    helpFamilyPerYear: 12000, helpFamilyYears: 5,
+    windfall: 100000, bigPurchase: 40000
+  },
+
+  // Color themes people can pick in Settings (saved on their device). The first is the default.
+  // Pastel and light; never purple. Green, coral and amber are reserved for good / bad / caution,
+  // so a theme changes only the neutrals and the main accent. The evals check contrast and hue.
+  themes: [
+    { id: 'lagoon', name: 'Lagoon', note: 'Calm sea teal, the original',
+      colors: { bg: '#F3F6F7', surface: '#FFFFFF', well: '#F6F9FA', line: '#E1E8EB', ink: '#26333A', muted: '#66757D',
+                accent: '#7FB8CC', accentSoft: '#D3EAF2', accentDeep: '#2B6B7E', accentHover: '#225767', accentSofter: '#EEF7FA', accentSoftHover: '#C3E1EC',
+                heroA: '#DDEFF5', heroB: '#E3F4EA' } },
+    { id: 'harbor', name: 'Harbor', note: 'Clear sky and deep-water blue',
+      colors: { bg: '#F2F5F9', surface: '#FFFFFF', well: '#F5F8FB', line: '#DFE6EE', ink: '#243142', muted: '#5F6D7E',
+                accent: '#8DB0D8', accentSoft: '#DCE8F6', accentDeep: '#2B5C8F', accentHover: '#234C77', accentSofter: '#EEF4FB', accentSoftHover: '#C6D9EF',
+                heroA: '#DCE8F6', heroB: '#E4F2EC' } },
+    { id: 'linen', name: 'Linen', note: 'Warm paper and espresso',
+      colors: { bg: '#F6F2EC', surface: '#FFFDF9', well: '#FAF6F0', line: '#E8E0D5', ink: '#33302B', muted: '#6B635A',
+                accent: '#C9B49A', accentSoft: '#EFE6DA', accentDeep: '#6B5137', accentHover: '#57412C', accentSofter: '#F7F1E9', accentSoftHover: '#E4D6C4',
+                heroA: '#F1E7DA', heroB: '#E8F1E4' } },
+    { id: 'graphite', name: 'Graphite', note: 'Quiet slate, all business',
+      colors: { bg: '#F3F4F5', surface: '#FFFFFF', well: '#F7F8F9', line: '#E2E5E8', ink: '#22272B', muted: '#5F6870',
+                accent: '#9AA6B1', accentSoft: '#E3E7EB', accentDeep: '#34404A', accentHover: '#27313A', accentSofter: '#F1F3F5', accentSoftHover: '#D3D9DF',
+                heroA: '#E5E9ED', heroB: '#E3F2EA' } }
+  ],
+
   // "What's new" note shown once to people who already use the planner, after an update. Newest first.
   // Add one for every release, with version matching VERSION in sw.js (the evals check this). Keep it short and friendly.
   whatsNew: [
+    { version: 'v13', note: "Make it yours 🎨 Color themes in the new Settings drawer, and life ideas in Scenarios: try a new home, another kid or a move." },
     { version: 'v12', note: "You asked, we fixed 🛠️ Try an Inflation slider, −/+ buttons for decimals, and no state tax on Social Security. Pensions can skip raises." },
     { version: 'v11', note: "Cleaner still 🧹 Your key numbers are back on top, the sliders are simpler, and quick start shows which step you're on." },
     { version: 'v10', note: "A tidier look ✨ Your chart comes first, and your work-optional age now sits with your key numbers underneath." },

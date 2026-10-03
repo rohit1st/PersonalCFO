@@ -7,6 +7,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'none'; font-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="description" content="A private net worth and retirement planner that runs entirely on your device.">
 <meta name="theme-color" content="#2B6B7E">
+<script>try { var tv = localStorage.getItem('netWorthPlanner.themeVars'); if (tv) document.documentElement.setAttribute('style', tv); } catch (e) {}</script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Net Worth">
@@ -19,7 +20,8 @@
   color-scheme: light;
   --bg:#F3F6F7; --surface:#FFFFFF; --well:#F6F9FA;
   --ink:#26333A; --muted:#66757D; --line:#E1E8EB;
-  --teal:#7FB8CC; --teal-soft:#D3EAF2; --teal-deep:#2B6B7E;
+  --teal:#7FB8CC; --teal-soft:#D3EAF2; --teal-deep:#2B6B7E;   /* the accent family; Settings themes replace these */
+  --teal-hover:#225767; --teal-softer:#EEF7FA; --teal-soft-hover:#C3E1EC; --hero-a:#DDEFF5; --hero-b:#E3F4EA;
   --green:#6FCF97; --green-soft:#D5F1E0; --green-deep:#22704A;
   --coral:#EB5757; --coral-soft:#FADCD9; --coral-deep:#A63A3A;
   --amber:#F6E3A1; --amber-deep:#7A5C0E;
@@ -44,7 +46,7 @@ button,input,select{font:inherit;color:inherit}
 .tool svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .tool:hover{background:var(--teal-soft);color:var(--teal-deep)}
 .tool.primary{background:var(--teal-deep);color:#fff;box-shadow:none}
-.tool.primary:hover{background:#225767}
+.tool.primary:hover{background:var(--teal-hover)}
 .tool.armed{background:var(--coral-deep);color:#fff;box-shadow:none}
 .tool .lbl{display:none}
 .tool::after{content:attr(data-tip);position:absolute;top:calc(100% + 8px);right:0;white-space:nowrap;background:var(--ink);color:#fff;font-size:.78rem;font-weight:500;padding:5px 9px;border-radius:7px;opacity:0;pointer-events:none;transform:translateY(-3px);transition:opacity .12s,transform .12s;z-index:20}
@@ -58,7 +60,7 @@ button,input,select{font:inherit;color:inherit}
   .tool:hover::after,.tool:focus-visible::after{opacity:0}
 }
 .btn{border:0;border-radius:999px;padding:8px 16px;background:var(--teal-deep);color:#fff;font-weight:600;font-size:.88rem;cursor:pointer;transition:background .15s}
-.btn:hover{background:#225767}
+.btn:hover{background:var(--teal-hover)}
 .btn.ghost{background:var(--surface);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
 .btn.ghost:hover{background:var(--well)}
 .btn.warn{background:var(--coral-deep);color:#fff}
@@ -222,7 +224,7 @@ mark.bad{background:linear-gradient(transparent 58%,var(--coral-soft) 58%)}
 .table-scroll{max-height:560px}
 .proj th{white-space:normal;vertical-align:bottom;line-height:1.3}
 .proj thead th{position:sticky;top:0;background:var(--surface);z-index:1}
-.proj tr.ret td{background:#EEF7FA}
+.proj tr.ret td{background:var(--teal-softer)}
 .proj td.neg{color:var(--coral-deep)}
 .proj td.notes{color:var(--muted);font-size:.8rem;white-space:normal;min-width:150px}
 .proj td.mid{font-weight:600}
@@ -408,10 +410,60 @@ body.qs-open .mobilebar{display:none}
 .inp .stp:hover{background:var(--teal-soft)}
 .inp input{min-width:0}
 
+/* ---------- Settings drawer ---------- */
+.settings-btn{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 12px}
+.settings-btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;transition:transform .4s cubic-bezier(.2,.8,.2,1)}
+.settings-btn:hover svg{transform:rotate(60deg)}
+@media (max-width:620px){
+  .top{flex-wrap:nowrap;align-items:flex-start}
+  .settings-btn{flex:none;width:44px;height:44px;padding:0;justify-content:center}
+  .settings-btn .lbl{display:none}
+  .settings-btn svg{width:21px;height:21px}
+}
+dialog.drawer{position:fixed;inset:0 0 0 auto;margin:0;width:min(400px,92vw);height:100%;max-height:none;max-width:none;border:0;padding:0;background:var(--surface);color:var(--ink);box-shadow:-14px 0 44px rgba(38,51,58,.18);border-radius:var(--r-lg) 0 0 var(--r-lg);overflow-y:auto;overscroll-behavior:contain}
+dialog.drawer::backdrop{background:rgba(38,51,58,.3)}
+dialog.drawer[open]{animation:drIn .32s cubic-bezier(.16,1,.3,1)}
+dialog.drawer[open]::backdrop{animation:drFade .32s ease}
+@keyframes drIn{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
+@keyframes drFade{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){dialog.drawer[open],dialog.drawer[open]::backdrop{animation:none}.settings-btn:hover svg{transform:none}}
+body:has(dialog.drawer[open]){overflow:hidden}
+.dr-head{position:sticky;top:0;z-index:1;display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;background:var(--surface);border-bottom:1px solid var(--line)}
+.dr-head h2{margin:0;font-size:1.15rem;font-weight:650}
+.dr-x{width:36px;height:36px;border:0;border-radius:10px;background:var(--well);color:var(--ink);font-size:1.3rem;line-height:1;cursor:pointer}
+.dr-x:hover{background:var(--teal-soft)}
+.dr-sec{padding:18px 20px 6px}
+.dr-sec h3{margin:0 0 10px;font-size:.92rem;font-weight:650}
+.dr-row{display:flex;align-items:center;gap:14px;width:100%;padding:11px 12px;margin:0 0 4px;border:0;border-radius:12px;background:transparent;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.dr-row:hover{background:var(--well)}
+.dr-row:disabled{cursor:default;opacity:.7}
+.dr-row:disabled:hover{background:transparent}
+.dr-row .ic{flex:none;display:grid;place-items:center;width:38px;height:38px;border-radius:11px;background:var(--teal-soft);color:var(--teal-deep)}
+.dr-row .ic svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.dr-row b{display:block;font-weight:600;font-size:.93rem}
+.dr-row small{display:block;color:var(--muted);font-size:.8rem;line-height:1.35;margin-top:1px}
+.dr-row.danger .ic{background:var(--coral-soft);color:var(--coral-deep)}
+.dr-row.danger b{color:var(--coral-deep)}
+.dr-row.done .ic{background:var(--green-soft);color:var(--green-deep)}
+.dr-note{margin:-2px 12px 10px 64px;font-size:.8rem;color:var(--ink);background:var(--teal-softer);border-radius:10px;padding:8px 10px}
+.dr-foot{margin:14px 20px 24px;padding-top:14px;border-top:1px solid var(--line);font-size:.82rem;color:var(--muted)}
+.themes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.theme-sw{display:flex;flex-direction:column;gap:8px;padding:8px 8px 10px;border:1.5px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);font:inherit;text-align:left;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.theme-sw:hover{border-color:var(--teal)}
+.theme-sw[aria-checked="true"]{border-color:var(--teal-deep);box-shadow:0 0 0 3px var(--teal-soft)}
+.theme-sw .pv{position:relative;height:62px;border-radius:9px;overflow:hidden}
+.theme-sw .pv i{position:absolute;display:block;border-radius:6px}
+.theme-sw b{font-size:.86rem;font-weight:650;display:flex;align-items:center;justify-content:space-between}
+.theme-sw small{display:block;font-size:.74rem;color:var(--muted);line-height:1.3}
+.theme-sw .tick{width:16px;height:16px;border-radius:50%;background:var(--teal-deep);color:#fff;display:none;place-items:center;font-size:.65rem}
+.theme-sw[aria-checked="true"] .tick{display:grid}
+html.theming *,html.theming *::before,html.theming *::after{transition:background-color .45s ease,border-color .45s ease,color .45s ease,fill .45s ease,stroke .45s ease!important}
+@media (prefers-reduced-motion:reduce){html.theming *{transition:none!important}}
+
 /* ---------- Share and erase ---------- */
 .top-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .btn.soft{background:var(--teal-soft);color:var(--teal-deep)}
-.btn.soft:hover{background:#C3E1EC}
+.btn.soft:hover{background:var(--teal-soft-hover)}
 .btn.danger{background:var(--coral-deep)}
 .btn.danger:hover{background:#8E3030}
 .tool.erase:hover{background:var(--coral-soft);color:var(--coral-deep)}
@@ -438,13 +490,58 @@ body.qs-open .mobilebar{display:none}
 .tile.good .tv{color:var(--green-deep)}
 .tile.warn .tv{color:var(--amber-deep)}
 .tile.bad .tv{color:var(--coral-deep)}
-.tile.wo{background:linear-gradient(135deg,#DDEFF5 0%,#E3F4EA 100%)}
+.tile.wo{background:linear-gradient(135deg,var(--hero-a) 0%,var(--hero-b) 100%)}
 .tile.wo .tk{color:var(--teal-deep);font-weight:600}
 .tile.wo .tv{font-size:2.3rem;font-weight:700;line-height:1.05;letter-spacing:-.02em;color:var(--ink);font-variant-numeric:tabular-nums}
 .tile.wo.bad .tv{color:var(--coral-deep)}
 .tile.wo .good{color:var(--green-deep)}.tile.wo .later{color:var(--amber-deep)}
 .tile.wo .link{padding:0 0 0 4px;font-size:.76rem}
 @media (max-width:760px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.tile{padding:10px 12px}.tile .tv{font-size:1.12rem}}
+
+/* ---------- Life ideas ---------- */
+.ideas{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:4px 0 14px}
+.idea{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font:600 .86rem/1.25 var(--font);text-align:left;cursor:pointer;transition:border-color .15s,background .15s,transform .15s}
+.idea:hover{border-color:var(--teal);background:var(--teal-softer)}
+.idea:active{transform:scale(.98)}
+.idea .ic{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--teal-soft);color:var(--teal-deep)}
+.idea .ic svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.idea[aria-pressed="true"]{border-color:var(--teal-deep);background:var(--teal-softer)}
+.save-label{margin:6px 0 8px}
+.composer{border-radius:16px;background:var(--well);padding:16px 18px 14px;margin:0 0 16px;animation:cmpIn .28s cubic-bezier(.16,1,.3,1)}
+@keyframes cmpIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.composer{animation:none}}
+.cmp-stack{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.cmp-chip{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:3px 4px 3px 12px;font:600 .8rem/1.4 var(--font);cursor:pointer}
+.cmp-chip[aria-current="true"]{border-color:var(--teal-deep);box-shadow:0 0 0 2px var(--teal-soft)}
+.cmp-chip .x{border:0;background:none;color:var(--muted);font-size:1rem;line-height:1;width:22px;height:22px;border-radius:50%;cursor:pointer}
+.cmp-chip .x:hover{background:var(--coral-soft);color:var(--coral-deep)}
+.cmp-sentence{font-size:1.08rem;line-height:2.15;margin:0;color:var(--ink);text-wrap:pretty}
+.cmp-sentence .in{display:inline-flex;align-items:baseline;gap:2px;margin:0 2px;padding:0 6px;border-bottom:2px solid var(--teal);background:var(--surface);border-radius:6px 6px 2px 2px}
+.cmp-sentence .in:focus-within{border-color:var(--teal-deep);box-shadow:0 0 0 3px var(--teal-soft)}
+.cmp-sentence input,.cmp-sentence select{border:0;background:transparent;font:650 1.02rem/1.6 var(--font);color:var(--teal-deep);width:5.2ch;padding:0;text-align:center;font-variant-numeric:tabular-nums}
+.cmp-sentence input.w-money{width:8ch}.cmp-sentence input.w-text{width:11ch;text-align:left}
+.cmp-sentence select{width:auto;cursor:pointer}
+.cmp-sentence input:focus,.cmp-sentence select:focus{outline:none}
+.cmp-sentence .u{color:var(--muted);font-size:.9rem}
+.cmp-sentence .nw{white-space:nowrap}
+.cmp-notes{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:3px;font-size:.8rem;color:var(--muted)}
+.cmp-notes b{color:var(--ink);font-weight:600}
+.cmp-warn{margin:10px 0 0;font-size:.84rem;color:var(--amber-deep)}
+.cmp-result{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 0}
+.cmp-result div{background:var(--surface);border-radius:10px;padding:8px 12px;font-size:.84rem;min-width:0}
+.cmp-result span{display:block;color:var(--muted);font-size:.74rem}
+.cmp-result b{font-variant-numeric:tabular-nums}
+.cmp-result .good{color:var(--green-deep)}.cmp-result .bad{color:var(--coral-deep)}
+.cmp-result.busy{opacity:.55}
+.cmp-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0 0;padding-top:12px;border-top:1px solid var(--line)}
+.cmp-actions .inp{flex:1 1 220px;min-width:0}
+.cmp-actions .spacer{flex:1}
+@media (max-width:760px){
+  .ideas{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .composer{padding:14px 14px 12px}
+  .cmp-sentence{font-size:1rem;line-height:2.2}
+  .cmp-actions .btn{flex:1 1 auto}
+}
 
 /* ---------- Scenario details ---------- */
 .sc-open{display:inline-flex;align-items:center;gap:8px;border:0;background:none;padding:0;font:inherit;font-weight:600;color:var(--ink);cursor:pointer;text-align:left}
@@ -492,7 +589,7 @@ body.qs-open .mobilebar{display:none}
     <h1>Net Worth Planner</h1>
     <p class="trust">Your confidential companion 🤫 You can run me without wifi.</p>
   </div>
-  <button type="button" class="btn install" id="btnInstall" hidden>Install app</button>
+  <button type="button" class="btn ghost settings-btn" id="settingsBtn" aria-label="Settings" aria-haspopup="dialog" aria-controls="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2.8v2.4M12 18.8v2.4M21.2 12h-2.4M5.2 12H2.8M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7M18.5 18.5l-1.7-1.7M7.2 7.2 5.5 5.5"/></svg><span class="lbl">Settings</span></button>
 </header>
 <div class="notice-wrap">
   <div id="notice" class="notice" role="status" hidden></div>
@@ -560,7 +657,10 @@ body.qs-open .mobilebar{display:none}
 
     <div class="card block">
       <h2>Scenarios</h2>
-      <p class="hint">Save your plan as it is now, change something, then compare. Scenarios are saved with your plan.</p>
+      <p class="hint">What if life changes? Pick an idea to see its effect, adjust the details, then save it to compare. Scenarios are saved with your plan.</p>
+      <div class="ideas" id="ideas" aria-label="Life ideas"></div>
+      <div class="composer" id="composer" hidden></div>
+      <p class="hint save-label">Or save your plan as it is now, then change anything by hand:</p>
       <div class="save-row">
         <div class="inp"><input id="scName" type="text" placeholder="Name this scenario, e.g. Retire at 60" aria-label="Scenario name" autocomplete="off"></div>
         <button id="btnScSave" class="btn" type="button">Save scenario</button>
@@ -593,8 +693,26 @@ body.qs-open .mobilebar{display:none}
   <p class="foot-love">Built with love ❤️ for friends and family. <button type="button" class="link share-link" id="btnShareApp" title="Shares the planner's link only. Your plan and numbers stay on this device."><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="vertical-align:-3px;margin-right:4px"><path d="M12 3.5v11M8 7.3 12 3.5l4 3.8M7 10.5H5.8A1.8 1.8 0 0 0 4 12.3v6.4a1.8 1.8 0 0 0 1.8 1.8h12.4a1.8 1.8 0 0 0 1.8-1.8v-6.4a1.8 1.8 0 0 0-1.8-1.8H17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Click to share</button></p>
   <p class="share-done" id="shareDone" role="status" hidden></p>
   <p class="foot-legal"><span id="footLegal"></span> <button type="button" class="link" data-terms>Terms of use</button></p>
-  <p class="foot-legal"><button type="button" class="link" id="btnEraseFoot">Erase my data</button> · <span id="appVersion"></span> <button type="button" class="link" id="btnRefreshApp" title="Load the latest version. Your saved plan stays on this device.">Refresh app</button></p>
+  <p class="foot-legal"><span id="appVersion"></span> · <button type="button" class="link" data-open-settings>Settings</button></p>
 </footer>
+<dialog class="drawer" id="settings" aria-labelledby="settingsTitle">
+  <div class="dr-head"><h2 id="settingsTitle">Settings</h2><button type="button" class="dr-x" id="settingsClose" aria-label="Close settings">×</button></div>
+  <section class="dr-sec" aria-labelledby="drLook"><h3 id="drLook">Look and feel</h3><div class="themes" role="radiogroup" aria-labelledby="drLook" id="themePicker"></div></section>
+  <section class="dr-sec" aria-labelledby="drPlan"><h3 id="drPlan">Your plan</h3>
+    <button type="button" class="dr-row" data-act="save"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v10.5M7.8 10.3 12 14.5l4.2-4.2M4.5 15.5v4h15v-4"/></svg></span><span><b>Save a copy</b><small>Download a backup file. Open it later on any device.</small></span></button>
+    <button type="button" class="dr-row" data-act="open"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7V18a1.5 1.5 0 0 0 1.5 1.5h14a1.5 1.5 0 0 0 1.5-1.5V9.5A1.5 1.5 0 0 0 19 8h-7l-2-2.5H5A1.5 1.5 0 0 0 3.5 7z"/><path d="M12 16.5v-5M9.8 13.5 12 11.3l2.2 2.2"/></svg></span><span><b>Load a backup</b><small>Open a copy you saved before. Replaces what's on screen.</small></span></button>
+    <button type="button" class="dr-row" data-act="export"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9.5h16M4 14.8h16M10 9.5V20"/></svg></span><span><b>Export projections</b><small>Year by year as a spreadsheet (CSV).</small></span></button>
+    <button type="button" class="dr-row danger" data-act="erase"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4.8h6V7M6.5 7l.9 12.2h9.2L17.5 7M10 10.5v5.5M14 10.5v5.5"/></svg></span><span><b>Erase my data</b><small>Remove your plan and settings from this device.</small></span></button>
+  </section>
+  <section class="dr-sec" aria-labelledby="drApp"><h3 id="drApp">This app</h3>
+    <button type="button" class="dr-row" data-act="install" id="btnInstall"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="2.8" width="11" height="18.4" rx="2.4"/><path d="M12 7.5v6.5M9.3 11.5 12 14.2l2.7-2.7M10.5 18.2h3"/></svg></span><span><b>Add to home screen</b><small id="installSub">Opens like an app and works offline.</small></span></button>
+    <p class="dr-note" id="installNote" hidden></p>
+    <button type="button" class="dr-row" data-act="share"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5v11M8 7.3 12 3.5l4 3.8M7 10.5H5.8A1.8 1.8 0 0 0 4 12.3v6.4a1.8 1.8 0 0 0 1.8 1.8h12.4a1.8 1.8 0 0 0 1.8-1.8v-6.4a1.8 1.8 0 0 0-1.8-1.8H17"/></svg></span><span><b>Share with friends</b><small>Sends the link only, never your plan.</small></span></button>
+    <p class="dr-note" id="shareNote" hidden></p>
+    <button type="button" class="dr-row" data-act="refresh"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.8 12a7.2 7.2 0 1 0 2.1-5.1M4.8 4.6v3.7h3.7"/></svg></span><span><b>Refresh app</b><small id="refreshSub">Load the latest version. Your plan stays put.</small></span></button>
+  </section>
+  <p class="dr-foot">🤫 Everything you enter stays on this device. Nothing is sent anywhere.</p>
+</dialog>
 <div class="modal" id="shareDlg" hidden>
   <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
     <h3 id="shareTitle">Share the planner</h3>
@@ -664,7 +782,7 @@ body.qs-open .mobilebar{display:none}
 
 // The projection model (math only, no page code) lives in model.js, so it can be tested on its own (see evals/).
 const M = NWPModel.create(window.PLANNER_CONFIG, { year: new Date().getFullYear() });
-const { Y0, RUNS, CFG, n, has, clone, nameOf, cfgNum, DEFAULT_ASSUMPTIONS, QS, PLAN_TO, EXAMPLE, BLANK, TX, estimateTaxes, loanPayment, project, WO_TARGET, workOptional, shiftRetirement, realRate, MIXES, mixAssumptions, planDiff, keyResults, milestones, incomeGrows } = M;
+const { Y0, RUNS, CFG, n, has, clone, nameOf, cfgNum, DEFAULT_ASSUMPTIONS, QS, PLAN_TO, EXAMPLE, BLANK, TX, estimateTaxes, loanPayment, project, WO_TARGET, workOptional, shiftRetirement, realRate, MIXES, mixAssumptions, planDiff, keyResults, milestones, incomeGrows, IDEAS, ideaDefaults, applyIdea, ideaLabel } = M;
 const SC_COLORS = ['#5E7A8A', '#C0902A', '#3F8F86', '#9A7B63'];
 const PLAY_COLOR = '#B86E1F';
 
@@ -680,7 +798,8 @@ const SPEND_CATS = [['home', 'Home'], ['food', 'Food'], ['health', 'Health'], ['
 const WHEN_OPTS = [['always', 'Every year'], ['pre', 'Before retirement'], ['ret', 'In retirement'], ['ages', 'Between ages']];
 
 let state = BLANK();
-let playRes = null;          // projection for the 'Play with it' what-if
+let playRes = null;
+let ideaRes = null;          // projection for a life idea being composed in Scenarios          // projection for the 'Play with it' what-if
 let scenarios = [];      // {name, state, show, res}
 let current = null;      // projection result for current inputs
 let mode = 'real';       // 'real' = today's dollars, 'nominal' = future dollars
@@ -835,7 +954,7 @@ function renderInputs() {
     <div data-list="dependents">${s.dependents.map((d, i) => `<div class="row">${rmBtn('dependents', i, d.name || 'dependent')}${estChip('dependents', i, d)}<div class="grid first">
         ${fld(`dependents.${i}.name`, 'Name', 'text', { ph: 'e.g. Maya', cls: 's8' })}
         ${fld(`dependents.${i}.age`, 'Age now', 'int', { cls: 's4' })}
-      </div></div>`).join('')}</div>
+      </div>${n(d.age) < 0 ? `<p class="row-note" style="color:var(--muted)">Not born yet: arrives in ${-n(d.age)} year${n(d.age) === -1 ? '' : 's'} (age −${-n(d.age)} now).</p>` : ''}</div>`).join('')}</div>
     ${addBtn('dependents', 'Add a dependent')}`;
 
   const kindOpts = [['retirement', 'Retirement'], ['nonretirement', 'Non-retirement'], ['other', 'Home or other']];
@@ -850,6 +969,7 @@ function renderInputs() {
         ${fld(`assets.${i}.balance`, 'Balance now', 'money', { cls: 's6' })}
         ${ret ? fld(`assets.${i}.taxType`, 'Tax treatment', 'select', { options: [['pretax', 'Pre-tax'], ['roth', 'Roth']], cls: 's6' }) : ''}
         ${ret ? fld(`assets.${i}.contribution`, 'You add per year', 'money', { cls: 's6' }) + fld(`assets.${i}.employerContribution`, 'Employer adds per year', 'money', { cls: 's6' }) : ''}
+        ${a.kind === 'other' ? fld(`assets.${i}.fromYear`, 'Bought in (year)', 'int', { cls: 's6', ph: 'owned now' }) + fld(`assets.${i}.sellYear`, 'Sold in (year)', 'int', { cls: 's6', ph: 'keep it' }) : ''}
       </div></div>`;
     }).join('')}</div>
     ${addBtn('assets', 'Add an asset')}
@@ -863,6 +983,7 @@ function renderInputs() {
         ${fld(`liabilities.${i}.rate`, 'Interest', 'pct', { cls: 's6' })}
         ${fld(`liabilities.${i}.monthlyPayment`, 'Monthly payment', 'money', { cls: 's6', ph: payPh(l) })}
         ${fld(`liabilities.${i}.endYear`, 'Paid off by', 'int', { cls: 's6', ph: 'e.g. ' + (Y0 + 25) })}
+        ${fld(`liabilities.${i}.startYear`, 'Starts in (year)', 'int', { cls: 's6', ph: 'already started' })}
       </div></div>`).join('')}</div>
     ${addBtn('liabilities', 'Add a loan or debt')}`;
 
@@ -1169,7 +1290,8 @@ function renderLegend() {
     `<span><i class="sw" style="border-color:var(--coral)"></i>Worst case</span>`
   ];
   scenarios.forEach((sc, i) => { if (sc.show) items.push(`<span><i class="sw dash" style="border-color:${SC_COLORS[i % 4]}"></i>${esc(sc.name)}</span>`); });
-  if (playRes) items.push(`<span><i class="sw" style="border-color:${PLAY_COLOR}"></i>What-if</span>`);
+  if (ideaRes) items.push(`<span><i class="sw" style="border-color:${PLAY_COLOR}"></i>Life idea</span>`);
+  else if (playRes) items.push(`<span><i class="sw" style="border-color:${PLAY_COLOR}"></i>What-if</span>`);
   $('#legend').innerHTML = current.empty ? '' : items.join('');
 }
 
@@ -1196,7 +1318,8 @@ function renderChart() {
   const lo = S(res.p10), mid = S(res.p50), hi = S(res.p90);
   const ovs = [];
   scenarios.forEach((sc, i) => { if (sc.show) ovs.push({ name: sc.name, color: SC_COLORS[i % 4], vals: S(sc.res.p50).slice(0, H + 1) }); });
-  if (playRes) ovs.push({ name: 'What-if', color: PLAY_COLOR, vals: Array.from(playRes.p50, (v, t) => disp(v, t, playRes)).slice(0, H + 1), play: true });
+  if (ideaRes) ovs.push({ name: 'Life idea', color: PLAY_COLOR, vals: Array.from(ideaRes.p50, (v, t) => disp(v, t, ideaRes)).slice(0, H + 1), play: true });
+  else if (playRes) ovs.push({ name: 'What-if', color: PLAY_COLOR, vals: Array.from(playRes.p50, (v, t) => disp(v, t, playRes)).slice(0, H + 1), play: true });
   let mn = Math.min(0, ...lo), mx = Math.max(...hi);
   for (const o of ovs) { mn = Math.min(mn, ...o.vals); mx = Math.max(mx, ...o.vals); }
   if (mx <= mn) mx = mn + 1;
@@ -1315,7 +1438,7 @@ const ENUM_TEXT = {
   salary: 'Salary', benefit: 'Social Security or pension', always: 'Always', pre: 'Before retirement', ret: 'In retirement', ages: 'Between ages', custom: 'Custom'
 };
 function diffValue(v, f, st) {
-  if (v === null || v === undefined) return 'blank';
+  if (v === null || v === undefined) return 'not set';
   if (f === 'pct') return `${pct1(v)}%`;
   if (f === 'money') return money(v);
   if (f === 'bool') return v ? 'Yes' : 'No';
@@ -1346,6 +1469,161 @@ function scenarioDetails(sc) {
   return `<div class="sc-d"><h4>What's different from your plan</h4><ul>${items || '<li>Same inputs as your plan.</li>'}${more}</ul>
     <h4>How it compares (your plan → ${esc(sc.name)}, mid case, ${mode === 'real' ? "today's" : 'future'} dollars)</h4>${results}</div>`;
 }
+// ---------- Life ideas: pick → adjust a plain sentence → preview → save as a scenario or apply ----------
+const IDEA_ICON = {
+  kid: '<circle cx="12" cy="6.5" r="2.6"/><path d="M7.5 20.5v-3.2a4.5 4.5 0 0 1 9 0v3.2M9.5 13.8 7 11.5M14.5 13.8 17 11.5"/>',
+  home: '<path d="M4 11.2 12 4.5l8 6.7"/><path d="M6.2 9.6v9.9h11.6V9.6M10 19.5v-5h4v5"/>',
+  move: '<path d="M3.5 7.5h10v9h-10zM13.5 10.5h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.6"/><circle cx="17" cy="17.5" r="1.6"/>',
+  break: '<circle cx="12" cy="12" r="8"/><path d="M10 9v6M14 9v6"/>',
+  downsize: '<path d="M3.5 12.5 9.5 7.5l6 5"/><path d="M5.3 11.2v7.3h8.4v-7.3"/><path d="M18.5 6v9.5M16 13l2.5 2.5L21 13"/>',
+  family: '<path d="M12 19.5s-7-4.3-7-9.4A3.8 3.8 0 0 1 12 8a3.8 3.8 0 0 1 7 2.1c0 5.1-7 9.4-7 9.4z"/>',
+  windfall: '<rect x="4" y="9" width="16" height="11" rx="1.5"/><path d="M4 12.5h16M12 9v11M12 9c-1.5-3.5-5.5-3.5-5-1 .3 1.3 3 1 5 1zM12 9c1.5-3.5 5.5-3.5 5-1-.3 1.3-3 1-5 1z"/>',
+  purchase: '<path d="M5 8.5h14l-1.2 11H6.2z"/><path d="M9 10.5V7a3 3 0 0 1 6 0v3.5"/>'
+};
+const IDEA_FORM = {
+  kid: ['Have another kid in', ['inYears', 'int', 'years'], '. Childcare', ['childcare', 'money', 'a year'], 'until age', ['childcareUntil', 'int'], ', everyday costs', ['extra', 'money', 'a year'], 'until', ['extraUntil', 'int'], '. College:', ['college', 'bool'], 'at', ['collegeCost', 'money', 'a year'], '.'],
+  home: ['Buy a', ['price', 'money'], 'home in', ['inYears', 'int', 'years'], ', with', ['downPct', 'pct', 'down'], 'and a', ['rate', 'pct'], 'mortgage over', ['years', 'int', 'years'], '. Closing and moving costs', ['costsPct', 'pct'], ', upkeep and property tax', ['upkeepPct', 'pct', 'a year'], '.', ['sellCurrent', 'bool', null, 'Sell the current home:'], ''],
+  move: ['Move in', ['inYears', 'int', 'years'], '. Living costs change by', ['livingPct', 'pct'], ', moving costs', ['movingCost', 'money'], ', state income tax', ['stateTax', 'pct'], '.'],
+  break: [['who', 'who'], 'takes a', ['years', 'int', 'year'], 'career break starting in', ['inYears', 'int', 'years'], '.'],
+  downsize: ['Sell the home at age', ['atAge', 'int'], 'and buy a smaller one for', ['price', 'money'], ', with', ['costsPct', 'pct'], 'in costs.'],
+  family: ['Help family with', ['perYear', 'money', 'a year'], 'for', ['years', 'int', 'years'], ', starting in', ['inYears', 'int', 'years'], '.'],
+  windfall: ['Receive', ['amount', 'money'], 'in', ['inYears', 'int', 'years'], ', like an inheritance or gift.'],
+  purchase: ['Spend', ['amount', 'money'], 'on', ['label', 'text'], 'in', ['inYears', 'int', 'years'], '.']
+};
+const IDEA_FIELD_NAMES = { childcare: 'Childcare', extra: 'Everyday costs', collegeCost: 'College', price: 'Price', costsPct: 'Costs', upkeepPct: 'Upkeep', rate: 'Rate', livingPct: 'Living costs', stateTax: 'State tax', years: 'Break', perYear: 'Help', amount: 'Amount' };
+const draft = { ideas: [], active: -1, name: '', nameTouched: false };
+let ideaTimer = null;
+function draftPlan() { return draft.ideas.reduce((p, it) => applyIdea(p, it.id, it.params), clone(state)); }
+function renderIdeas() {
+  $('#ideas').innerHTML = IDEAS.map(i => `<button type="button" class="idea" data-idea="${i.id}"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true">${IDEA_ICON[i.id] || ''}</svg></span><span>${esc(i.name)}</span></button>`).join('');
+}
+function addIdea(id) {
+  const base = draft.ideas.reduce((p, it) => applyIdea(p, it.id, it.params), clone(state));
+  const d = ideaDefaults(base, id); if (!d) return;
+  clearPlay(); refreshPlay();
+  draft.ideas.push({ id, params: d.params, notes: d.notes || {} });
+  draft.active = draft.ideas.length - 1;
+  renderComposer(true); previewIdeas();
+}
+function closeComposer() {
+  draft.ideas = []; draft.active = -1; draft.name = ''; draft.nameTouched = false; ideaRes = null;
+  $('#composer').hidden = true; $('#composer').innerHTML = '';
+  renderLegend(); renderChart();
+}
+function ideaInput([key, kind, unit, prefix], params) {
+  const v = params[key], u = unit ? ` <span class="u">${esc(unit)}</span>` : '';
+  const pre = prefix ? `${esc(prefix)} ` : '';
+  if (kind === 'bool') return `${pre}<span class="in"><select data-ik="${key}" data-kind="bool" aria-label="${esc(key)}"><option value="1"${v ? ' selected' : ''}>Yes</option><option value="0"${v ? '' : ' selected'}>No</option></select></span>`;
+  if (kind === 'who') {
+    const two = state.people.p2.enabled;
+    if (!two) return `<b>${esc(nm('p1'))}</b>`;
+    return `<span class="in"><select data-ik="${key}" data-kind="who" aria-label="Who"><option value="p1"${v === 'p1' ? ' selected' : ''}>${esc(nm('p1'))}</option><option value="p2"${v === 'p2' ? ' selected' : ''}>${esc(nm('p2'))}</option></select></span>`;
+  }
+  const shown = kind === 'money' ? `$${Math.round(n(v)).toLocaleString('en-US')}` : kind === 'pct' ? `${v}%` : String(v ?? '');
+  const cls = kind === 'money' ? 'w-money' : kind === 'text' ? 'w-text' : '';
+  return `${pre}<span class="in"><input type="text" class="${cls}" inputmode="${kind === 'text' ? 'text' : kind === 'int' ? 'numeric' : 'decimal'}" data-ik="${key}" data-kind="${kind}" value="${esc(shown)}" aria-label="${esc(IDEA_FIELD_NAMES[key] || key)}" autocomplete="off"></span>${u}`;
+}
+function renderComposer(focusFirst) {
+  const el = $('#composer');
+  if (!draft.ideas.length) { closeComposer(); return; }
+  const it = draft.ideas[draft.active], form = IDEA_FORM[it.id] || [];
+  // Is there a home to sell, counting homes bought by ideas earlier in this stack?
+  const before = draft.ideas.slice(0, draft.active).reduce((p, x) => applyIdea(p, x.id, x.params), clone(state));
+  const hasHome = before.assets.some(a => a.kind === 'other' && !n(a.sellYear));
+  const sentence = form.filter(t => !(Array.isArray(t) && t[0] === 'sellCurrent' && !hasHome)).map(t => (Array.isArray(t) ? ideaInput(t, it.params) : esc(t))).join(' ').replace(/ \./g, '.').replace(/ ,/g, ',').replace(/(<span class="in">[\s\S]*?<\/span>)([.,])/g, '<span class="nw">$1$2</span>');   // keep punctuation with its value
+  const notes = Object.entries(it.notes || {}).map(([k, v]) => `<li><b>${esc(IDEA_FIELD_NAMES[k] || k)}:</b> ${esc(v)}</li>`).join('');
+  const warn = it.id === 'break' && !state.income.some(i => i.type === 'salary') ? 'There\'s no salary in your plan to pause yet.' : it.id === 'downsize' && !hasHome ? 'Add your home under Assets first; there\'s nothing to sell yet.' : '';
+  if (!draft.nameTouched) draft.name = draft.ideas.map(x => ideaLabel(x.id, x.params)).join(' + ');
+  el.innerHTML = `<div class="cmp-stack" aria-label="Ideas in this scenario">${draft.ideas.map((x, i) => `<span class="cmp-chip" role="button" tabindex="0" data-ci="${i}" aria-current="${i === draft.active}">${esc(ideaLabel(x.id, x.params))}<button type="button" class="x" data-cx="${i}" aria-label="Remove ${esc(ideaLabel(x.id, x.params))}">×</button></span>`).join('')}</div>
+    <p class="cmp-sentence">${sentence}</p>
+    ${notes ? `<ul class="cmp-notes">${notes}</ul>` : ''}${warn ? `<p class="cmp-warn">${warn}</p>` : ''}
+    <div class="cmp-result" id="cmpResult" aria-live="polite"></div>
+    <div class="cmp-actions">
+      <div class="inp"><input id="cmpName" type="text" value="${esc(draft.name)}" aria-label="Scenario name" autocomplete="off"></div>
+      <button type="button" class="btn" id="cmpSave">Save as scenario</button>
+      <button type="button" class="btn soft" id="cmpApply">Apply to my plan</button>
+      <button type="button" class="link" id="cmpMore">+ Add another idea</button>
+      <span class="spacer"></span>
+      <button type="button" class="link" id="cmpCancel">Cancel</button>
+    </div>`;
+  el.hidden = false;
+  document.querySelectorAll('#ideas .idea').forEach(b => b.setAttribute('aria-pressed', String(draft.ideas.some(x => x.id === b.dataset.idea))));
+  if (focusFirst) { const f = el.querySelector('.cmp-sentence input, .cmp-sentence select'); if (f) f.focus({ preventScroll: true }); el.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'nearest' }); }
+  renderIdeaResult();
+}
+function previewIdeas() {
+  clearTimeout(ideaTimer);
+  const box = $('#cmpResult'); if (box) box.classList.add('busy');
+  ideaTimer = setTimeout(() => {
+    const p = draftPlan(); ideaRes = project(p); ideaRes.wo = ideaRes.empty ? null : workOptional(p);
+    renderLegend(); renderChart(); renderIdeaResult();
+  }, 220);
+}
+function renderIdeaResult() {
+  const box = $('#cmpResult'); if (!box) return;
+  box.classList.remove('busy');
+  if (!ideaRes || current.empty) { box.innerHTML = ''; return; }
+  const a = current, b = ideaRes, ka = keyResults(a), kb = keyResults(b);
+  const delta = (x, y, better, f) => (x === null || y === null || Math.abs(y - x) < 0.5 ? '' : ` <span class="${(y > x) === better ? 'good' : 'bad'}">(${y > x ? '+' : '−'}${f(Math.abs(y - x))})</span>`);
+  const cell = (label, x, y, f, better, none, df = f) => `<div><span>${label}</span>${x === null ? none : f(x)} → <b>${y === null ? none : f(y)}</b>${delta(x, y, better, df)}</div>`;
+  const woA = a.retireT === 0 ? null : a.wo, woB = b.retireT === 0 ? null : b.wo;
+  box.innerHTML = cell('Work-optional age', woA, woB, v => String(v), false, '80+', v => `${v} yr${v === 1 ? '' : 's'}`)
+    + cell('Savings last', Math.round(a.success * 100), Math.round(b.success * 100), v => v + '%', true, '–', v => `${v} pts`)
+    + cell('Net worth at plan end', disp(ka.atEnd, ka.H, a), disp(kb.atEnd, kb.H, b), money, true, '–');
+}
+function readIdeaInput(el) {
+  const it = draft.ideas[draft.active], k = el.dataset.ik, kind = el.dataset.kind;
+  let v;
+  if (kind === 'bool') v = el.value === '1';
+  else if (kind === 'who' || kind === 'text') v = el.value;
+  else { const raw = (kind === 'pct' ? el.value.replace(/,/g, '.') : el.value).replace(/[^0-9.\-]/g, ''); v = parseFloat(raw); if (!Number.isFinite(v)) return; if (kind === 'int') v = Math.round(v); }
+  if (kind === 'int' && /inYears|years/.test(k)) v = Math.max(1, Math.min(60, v));
+  it.params[k] = v;
+  const chip = document.querySelector(`.cmp-chip[data-ci="${draft.active}"]`);
+  if (chip && chip.firstChild) chip.firstChild.textContent = ideaLabel(it.id, it.params);
+  if (!draft.nameTouched) { draft.name = draft.ideas.map(x => ideaLabel(x.id, x.params)).join(' + '); const nmEl = $('#cmpName'); if (nmEl) nmEl.value = draft.name; }
+  previewIdeas();
+}
+$('#ideas').addEventListener('click', e => { const b = e.target.closest('[data-idea]'); if (b) addIdea(b.dataset.idea); });
+$('#composer').addEventListener('input', e => {
+  if (e.target.id === 'cmpName') { draft.name = e.target.value; draft.nameTouched = true; return; }
+  if (e.target.dataset.ik) readIdeaInput(e.target);
+});
+$('#composer').addEventListener('change', e => { if (e.target.dataset.ik && e.target.tagName === 'SELECT') readIdeaInput(e.target); });
+$('#composer').addEventListener('focusout', e => {
+  const el = e.target; if (!el.dataset || !el.dataset.ik) return;
+  const v = draft.ideas[draft.active].params[el.dataset.ik], kind = el.dataset.kind;
+  if (kind === 'money') el.value = `$${Math.round(n(v)).toLocaleString('en-US')}`; else if (kind === 'pct') el.value = `${v}%`;
+});
+$('#composer').addEventListener('keydown', e => { const c = e.target.closest('.cmp-chip'); if (c && (e.key === 'Enter' || e.key === ' ') && e.target === c) { e.preventDefault(); c.click(); } });
+$('#composer').addEventListener('click', e => {
+  const x = e.target.closest('[data-cx]');
+  if (x) { draft.ideas.splice(+x.dataset.cx, 1); draft.active = Math.min(draft.active, draft.ideas.length - 1); if (!draft.ideas.length) closeComposer(); else { renderComposer(false); previewIdeas(); } return; }
+  const chip = e.target.closest('[data-ci]');
+  if (chip) { draft.active = +chip.dataset.ci; renderComposer(true); return; }
+  const id = e.target.id;
+  if (id === 'cmpCancel') { closeComposer(); document.querySelectorAll('#ideas .idea').forEach(b => b.setAttribute('aria-pressed', 'false')); return; }
+  if (id === 'cmpMore') { const first = $('#ideas .idea'); if (first) { first.focus(); $('#ideas').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } notify('Pick another idea to add it to this scenario.'); return; }
+  if (id === 'cmpSave') {
+    const p = draftPlan(); let name = (draft.name || 'Life idea').trim(); const base = name; let k = 2;
+    while (scenarios.some(sc => sc.name === name)) name = `${base} (${k++})`;
+    scenarios.push({ name, state: p, show: true, res: project(p) });
+    openScenario = scenarios.length - 1; dirty = true;
+    closeComposer(); document.querySelectorAll('#ideas .idea').forEach(b => b.setAttribute('aria-pressed', 'false'));
+    renderResults();
+    const row = document.querySelector('.sc-detail'); if (row) row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    notify(`Saved "${name}". Its details show what changed.`);
+    return;
+  }
+  if (id === 'cmpApply') {
+    const before = clone(state), names = draft.ideas.map(x => ideaLabel(x.id, x.params)).join(' + ');
+    state = draftPlan(); closeComposer(); document.querySelectorAll('#ideas .idea').forEach(b => b.setAttribute('aria-pressed', 'false'));
+    renderInputs(); recompute();
+    notify(`Added to your plan: ${names}.`, false, ['Undo', () => { state = before; renderInputs(); recompute(); notify('Undone.'); }], 12000);
+  }
+});
+renderIdeas();
+
 function renderScenarios() {
   const wrap = $('#scWrap');
   if (!scenarios.length) { wrap.style.display = 'none'; return; }
@@ -1908,12 +2186,13 @@ async function shareMilestone() {
   const res = current; if (!res || res.wo === null) return;
   const c = document.createElement('canvas'); c.width = 1080; c.height = 1080;
   const g = c.getContext('2d'), F = getComputedStyle(document.body).fontFamily;
-  const grad = g.createLinearGradient(0, 0, 1080, 1080); grad.addColorStop(0, '#D3EAF2'); grad.addColorStop(1, '#D5F1E0');
+  const cv = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const grad = g.createLinearGradient(0, 0, 1080, 1080); grad.addColorStop(0, cv('--teal-soft') || '#D3EAF2'); grad.addColorStop(1, '#D5F1E0');
   g.fillStyle = grad; g.fillRect(0, 0, 1080, 1080);
-  g.fillStyle = '#2B6B7E'; g.font = `600 52px ${F}`; g.textAlign = 'center';
+  g.fillStyle = cv('--teal-deep') || '#2B6B7E'; g.font = `600 52px ${F}`; g.textAlign = 'center';
   g.fillText(res.two ? 'We could be work-optional' : 'I could be work-optional at', 540, 330);
   if (res.two) g.fillText(`when ${res.names[0]} is`, 540, 400);
-  g.fillStyle = '#26333A'; g.font = `700 300px ${F}`; g.fillText(String(res.wo), 540, res.two ? 700 : 660);
+  g.fillStyle = cv('--ink') || '#26333A'; g.font = `700 300px ${F}`; g.fillText(String(res.wo), 540, res.two ? 700 : 660);
   g.font = `100px ${F}`; g.fillText('🎉', 540, res.two ? 850 : 810);
   g.fillStyle = '#66757D'; g.font = `500 36px ${F}`; g.fillText('Planned privately with Net Worth Planner 🤫', 540, 980);
   const blob = await new Promise(r => c.toBlob(r, 'image/png'));
@@ -2070,14 +2349,25 @@ function confetti() {
 const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
 const onWeb = /^https?:$/.test(location.protocol);
 let deferredPrompt = null;
-window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; $('#btnInstall').hidden = false; });
-$('#btnInstall').addEventListener('click', async () => {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  try { await deferredPrompt.userChoice; } catch (e) { /* ignore */ }
-  deferredPrompt = null; $('#btnInstall').hidden = true;
-});
-window.addEventListener('appinstalled', () => { $('#btnInstall').hidden = true; notify('Installed! Open Net Worth Planner from your home screen or apps, even without wifi.'); });
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; syncInstallRow(); });
+async function installApp() {
+  const note = $('#installNote');
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    try { await deferredPrompt.userChoice; } catch (e) { /* ignore */ }
+    deferredPrompt = null; syncInstallRow(); return;
+  }
+  const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  note.textContent = ios ? 'On iPhone or iPad: tap the Share button in Safari, then "Add to Home Screen".'
+    : 'Use your browser\'s menu: look for "Install app" or "Add to Home screen". In Safari on a Mac: File, then "Add to Dock".';
+  note.hidden = false;
+}
+function syncInstallRow() {
+  const row = $('#btnInstall'), sub = $('#installSub'), done = isStandalone();
+  row.classList.toggle('done', done); row.disabled = done;
+  sub.textContent = done ? "You're using the installed app ✓" : 'Opens like an app and works offline.';
+}
+window.addEventListener('appinstalled', () => { syncInstallRow(); notify('Installed! Open Net Worth Planner from your home screen or apps, even without wifi.'); });
 function maybeShowIOSTip() {
   const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   let dismissed = false; try { dismissed = localStorage.getItem('netWorthPlanner.iosTip') === '1'; } catch (e) { /* ignore */ }
@@ -2145,7 +2435,7 @@ function shareCopied(msg) {
   el.textContent = msg; el.hidden = false;
   clearTimeout(shareTimer); shareTimer = setTimeout(() => { el.hidden = true; }, 6000);
 }
-$('#btnShareApp').addEventListener('click', async () => {
+async function shareApp(showCopied) {
   const url = location.origin + location.pathname;
   if (navigator.share && matchMedia('(pointer:coarse)').matches) {
     try { await navigator.share({ title: 'Net Worth Planner', text: SHARE_TEXT, url }); return; }
@@ -2153,13 +2443,15 @@ $('#btnShareApp').addEventListener('click', async () => {
   }
   try {
     await navigator.clipboard.writeText(`${SHARE_TEXT} ${url}`);
-    shareCopied('Link copied ✓ Paste it into a message or email. Only the link is shared; your plan stays on this device.');
+    showCopied('Link copied ✓ Paste it into a message or email. Only the link is shared; your plan stays on this device.');
   } catch (e) {
     const box = $('#shareText');
     box.value = `${SHARE_TEXT} ${url}`;
+    if (settingsDlg.open) settingsDlg.close();
     shareDlg.hidden = false; box.focus(); box.select();
   }
-});
+}
+$('#btnShareApp').addEventListener('click', () => shareApp(shareCopied));
 $('#shareCopy').addEventListener('click', () => {
   const box = $('#shareText'); box.focus(); box.select();
   let ok = false; try { ok = document.execCommand('copy'); } catch (e) { /* not allowed */ }
@@ -2174,7 +2466,6 @@ const eraseDlg = $('#eraseDlg');
 const openErase = () => { eraseDlg.hidden = false; $('#eraseCancel').focus(); };
 const closeErase = () => { eraseDlg.hidden = true; };
 $('#btnErase').addEventListener('click', openErase);
-$('#btnEraseFoot').addEventListener('click', openErase);
 $('#eraseCancel').addEventListener('click', closeErase);
 eraseDlg.addEventListener('click', e => { if (e.target === eraseDlg) closeErase(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !eraseDlg.hidden) closeErase(); });
@@ -2192,8 +2483,61 @@ $('#clearedClose').addEventListener('click', () => {
   setTimeout(() => notify('Your data is erased. Close this tab or swipe the app away to finish.', false, null, 8000), 200);
 });
 $('#clearedAgain').addEventListener('click', () => location.reload());
+// ---------- Color themes (config.js `themes`), saved on this device ----------
+const THEMES = (CFG.themes || []).filter(t => t && t.id && t.colors);
+const THEME_VARS = { bg: '--bg', surface: '--surface', well: '--well', line: '--line', ink: '--ink', muted: '--muted', accent: '--teal', accentSoft: '--teal-soft',
+  accentDeep: '--teal-deep', accentHover: '--teal-hover', accentSofter: '--teal-softer', accentSoftHover: '--teal-soft-hover', heroA: '--hero-a', heroB: '--hero-b' };
+let themeId = null;
+function applyTheme(id, animate) {
+  const t = THEMES.find(x => x.id === id) || THEMES[0];
+  if (!t) return;
+  const vars = Object.entries(THEME_VARS).filter(([k]) => t.colors[k]).map(([k, v]) => `${v}:${t.colors[k]}`).join(';');
+  const root = document.documentElement;
+  if (animate && !matchMedia('(prefers-reduced-motion: reduce)').matches) { root.classList.add('theming'); setTimeout(() => root.classList.remove('theming'), 500); }
+  root.setAttribute('style', vars);
+  const meta = document.querySelector('meta[name="theme-color"]'); if (meta && t.colors.accentDeep) meta.setAttribute('content', t.colors.accentDeep);
+  themeId = t.id;
+  try { if (t.id === THEMES[0].id) { localStorage.removeItem('netWorthPlanner.theme'); localStorage.removeItem('netWorthPlanner.themeVars'); } else { localStorage.setItem('netWorthPlanner.theme', t.id); localStorage.setItem('netWorthPlanner.themeVars', vars); } } catch (e) { /* not saved; still applied */ }
+  renderThemePicker();
+  if (current) renderChart();
+}
+function renderThemePicker() {
+  const el = $('#themePicker'); if (!el) return;
+  el.innerHTML = THEMES.map(t => { const c = t.colors, on = t.id === themeId;
+    return `<button type="button" class="theme-sw" role="radio" aria-checked="${on}" data-theme="${esc(t.id)}">
+      <span class="pv" style="background:${c.bg}" aria-hidden="true"><i style="left:8px;top:8px;right:8px;height:22px;background:linear-gradient(135deg,${c.heroA},${c.heroB})"></i><i style="left:8px;top:36px;width:44%;height:18px;background:${c.surface};box-shadow:0 1px 2px rgba(0,0,0,.06)"></i><i style="right:8px;top:36px;width:34%;height:18px;background:${c.accentDeep}"></i><i style="left:14px;top:14px;width:20px;height:10px;background:${c.accentDeep};opacity:.85"></i></span>
+      <b>${esc(t.name)}<span class="tick" aria-hidden="true">✓</span></b><small>${esc(t.note || '')}</small></button>`; }).join('');
+}
+$('#themePicker').addEventListener('click', e => { const b = e.target.closest('[data-theme]'); if (b && b.dataset.theme !== themeId) applyTheme(b.dataset.theme, true); });
+$('#themePicker').addEventListener('keydown', e => {
+  if (!['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp'].includes(e.key)) return;
+  e.preventDefault();
+  const i = THEMES.findIndex(t => t.id === themeId), d = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : -1, next = THEMES[(i + d + THEMES.length) % THEMES.length];
+  applyTheme(next.id, true); const b = $(`#themePicker [data-theme="${next.id}"]`); if (b) b.focus();
+});
+{ let saved = null; try { saved = localStorage.getItem('netWorthPlanner.theme'); } catch (e) { /* ignore */ } applyTheme(saved || (THEMES[0] && THEMES[0].id), false); }
+
+// ---------- Settings drawer ----------
+const settingsDlg = $('#settings');
+function openSettings() { $('#installNote').hidden = true; $('#shareNote').hidden = true; syncInstallRow(); settingsDlg.showModal(); }
+$('#settingsBtn').addEventListener('click', openSettings);
+document.addEventListener('click', e => { if (e.target.closest('[data-open-settings]')) openSettings(); });
+$('#settingsClose').addEventListener('click', () => settingsDlg.close());
+settingsDlg.addEventListener('click', e => { if (e.target === settingsDlg) settingsDlg.close(); });   // click on the dimmed page closes it
+settingsDlg.addEventListener('close', () => $('#settingsBtn').focus());
+settingsDlg.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const act = b.dataset.act;
+  if (act === 'save') $('#btnSave').click();
+  else if (act === 'open') { settingsDlg.close(); $('#btnOpen').click(); }
+  else if (act === 'export') $('#btnExport').click();
+  else if (act === 'erase') { settingsDlg.close(); openErase(); }
+  else if (act === 'install') installApp();
+  else if (act === 'share') shareApp(msg => { const n = $('#shareNote'); n.textContent = msg; n.hidden = false; });
+  else if (act === 'refresh') refreshApp();
+});
 const APP_VERSION = ((CFG.whatsNew || [])[0] || {}).version;
-if (APP_VERSION) $('#appVersion').textContent = `Version ${APP_VERSION}`;
+if (APP_VERSION) { $('#appVersion').textContent = `Version ${APP_VERSION}`; $('#refreshSub').textContent = `Version ${APP_VERSION}. Load the latest; your plan stays put.`; }
 
 /* ---------- Notices ---------- */
 let noteTimer = null;

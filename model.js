@@ -48,9 +48,45 @@ function create(userConfig, opts) {
     // A gentle note appears when a market return after inflation is outside this range
     returnAfterInflationNote: { below: 0.5, above: 6 },
   
+    // Suggested values for the life ideas in Scenarios (people can change every one). Dollar amounts in today's dollars.
+    lifeIdeas: {
+      childcarePerYear: 18000, childcareUntilAge: 5,      // another kid: childcare until this age
+      kidCostsPerYear: 10000, kidCostsUntilAge: 18,       // ...and everyday costs until this age
+      newHomeVsCurrentPct: 30, newHomePriceIfNone: 600000, // new home: this much more than the current home (or this price)
+      homeDownPaymentPct: 20, homeCostsPct: 5,            // down payment; closing, moving and selling costs
+      mortgageRate: 6.5, mortgageYears: 30, homeUpkeepPct: 1.5,
+      moveLivingCostChangePct: 10, movingCost: 15000,      // move: change in yearly spending, one-time moving cost
+      downsizeAge: 70, downsizePricePct: 60, downsizeCostsPct: 6,
+      helpFamilyPerYear: 12000, helpFamilyYears: 5,
+      windfall: 100000, bigPurchase: 40000
+    },
+  
+    // Color themes people can pick in Settings (saved on their device). The first is the default.
+    // Pastel and light; never purple. Green, coral and amber are reserved for good / bad / caution,
+    // so a theme changes only the neutrals and the main accent. The evals check contrast and hue.
+    themes: [
+      { id: 'lagoon', name: 'Lagoon', note: 'Calm sea teal, the original',
+        colors: { bg: '#F3F6F7', surface: '#FFFFFF', well: '#F6F9FA', line: '#E1E8EB', ink: '#26333A', muted: '#66757D',
+                  accent: '#7FB8CC', accentSoft: '#D3EAF2', accentDeep: '#2B6B7E', accentHover: '#225767', accentSofter: '#EEF7FA', accentSoftHover: '#C3E1EC',
+                  heroA: '#DDEFF5', heroB: '#E3F4EA' } },
+      { id: 'harbor', name: 'Harbor', note: 'Clear sky and deep-water blue',
+        colors: { bg: '#F2F5F9', surface: '#FFFFFF', well: '#F5F8FB', line: '#DFE6EE', ink: '#243142', muted: '#5F6D7E',
+                  accent: '#8DB0D8', accentSoft: '#DCE8F6', accentDeep: '#2B5C8F', accentHover: '#234C77', accentSofter: '#EEF4FB', accentSoftHover: '#C6D9EF',
+                  heroA: '#DCE8F6', heroB: '#E4F2EC' } },
+      { id: 'linen', name: 'Linen', note: 'Warm paper and espresso',
+        colors: { bg: '#F6F2EC', surface: '#FFFDF9', well: '#FAF6F0', line: '#E8E0D5', ink: '#33302B', muted: '#6B635A',
+                  accent: '#C9B49A', accentSoft: '#EFE6DA', accentDeep: '#6B5137', accentHover: '#57412C', accentSofter: '#F7F1E9', accentSoftHover: '#E4D6C4',
+                  heroA: '#F1E7DA', heroB: '#E8F1E4' } },
+      { id: 'graphite', name: 'Graphite', note: 'Quiet slate, all business',
+        colors: { bg: '#F3F4F5', surface: '#FFFFFF', well: '#F7F8F9', line: '#E2E5E8', ink: '#22272B', muted: '#5F6870',
+                  accent: '#9AA6B1', accentSoft: '#E3E7EB', accentDeep: '#34404A', accentHover: '#27313A', accentSofter: '#F1F3F5', accentSoftHover: '#D3D9DF',
+                  heroA: '#E5E9ED', heroB: '#E3F2EA' } }
+    ],
+  
     // "What's new" note shown once to people who already use the planner, after an update. Newest first.
     // Add one for every release, with version matching VERSION in sw.js (the evals check this). Keep it short and friendly.
     whatsNew: [
+      { version: 'v13', note: "Make it yours 🎨 Color themes in the new Settings drawer, and life ideas in Scenarios: try a new home, another kid or a move." },
       { version: 'v12', note: "You asked, we fixed 🛠️ Try an Inflation slider, −/+ buttons for decimals, and no state tax on Social Security. Pensions can skip raises." },
       { version: 'v11', note: "Cleaner still 🧹 Your key numbers are back on top, the sliders are simpler, and quick start shows which step you're on." },
       { version: 'v10', note: "A tidier look ✨ Your chart comes first, and your work-optional age now sits with your key numbers underneath." },
@@ -348,7 +384,18 @@ function create(userConfig, opts) {
       special = new Float64Array(W), contrib = new Float64Array(W), rothC = new Float64Array(W), debtBal = new Float64Array(W), contrib2 = new Float64Array(W);
     const events = Array.from({ length: W }, () => []);
 
-    const debts = s.liabilities.map(l => ({ label: l.label || 'Loan', bal: n(l.balance), r: n(l.rate) / 100, pay: loanPayment(l), endT: has(l.endYear) ? Math.max(1, n(l.endYear) - Y0) : Infinity }));
+    // A loan with a start year (e.g. a mortgage for a home bought later) begins at the end of that year: its
+    // today's-dollar balance grows with inflation until then, and payments start the following year.
+    const debts = s.liabilities.map(l => {
+      const st = has(l.startYear) ? Math.max(1, n(l.startYear) - Y0) : 0, r = n(l.rate) / 100;
+      const endT = has(l.endYear) ? Math.max(st + 1, n(l.endYear) - Y0) : Infinity;
+      const d = { label: l.label || 'Loan', r, endT, startT: st, bal: st ? 0 : n(l.balance), pending: st ? n(l.balance) * Math.pow(1 + infl, st) : 0 };
+      if (st) {
+        const i = r / 12, m = Number.isFinite(endT) ? (endT - st) * 12 : 360;
+        d.pay = has(l.monthlyPayment) && n(l.monthlyPayment) > 0 ? n(l.monthlyPayment) : i === 0 ? d.pending / m : d.pending * i / (1 - Math.pow(1 + i, -m));
+      } else d.pay = loanPayment(l);
+      return d;
+    });
     debtBal[0] = debts.reduce((x, d) => x + d.bal, 0);
 
     // Retirement and benefit-start events
@@ -429,6 +476,7 @@ function create(userConfig, opts) {
           debtPay[t] += paid;
           if (d.bal <= 0.5) { d.bal = 0; events[t].push(lump && paid > d.pay * 13 ? `${d.label} paid off with a lump sum` : `${d.label} paid off`); }
         }
+        if (d.startT && t === d.startT) { d.bal = d.pending; events[t].push(`${d.label} begins`); }
         db += d.bal;
       }
       debtBal[t] = db;
@@ -455,7 +503,7 @@ function create(userConfig, opts) {
         else { const k = share2(a.owner || 'p1'); R10 += n(a.balance) * (1 - k); R20 += n(a.balance) * k; }
       }
       else if (a.kind === 'nonretirement') N0 += n(a.balance);
-      else O0 += n(a.balance);
+      else if (!has(a.fromYear)) O0 += n(a.balance);   // homes bought later join in their year (below)
     }
     // Required withdrawals: share of each owner's pre-tax balance per year, and when they start
     const rmdAge1 = rmdStartAge(a1), rmdAge2 = rmdStartAge(a2);
@@ -477,6 +525,19 @@ function create(userConfig, opts) {
     const rr = n(A.retReturn) / 100, rn = n(A.nonReturn) / 100, og = n(A.otherGrowth) / 100,
       vol = Math.max(0, n(A.volatility)) / 100, tax = Math.min(0.9, Math.max(0, n(A.withdrawalTax) / 100));
     const muR = Math.log(Math.max(0.01, 1 + rr)), muN = Math.log(Math.max(0.01, 1 + rn));
+    // Home and other assets bought later (fromYear: today's-dollar price, inflated to that year) or sold
+    // (sellYear: its grown value moves into non-retirement savings). Home values aren't random, so these are exact.
+    const oAdd = new Float64Array(W), oSell = new Float64Array(W);
+    let oMove = false;
+    for (const a of s.assets) {
+      if (a.kind !== 'other' || (!has(a.fromYear) && !has(a.sellYear))) continue;
+      const t0 = has(a.fromYear) ? Math.max(1, n(a.fromYear) - Y0) : 0, v0 = t0 ? n(a.balance) * Math.pow(1 + infl, t0) : n(a.balance);
+      if (t0 && t0 <= H) { oAdd[t0] += v0; oMove = true; events[t0].push(`${a.label || 'Home'} bought`); }
+      if (has(a.sellYear)) {
+        const ts = Math.max(1, n(a.sellYear) - Y0);
+        if (ts > t0 && ts <= H) { oSell[ts] += v0 * Math.pow(1 + og, ts - t0); oMove = true; events[ts].push(`${a.label || 'Home'} sold`); }
+      }
+    }
     const t0 = clockNow();
     const rand = mulberry32(20240611);
     let spare = null;
@@ -491,6 +552,7 @@ function create(userConfig, opts) {
     const nw = new Float64Array(NR * W), liq = new Float64Array(NR * W), depl = new Float64Array(NR), rmdAll = new Float64Array(rmdOn ? NR * W : 0);
     for (let r = 0; r < NR; r++) {
       let R1 = R10, R2 = R20, Q = Q0, N = N0, O = O0, dep = Infinity;
+      // (oAdd/oSell: homes bought or sold later, worked out below the growth rates)
       const b = r * W;
       nw[b] = R1 + R2 + Q + N + O - debtBal[0]; liq[b] = R1 + R2 + Q + N;
       for (let t = 1; t < W; t++) {
@@ -500,6 +562,7 @@ function create(userConfig, opts) {
         const gR = Math.exp(muR + vol * z); R1 *= gR; R2 *= gR; Q *= gR;
         N *= Math.exp(muN + vol * z);
         O *= 1 + og;
+        if (oMove) { O += oAdd[t] - oSell[t]; N += oSell[t]; }
         let rmd = 0;
         if (rmdOn) { const x1 = Math.min(m1, R1), x2 = Math.min(m2, R2); R1 -= x1; R2 -= x2; rmd = x1 + x2; rmdAll[b + t] = rmd; }
         R1 += contrib[t] - contrib2[t]; R2 += contrib2[t]; Q += rothC[t];
@@ -599,8 +662,8 @@ function create(userConfig, opts) {
   const PERSON_FIELDS = [['name', 'name', 'text'], ['age', 'age', 'age'], ['retireAge', 'retirement age', 'age'], ['planToAge', 'plan until age', 'age']];
   const LISTS = [
     ['dependents', 'Kids', 'Dependent', [['name', 'name', 'text'], ['age', 'age', 'age'], ['college', 'college', 'bool'], ['collegeCost', 'college cost per year', 'money'], ['collegeStartAge', 'college starts at', 'age'], ['collegeYears', 'years of college', 'int']]],
-    ['assets', 'Assets', 'Asset', [['label', 'name', 'text'], ['kind', 'type', 'enum'], ['owner', 'whose', 'owner'], ['taxType', 'tax treatment', 'enum'], ['balance', 'balance', 'money'], ['contribution', 'you add per year', 'money'], ['employerContribution', 'employer adds per year', 'money']]],
-    ['liabilities', 'Loans', 'Loan', [['label', 'name', 'text'], ['balance', 'balance', 'money'], ['rate', 'interest', 'pct'], ['monthlyPayment', 'monthly payment', 'money'], ['endYear', 'paid off by', 'year']]],
+    ['assets', 'Assets', 'Asset', [['label', 'name', 'text'], ['kind', 'type', 'enum'], ['owner', 'whose', 'owner'], ['taxType', 'tax treatment', 'enum'], ['balance', 'balance', 'money'], ['contribution', 'you add per year', 'money'], ['employerContribution', 'employer adds per year', 'money'], ['fromYear', 'bought in', 'year'], ['sellYear', 'sold in', 'year']]],
+    ['liabilities', 'Loans', 'Loan', [['label', 'name', 'text'], ['balance', 'balance', 'money'], ['rate', 'interest', 'pct'], ['monthlyPayment', 'monthly payment', 'money'], ['startYear', 'starts', 'year'], ['endYear', 'paid off by', 'year']]],
     ['income', 'Income', 'Income', [['label', 'name', 'text'], ['type', 'type', 'enum'], ['owner', 'whose', 'owner'], ['amount', 'per year', 'money'], ['startAge', 'from age', 'age'], ['endAge', 'until age', 'age'], ['cola', 'rises with inflation', 'bool']]],
     ['spending', 'Spending', 'Spending', [['label', 'name', 'text'], ['category', 'category', 'enum'], ['when', 'when', 'enum'], ['amount', 'per year', 'money'], ['fromAge', 'from age', 'age'], ['toAge', 'until age', 'age']]],
     ['purchases', 'Big purchases', 'Purchase', [['label', 'name', 'text'], ['year', 'year', 'year'], ['amount', 'cost', 'money'], ['repeatEvery', 'repeats every (years)', 'int'], ['until', 'repeats until', 'year']]]
@@ -687,9 +750,119 @@ function create(userConfig, opts) {
     return out.sort((a, b) => a.t - b.t);
   }
 
+  /* ---------- Life ideas: ready-made scenario changes ---------- */
+  // ideaDefaults(plan, id) suggests values from the plan and config.js (with a note on where each came from);
+  // applyIdea(plan, id, params) returns a new plan with the idea written into ordinary plan items, so ideas
+  // stack, show up in scenario details, and can be edited like anything else. The original plan is untouched.
+  const LI = CFG.lifeIdeas || {};
+  const IDEAS = [
+    { id: 'kid', name: 'Have another kid' }, { id: 'home', name: 'Buy a new home' }, { id: 'move', name: 'Move somewhere new' },
+    { id: 'break', name: 'Take a career break' }, { id: 'downsize', name: 'Downsize later' }, { id: 'family', name: 'Help family' },
+    { id: 'windfall', name: 'Windfall' }, { id: 'purchase', name: 'Big purchase' }
+  ];
+  const rnd = (v, step) => Math.round(v / step) * step;
+  const short$ = v => (v >= 1e6 ? `$${+(v / 1e6).toFixed(2)}M` : `$${Math.round(v / 1e3)}k`);
+  const yrs = v => `${v} yr${v === 1 ? '' : 's'}`;
+  // The home you'd sell in a given year: owned by then (bought earlier, or owned now) and not already sold;
+  // the most recently bought one wins, so ideas stack (buy a new home, then downsize it later).
+  function homeOf(p, year) {
+    const by = has(year) ? n(year) : Infinity;
+    const others = p.assets.filter(a => a.kind === 'other' && !has(a.sellYear) && (!has(a.fromYear) || n(a.fromYear) < by));
+    const named = others.filter(a => /home|house|condo|apartment|flat|property/i.test(a.label || ''));
+    const pool = named.length ? named : others;
+    return pool.slice().sort((a, b) => (has(b.fromYear) ? n(b.fromYear) : 0) - (has(a.fromYear) ? n(a.fromYear) : 0) || n(b.balance) - n(a.balance))[0] || null;
+  }
+  function spendingNow(p) {
+    const a1 = n(p.people.p1.age), working = n(p.people.p1.retireAge) > a1 || (p.people.p2.enabled && n(p.people.p2.retireAge) > n(p.people.p2.age));
+    return p.spending.reduce((x, it) => { const w = it.when || 'always';
+      const on = w === 'always' || (w === 'pre' && working) || (w === 'ret' && !working) || (w === 'ages' && !(has(it.fromAge) && a1 < n(it.fromAge)) && !(has(it.toAge) && a1 > n(it.toAge)));
+      return x + (on ? n(it.amount) : 0); }, 0);
+  }
+  // Pay off loans secured on a home when it's sold: keep today's payment and clear the rest that year
+  function payOffHomeLoans(c, year) {
+    for (const l of c.liabilities) if (!has(l.startYear) && /mortgage|home loan|heloc/i.test(l.label || '') && (!has(l.endYear) || n(l.endYear) > year)) {
+      if (!(has(l.monthlyPayment) && n(l.monthlyPayment) > 0)) l.monthlyPayment = Math.round(loanPayment(l));
+      l.endYear = year;
+    }
+  }
+  function ideaDefaults(p, id) {
+    const A = p.assumptions || {}, cur = homeOf(p, Y0 + 3), v = x => cfgNum(x, 0);
+    const D = {
+      kid: { params: { inYears: 1, childcare: v(LI.childcarePerYear), childcareUntil: v(LI.childcareUntilAge), extra: v(LI.kidCostsPerYear), extraUntil: v(LI.kidCostsUntilAge), college: true, collegeCost: cfgNum(QS.collegeCostPerYear, 30000) },
+        notes: { childcare: 'Typical full-time childcare; set in config.js', extra: 'Food, clothes, activities and more', collegeCost: 'Same as the quick start college guess' } },
+      home: { params: { inYears: 3, price: cur ? rnd(n(cur.balance) * (1 + v(LI.newHomeVsCurrentPct) / 100), 10000) : v(LI.newHomePriceIfNone), downPct: v(LI.homeDownPaymentPct), costsPct: v(LI.homeCostsPct), rate: v(LI.mortgageRate), years: v(LI.mortgageYears), sellCurrent: !!cur, upkeepPct: v(LI.homeUpkeepPct) },
+        notes: { price: cur ? `Your ${cur.label || 'home'} is ${short$(n(cur.balance))}; this is about ${v(LI.newHomeVsCurrentPct)}% more` : 'A starting point; use a real price if you have one', costsPct: 'Closing, moving and selling costs', upkeepPct: 'Property tax, insurance and upkeep each year, as a share of the price', rate: 'A typical 30-year rate; check today\'s' } },
+      move: { params: { inYears: 2, livingPct: v(LI.moveLivingCostChangePct), movingCost: v(LI.movingCost), stateTax: n(A.stateTax) },
+        notes: { livingPct: `Of your spending now (${short$(spendingNow(p))} a year); negative if it's cheaper`, stateTax: 'Applies to the whole plan in this scenario' } },
+      break: { params: { who: 'p1', inYears: 1, years: 1 }, notes: { years: 'Pay stops for these years, then picks up where it left off' } },
+      downsize: { params: { atAge: Math.max(n(p.people.p1.age) + 1, v(LI.downsizeAge)), price: cur ? rnd(n(cur.balance) * v(LI.downsizePricePct) / 100, 10000) : 0, costsPct: v(LI.downsizeCostsPct) },
+        notes: { price: cur ? `About ${v(LI.downsizePricePct)}% of your ${cur.label || 'home'} today` : 'Add your home under Assets first' } },
+      family: { params: { inYears: 1, years: v(LI.helpFamilyYears), perYear: v(LI.helpFamilyPerYear) }, notes: { perYear: 'For example, helping a parent with care' } },
+      windfall: { params: { inYears: 5, amount: v(LI.windfall) }, notes: { amount: 'Like an inheritance or gift; not taxed' } },
+      purchase: { params: { inYears: 2, amount: v(LI.bigPurchase), label: 'Big purchase' }, notes: { amount: 'A wedding, a boat, a trip of a lifetime' } }
+    };
+    return D[id] ? clone(D[id]) : null;
+  }
+  function applyIdea(p, id, prm) {
+    const c = clone(p), a1 = n(c.people.p1.age), N = Math.max(1, Math.round(n(prm.inYears) || 1)), y = Y0 + N;
+    if (id === 'kid') {
+      const name = prm.name || `Kid ${c.dependents.length + 1}`;
+      c.dependents.push({ name, age: -N, college: !!prm.college, collegeCost: n(prm.collegeCost), collegeStartAge: cfgNum(QS.collegeStartAge, 18), collegeYears: cfgNum(QS.collegeYears, 4) });
+      if (n(prm.childcare) > 0) c.spending.push({ label: `${name}: childcare`, category: 'kids', when: 'ages', amount: n(prm.childcare), fromAge: a1 + N, toAge: a1 + N + Math.max(1, n(prm.childcareUntil)) - 1 });
+      if (n(prm.extra) > 0) c.spending.push({ label: `${name}: everyday costs`, category: 'kids', when: 'ages', amount: n(prm.extra), fromAge: a1 + N, toAge: a1 + N + Math.max(1, n(prm.extraUntil)) - 1 });
+    } else if (id === 'home') {
+      const price = n(prm.price), down = Math.min(100, Math.max(0, n(prm.downPct))), cur = prm.sellCurrent ? homeOf(c, y) : null, curVal = cur ? n(cur.balance) : 0;
+      c.purchases.push({ label: 'New home: down payment and costs', year: y, amount: Math.round(price * (down + n(prm.costsPct)) / 100), repeatEvery: null, until: null });
+      c.assets.push({ label: 'New home', kind: 'other', owner: 'joint', taxType: 'pretax', balance: price, contribution: 0, employerContribution: 0, fromYear: y });
+      if (down < 100) c.liabilities.push({ label: 'New home mortgage', balance: Math.round(price * (100 - down) / 100), rate: n(prm.rate), monthlyPayment: null, startYear: y, endYear: y + Math.max(1, n(prm.years)) });
+      if (cur) { cur.sellYear = y; payOffHomeLoans(c, y); }
+      const upkeep = rnd(Math.max(0, price - curVal) * n(prm.upkeepPct) / 100, 100);
+      if (upkeep > 0) c.spending.push({ label: 'New home: extra upkeep and property tax', category: 'home', when: 'ages', amount: upkeep, fromAge: a1 + N, toAge: null });
+    } else if (id === 'move') {
+      const change = rnd(spendingNow(c) * n(prm.livingPct) / 100, 100);
+      if (change) c.spending.push({ label: 'Move: cost of living change', category: 'other', when: 'ages', amount: change, fromAge: a1 + N, toAge: null });
+      if (n(prm.movingCost) > 0) c.purchases.push({ label: 'Moving costs', year: y, amount: n(prm.movingCost), repeatEvery: null, until: null });
+      if (has(prm.stateTax)) c.assumptions.stateTax = n(prm.stateTax);
+    } else if (id === 'break') {
+      const who = prm.who === 'p2' && c.people.p2.enabled ? 'p2' : 'p1', aw = n(c.people[who].age);
+      const pay = c.income.filter(i => i.type === 'salary' && (i.owner || 'p1') === who && !(has(i.startAge) && n(i.startAge) > aw)).sort((a, b) => n(b.amount) - n(a.amount))[0];
+      if (pay) {
+        const from = aw + N, to = from + Math.max(1, n(prm.years)), endWas = has(pay.endAge) ? n(pay.endAge) : null;
+        const after = { ...pay, label: `${pay.label || 'Salary'} (after the break)`, startAge: to, endAge: endWas };
+        delete pay.est; delete after.est;
+        pay.endAge = endWas === null ? from - 1 : Math.min(endWas, from - 1);
+        if (endWas === null || endWas >= to) c.income.push(after);
+      }
+    } else if (id === 'downsize') {
+      const yy = Y0 + Math.max(1, Math.round(n(prm.atAge)) - a1), cur = homeOf(c, yy);
+      if (cur) {
+        const price = n(prm.price);
+        cur.sellYear = yy; payOffHomeLoans(c, yy);
+        if (price > 0) {
+          c.assets.push({ label: 'Smaller home', kind: 'other', owner: 'joint', taxType: 'pretax', balance: price, contribution: 0, employerContribution: 0, fromYear: yy });
+          c.purchases.push({ label: 'Smaller home: price and costs', year: yy, amount: Math.round(price * (1 + n(prm.costsPct) / 100)), repeatEvery: null, until: null });
+        }
+      }
+    } else if (id === 'family') {
+      c.spending.push({ label: 'Helping family', category: 'giving', when: 'ages', amount: n(prm.perYear), fromAge: a1 + N, toAge: a1 + N + Math.max(1, n(prm.years)) - 1 });
+    } else if (id === 'windfall') {
+      c.purchases.push({ label: prm.label || 'Windfall (inheritance or gift)', year: y, amount: -Math.abs(n(prm.amount)), repeatEvery: null, until: null });
+    } else if (id === 'purchase') {
+      c.purchases.push({ label: prm.label || 'Big purchase', year: y, amount: n(prm.amount), repeatEvery: has(prm.repeatEvery) && n(prm.repeatEvery) > 0 ? n(prm.repeatEvery) : null, until: null });
+    }
+    return c;
+  }
+  // A short name for a scenario built from ideas, e.g. "New $1.2M home in 3 yrs + Another kid in 1 yr"
+  function ideaLabel(id, prm) {
+    const N = Math.max(1, Math.round(n(prm.inYears) || 1));
+    return ({ kid: `Another kid in ${yrs(N)}`, home: `${short$(n(prm.price))} home in ${yrs(N)}`, move: `Move in ${yrs(N)}`, break: `Career break (${yrs(Math.max(1, n(prm.years)))})`,
+      downsize: `Downsize at ${Math.round(n(prm.atAge))}`, family: `Help family for ${yrs(Math.max(1, n(prm.years)))}`, windfall: `${short$(Math.abs(n(prm.amount)))} windfall`,
+      purchase: `${prm.label || 'Big purchase'} in ${yrs(N)}` })[id] || id;
+  }
+
   return {
     Y0, RUNS, CFG, BUILTIN_CONFIG, n, has, clone, nameOf, cfgNum, assumptionsFrom, DEFAULT_ASSUMPTIONS, QS, PLAN_TO,
-    EXAMPLE, BLANK, TX, realRate, nominalRate, MIXES, mixAssumptions, bracketTax, estimateTaxes, loanPayment, rmdStartAge, rmdShare, shiftRetirement, planDiff, keyResults, milestones, incomeGrows, mulberry32, project, WO_TARGET, workOptional
+    EXAMPLE, BLANK, TX, realRate, nominalRate, MIXES, mixAssumptions, bracketTax, estimateTaxes, loanPayment, rmdStartAge, rmdShare, shiftRetirement, planDiff, keyResults, milestones, incomeGrows, IDEAS, ideaDefaults, applyIdea, ideaLabel, mulberry32, project, WO_TARGET, workOptional
   };
 }
 

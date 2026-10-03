@@ -2,6 +2,15 @@
 
 Bump `VERSION` in `sw.js` with each release.
 
+## v13 — themes, a Settings drawer and life ideas
+- Life ideas in Scenarios: Have another kid, Buy a new home, Move somewhere new, Take a career break, Downsize later, Help family, Windfall, Big purchase. Pick one and it opens as a plain sentence with suggested values (and where each comes from); edit any of them, see the effect live (work-optional age, chance savings last, net worth at plan end, and a line on the chart), then Save as scenario or Apply to my plan (with Undo). "+ Add another idea" stacks several into one scenario. Suggested values live in `config.js` (`lifeIdeas`).
+- Model: loans can start in a future year (`startYear`), and home or other assets can be bought later (`fromYear`) or sold (`sellYear`, the value moves into savings). The plan form shows these fields so applied ideas stay editable.
+- Evals: a whole-scenario check stacks seven ideas on one household and matches an independent year-by-year calculation to the dollar for 41 years; downsizing is checked numerically, including after buying a new home (it sells the new home).
+- Color themes: Lagoon (the original teal), Harbor, Linen and Graphite. Pick one in Settings; it's saved on this device and applied before the page draws. Themes live in `config.js` (`themes`); the evals check every theme for readable contrast, light backgrounds and no purple. Green, coral and amber keep meaning good, bad and caution in every theme.
+- Settings drawer (button top right; icon only on phones): theme swatches; Save a copy, Load a backup, Export projections, Erase my data; Add to home screen (with iPhone steps when needed), Share with friends, Refresh app with the version. Closes with ×, Esc or a tap outside.
+- The header's Install button and the footer's Erase / Refresh links moved into Settings; the footer shows the version and a Settings link.
+- The milestone share image uses the current theme's colors.
+
 ## v12 — inflation, Social Security and pensions
 - Play with it has an Inflation slider (0–8% in 0.25 steps). With an investment mix, returns follow inflation (as in Assumptions); hand-set returns stay, so higher inflation lowers what's left after it.
 - Percent fields have − / + buttons (0.25 steps; 1 for market ups and downs and withdrawal tax), so decimals work even on phone keyboards without a decimal point.
