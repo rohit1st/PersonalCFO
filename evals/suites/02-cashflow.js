@@ -50,6 +50,21 @@ module.exports = [
     }
   },
   {
+    name: "Income that doesn't rise with inflation stays at the same dollar amount",
+    why: 'Retired, 2.5% inflation. A $30k pension without cost-of-living raises pays $30,000 every year; $20k Social Security rises to $20k × 1.025^10 by year 10; a pension marked "rises with inflation" rises too.',
+    run() {
+      const s = flat({ people: { p1: { name: 'A', age: 70, retireAge: 60, planToAge: 95 } }, assets: [asset('nonretirement', 1e6)],
+        income: [{ label: 'Pension', type: 'pension', owner: 'p1', amount: 30000, startAge: null, endAge: null },
+                 { label: 'SS', type: 'benefit', owner: 'p1', amount: 20000, startAge: null, endAge: null }],
+        assumptions: { inflation: 2.5, nonReturn: 0 } });
+      const r = M.project(s, 20);
+      const c = M.clone(s); c.income[0].cola = true;
+      const r2 = M.project(c, 20);
+      return [approx(r.inc[10], 30000 + 20000 * Math.pow(1.025, 10)), approx(r2.inc[10], 50000 * Math.pow(1.025, 10)),
+        truthy(M.incomeGrows({ type: 'benefit' }) && !M.incomeGrows({ type: 'pension' }) && M.incomeGrows({ type: 'pension', cola: true }) && !M.incomeGrows({ type: 'benefit', cola: false }), 'defaults wrong: Social Security should rise, pensions not, unless set')];
+    }
+  },
+  {
     name: 'Social Security starts at its age and keeps up with inflation',
     why: '$30k at 67 in today\'s dollars → first paid at t = 7, worth $30k × 1.025^7.',
     run() {

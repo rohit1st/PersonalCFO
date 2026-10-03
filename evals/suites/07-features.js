@@ -49,6 +49,17 @@ module.exports = [
     }
   },
   {
+    name: 'Scenario details: switching an income\'s "rises with inflation" shows, and an unset default does not',
+    why: 'A pension with no setting and one explicitly set to No are the same (pensions default to No); setting Yes is a change.',
+    run() {
+      const base = M.EXAMPLE(); base.income.push({ label: 'Pension', type: 'pension', owner: 'p1', amount: 20000, startAge: 65, endAge: null });
+      const same = M.clone(base); same.income[same.income.length - 1].cola = false;
+      const yes = M.clone(base); yes.income[yes.income.length - 1].cola = true;
+      const d1 = M.planDiff(base, same), d2 = M.planDiff(base, yes);
+      return [truthy(d1.length === 0, `unexpected: ${d1.map(x => x.label).join('; ')}`), truthy(d2.length === 1 && /rises with inflation/.test(d2[0].label), `got: ${d2.map(x => x.label).join('; ')}`, d2[0] && d2[0].label)];
+    }
+  },
+  {
     name: 'Scenario details: moving retirement with the slider shows the salary end age it moved too',
     why: 'Coast FIRE couple, 2 years sooner: both retirement ages and both last salaries\' end ages change (4 rows).',
     run() {

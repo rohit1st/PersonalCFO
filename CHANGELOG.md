@@ -2,6 +2,15 @@
 
 Bump `VERSION` in `sw.js` with each release.
 
+## v12 — inflation, Social Security and pensions
+- Play with it has an Inflation slider (0–8% in 0.25 steps). With an investment mix, returns follow inflation (as in Assumptions); hand-set returns stay, so higher inflation lowers what's left after it.
+- Percent fields have − / + buttons (0.25 steps; 1 for market ups and downs and withdrawal tax), so decimals work even on phone keyboards without a decimal point.
+- Social Security is no longer charged state tax by default (most states don't tax it); `taxes.stateTaxesSocialSecurity` in config.js turns it back on.
+- Income types: Social Security and "Pension or annuity" are now separate. Pensions are fully taxable (federal and state); half of Social Security counts federally.
+- Each non-salary income has "Rises with inflation each year": on for Social Security and other income, off by default for pensions (many have no cost-of-living raise).
+- How the projection works explains that best, mid and worst differ only in market returns.
+- Golden results updated: retirees no longer pay state tax on Social Security (e.g. the retired single household's tax this year $750 → $0; chances of lasting up 0.3–2.6 points; work-optional ages unchanged).
+
 ## v11 — simpler results, quick start steps
 - Quick start shows "Step 3 of 7" next to the progress bar (the welcome screen isn't numbered; it promises seven questions).
 - The four key result tiles are above the chart again, with the chart card (chart, then Play with it) below them.

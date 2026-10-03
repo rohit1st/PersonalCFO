@@ -324,7 +324,7 @@ mark.bad{background:linear-gradient(transparent 58%,var(--coral-soft) 58%)}
 .chip{border:0;border-radius:999px;padding:5px 12px;font-size:.8rem;background:var(--well);color:var(--ink);cursor:pointer;box-shadow:inset 0 0 0 1px var(--line)}
 .chip:hover{background:var(--teal-soft)}
 .chip[aria-pressed="true"]{background:var(--teal-deep);color:#fff;box-shadow:none}
-.sliders{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 22px}
+.sliders{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 26px}
 .sl label{display:flex;justify-content:space-between;gap:8px;font-size:.82rem;color:var(--muted);margin-bottom:2px}
 .sl output{color:var(--ink);font-weight:600;white-space:nowrap}
 .sl input[type=range]{width:100%;accent-color:var(--teal-deep);height:28px;margin:0}
@@ -402,6 +402,11 @@ body.qs-open .mobilebar{display:none}
 .real-note{margin:4px 0 0;font-size:.78rem;color:var(--muted)}
 .real-note b{color:var(--ink);font-weight:600}
 .real-note.warn{color:var(--amber-deep)}
+.row .check.cola{margin-top:8px;font-size:.84rem}
+.inp .stp{flex:none;width:26px;height:26px;margin-left:4px;border:0;border-radius:6px;background:var(--well);color:var(--teal-deep);font:600 1rem/1 var(--font);cursor:pointer;display:grid;place-items:center;padding:0}
+.inp .stp:first-of-type{margin-left:8px}
+.inp .stp:hover{background:var(--teal-soft)}
+.inp input{min-width:0}
 
 /* ---------- Share and erase ---------- */
 .top-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -542,6 +547,7 @@ body.qs-open .mobilebar{display:none}
           <div class="sl"><label for="plRetire">Retire at <output id="plRetireOut"></output></label><input type="range" id="plRetire" min="30" max="80" step="1"></div>
           <div class="sl"><label for="plSpend">Yearly spending <output id="plSpendOut"></output></label><input type="range" id="plSpend" min="-30" max="30" step="5" value="0"></div>
           <div class="sl"><label for="plRet">Market returns <output id="plRetOut"></output></label><input type="range" id="plRet" min="-3" max="2" step="0.5" value="0"></div>
+          <div class="sl"><label for="plInfl">Inflation <output id="plInflOut"></output></label><input type="range" id="plInfl" min="0" max="8" step="0.25"></div>
         </div>
         <div class="play-result" id="playResult" hidden></div>
       </div>
@@ -576,6 +582,7 @@ body.qs-open .mobilebar{display:none}
       <p><b>Required withdrawals (RMDs).</b> From age 73 (75 if born in 1960 or later), the IRS requires a minimum to come out of pre-tax retirement accounts every year: last year-end's balance divided by a factor from the IRS Uniform Lifetime Table, about 3.8% at 73 and rising with age. The planner takes it each year for each person, taxes it at your withdrawal rate, uses it for that year's spending first and adds anything left over to non-retirement savings. If one partner's plan ends first, the other takes over their accounts. Roth accounts have no required withdrawals. It's simplified: withdrawals don't push the tax estimate into higher brackets, and there's no still-working exception.</p>
       <p>Loans are paid down month by month: each month interest is added at the yearly rate divided by 12, then the monthly payment is taken off, so payoff dates match a normal amortization schedule. If you give a paid-off year without a payment, the planner calculates the payment that clears the loan that year.</p>
       <p>To get best, mid and worst cases, the planner simulates 1,000 market paths every time an input changes. In each path, every year gets a random return drawn around your typical return, spread out by the market ups and downs you set (the same draw applies to retirement and non-retirement accounts, since they're in the same market). For each year it then ranks the 1,000 net worths: the best case is the 90th percentile, the mid case is the median, and the worst case is the 10th percentile. The random numbers use a fixed seed, so the same inputs always give the same answer, which keeps scenario comparisons fair.<span id="runNote"></span> "Savings last in X% of markets" is the share of the 1,000 paths in which savings never run out.</p>
+      <p><b>What changes between best, mid and worst?</b> Only market returns. Inflation, Social Security, pensions, spending and taxes follow your assumptions the same way in every simulated market, so the worst case means poor investment years, not high inflation. To see higher inflation, use the Inflation slider in Play with it or change it under Assumptions. Social Security rises with inflation every year, like its cost-of-living raise; pensions and annuities only rise if you tick "Rises with inflation". Half of Social Security counts for federal tax, and it isn't charged state tax, since most states don't tax it.</p>
       <p><b>Privacy.</b> Your plan is saved automatically in this browser's storage on this device, and nowhere else. The page carries a security rule that tells the browser to block any attempt to send data over the network, so even the planner itself couldn't upload your numbers if it tried. Use Save a copy to keep a backup file or move your plan to another device.</p>
       <p><b>Work-optional age</b> is the earliest age at which your savings would last the whole plan in at least 85 of 100 simulated markets, if you stopped working then (partners shift by the same number of years, and so does the end of each person's last salary, like a lower-paying job before retiring). Items marked Estimated are starting guesses from quick start; edit them to make them yours. The Social Security guess is very rough (a share of your pay, within set limits), so look up your real estimate at ssa.gov.</p>
       <p>"Savings last" means there was always enough in savings and retirement accounts to cover the year. This is a simplified model for planning conversations, not tax or investment advice.</p>
@@ -657,7 +664,7 @@ body.qs-open .mobilebar{display:none}
 
 // The projection model (math only, no page code) lives in model.js, so it can be tested on its own (see evals/).
 const M = NWPModel.create(window.PLANNER_CONFIG, { year: new Date().getFullYear() });
-const { Y0, RUNS, CFG, n, has, clone, nameOf, cfgNum, DEFAULT_ASSUMPTIONS, QS, PLAN_TO, EXAMPLE, BLANK, TX, estimateTaxes, loanPayment, project, WO_TARGET, workOptional, shiftRetirement, realRate, MIXES, mixAssumptions, planDiff, keyResults, milestones } = M;
+const { Y0, RUNS, CFG, n, has, clone, nameOf, cfgNum, DEFAULT_ASSUMPTIONS, QS, PLAN_TO, EXAMPLE, BLANK, TX, estimateTaxes, loanPayment, project, WO_TARGET, workOptional, shiftRetirement, realRate, MIXES, mixAssumptions, planDiff, keyResults, milestones, incomeGrows } = M;
 const SC_COLORS = ['#5E7A8A', '#C0902A', '#3F8F86', '#9A7B63'];
 const PLAY_COLOR = '#B86E1F';
 
@@ -723,17 +730,19 @@ function fld(path, label, kind = 'text', o = {}) {
   }
   const pre = kind === 'money' ? '<span class="pre">$</span>' : '';
   const suf = kind === 'pct' ? '<span class="suf">%</span>' : (o.suf ? `<span class="suf">${esc(o.suf)}</span>` : '');
+  // Percent fields get − / + buttons, so decimals work even on keyboards without a decimal point
+  const stp = kind === 'pct' && o.step !== 0 ? (d => `<button type="button" class="stp" data-stp="-${d}" data-for="${id}" aria-label="Lower ${esc(label)} by ${d}">−</button><button type="button" class="stp" data-stp="${d}" data-for="${id}" aria-label="Raise ${esc(label)} by ${d}">+</button>`)(o.step || 0.25) : '';
   const lab = o.info
     ? `<div class="lrow"><label for="${id}">${esc(label)}</label><button type="button" class="info" aria-label="About ${esc(label)}" aria-expanded="false" aria-controls="${id}_tip">i</button><div class="info-pop" role="tooltip" id="${id}_tip">${o.info}</div></div>`
     : `<label for="${id}">${esc(label)}</label>`;
-  return `<div class="fld ${cls}${o.info ? ' has-info' : ''}">${lab}<div class="inp">${pre}<input id="${id}" type="text" inputmode="${kind === 'text' ? 'text' : 'decimal'}" data-path="${path}" data-kind="${kind}" value="${esc(fmtInput(v, kind))}" placeholder="${esc(o.ph || '')}" autocomplete="off"${o.disabled ? ' disabled' : ''}>${suf}</div></div>`;
+  return `<div class="fld ${cls}${o.info ? ' has-info' : ''}">${lab}<div class="inp">${pre}<input id="${id}" type="text" inputmode="${kind === 'text' ? 'text' : 'decimal'}" data-path="${path}" data-kind="${kind}" value="${esc(fmtInput(v, kind))}" placeholder="${esc(o.ph || '')}" autocomplete="off"${o.disabled ? ' disabled' : ''}>${suf}${stp}</div></div>`;
 }
 // Default labels built from household names
 const whoName = o => o === 'joint' ? null : nm(o);
 function incomeLabel(i) {
   const w = whoName(i.owner || 'p1');
-  const kind = { salary: 'salary', benefit: 'Social Security', other: 'other income' }[i.type] || 'income';
-  return w ? `${w}'s ${kind}` : ({ salary: 'Household salary', benefit: 'Household pension', other: 'Household income' }[i.type] || 'Household income');
+  const kind = { salary: 'salary', benefit: 'Social Security', pension: 'pension', other: 'other income' }[i.type] || 'income';
+  return w ? `${w}'s ${kind}` : ({ salary: 'Household salary', benefit: 'Household Social Security', pension: 'Household pension', other: 'Household income' }[i.type] || 'Household income');
 }
 function assetLabel(a) {
   if (a.kind === 'nonretirement') return 'Savings';
@@ -752,7 +761,7 @@ function renameEverywhere(oldName, newName) {
   inputsEl.querySelectorAll('input[data-path$=".label"]').forEach(el => { el.value = getPath(state, el.dataset.path) || ''; });
 }
 const payPh = l => (!(has(l.monthlyPayment) && n(l.monthlyPayment) > 0) && has(l.endYear) && n(l.balance) > 0) ? `${Math.round(loanPayment({ ...l, monthlyPayment: null })).toLocaleString('en-US')} calculated` : '';
-const TAX_INFO = `<p>Leave blank to estimate automatically: ${esc(String(cfgNum((CFG.taxes || {}).taxYear, '')))} federal brackets and standard deduction, Social Security and Medicare, plus your state rate. Pre-tax retirement contributions lower the estimate, and part of Social Security and pension income is counted.</p><p>Or enter one overall rate that covers all taxes on your pay.</p>`;
+const TAX_INFO = `<p>Leave blank to estimate automatically: ${esc(String(cfgNum((CFG.taxes || {}).taxYear, '')))} federal brackets and standard deduction, Social Security and Medicare, plus your state rate. Pre-tax retirement contributions lower the estimate. Half of Social Security counts for federal tax${TX.stateTaxesSocialSecurity ? ' and state tax' : ', and it isn\'t charged state tax (most states don\'t)'}; pensions and annuities count in full.</p><p>Or enter one overall rate that covers all taxes on your pay.</p>`;
 const SS_ROUGH = `Rough guess: about ${cfgNum(QS.socialSecurityPercentOfPay, 40)}% of pay, kept between ${'$' + cfgNum(QS.socialSecurityMin, 12000).toLocaleString('en-US')} and ${'$' + cfgNum(QS.socialSecurityMax, 45000).toLocaleString('en-US')} a year. Your real benefit depends on your whole work history; look up your estimate at ssa.gov and enter it here.`;
 // "≈ 2.9% after inflation" under each return, with a gentle note when a market return looks unusual
 const REAL_NOTE = CFG.returnAfterInflationNote || {};
@@ -857,11 +866,11 @@ function renderInputs() {
       </div></div>`).join('')}</div>
     ${addBtn('liabilities', 'Add a loan or debt')}`;
 
-  const typeOpts = [['salary', 'Salary'], ['benefit', 'Social Security or pension'], ['other', 'Other income']];
+  const typeOpts = [['salary', 'Salary'], ['benefit', 'Social Security'], ['pension', 'Pension or annuity'], ['other', 'Other income']];
   const income = `
     ${s.incomeBasis === 'net'
       ? `<div class="legacy-note"><p>This plan was made with an older version that used take-home pay. Switch to pay before taxes to get automatic tax estimates.</p><button type="button" class="btn small" data-convert-gross>Switch to pay before taxes</button></div>`
-      : `<p class="hint">Enter pay before taxes. The planner estimates federal, Social Security, Medicare and state taxes for you (see Assumptions). Salaries stop at retirement, or sooner if you set an end age. Planning a lower-paying job before you retire? Add it as a second salary with a From age; the Retire at slider moves its end along with your retirement. For paid work after retiring, use Other income. Other income is in today's dollars and keeps up with inflation.</p>`}
+      : `<p class="hint">Enter pay before taxes. The planner estimates federal, Social Security, Medicare and state taxes for you (see Assumptions). Social Security rises with inflation each year, like its yearly cost-of-living raise, and isn't charged state tax${TX.stateTaxesSocialSecurity ? ' unless your state taxes it' : ''}. Many pensions don't get raises, so "Rises with inflation" starts off for them; tick it if yours does. Salaries stop at retirement, or sooner if you set an end age. Planning a lower-paying job before you retire? Add it as a second salary with a From age; the Retire at slider moves its end along with your retirement. For paid work after retiring, use Other income. Other income is in today's dollars and keeps up with inflation.</p>`}
     <div data-list="income">${s.income.map((i, k) => {
       const sal = i.type === 'salary';
       return `<div class="row">${rmBtn('income', k, i.label || 'income')}${estChip('income', k, i)}<div class="grid">
@@ -871,7 +880,7 @@ function renderInputs() {
         ${fld(`income.${k}.amount`, 'Per year', 'money', { cls: 's4' })}
         ${fld(`income.${k}.startAge`, 'From age', 'int', { ph: sal ? 'now' : 'e.g. 67', cls: 's4' })}
         ${fld(`income.${k}.endAge`, 'Until age', 'int', { ph: sal ? 'retirement' : 'for life', cls: 's4' })}
-      </div>${i.est && i.type === 'benefit' ? `<p class="row-note" data-est="income.${k}">${esc(SS_ROUGH)}</p>` : ''}</div>`;
+      </div>${sal ? '' : `<label class="check cola"><input type="checkbox" data-path="income.${k}.cola" data-kind="check"${incomeGrows(i) ? ' checked' : ''}> <span>Rises with inflation each year</span></label>`}${i.est && i.type === 'benefit' ? `<p class="row-note" data-est="income.${k}">${esc(SS_ROUGH)}</p>` : ''}</div>`;
     }).join('')}</div>
     ${addBtn('income', 'Add income')}
     <div class="totals" id="incomeTotals"></div>
@@ -926,13 +935,13 @@ function renderInputs() {
       ${withReal('retReturn', 'Retirement account return')}
       ${withReal('nonReturn', 'Non-retirement return')}
       ${withReal('otherGrowth', 'Home and other growth')}
-      ${fld('assumptions.volatility', 'Market ups and downs', 'pct', { cls: 's6', info: VOL_INFO })}
+      ${fld('assumptions.volatility', 'Market ups and downs', 'pct', { cls: 's6', info: VOL_INFO, step: 1 })}
       ${fld('assumptions.inflation', 'Inflation', 'pct', { cls: 's6' })}
       ${fld('assumptions.earningsGrowth', 'Salary growth', 'pct', { cls: 's6' })}
       ${fld('assumptions.eduInflation', 'College cost inflation', 'pct', { cls: 's6' })}
-      ${fld('assumptions.withdrawalTax', 'Tax on retirement withdrawals', 'pct', { cls: 's6' })}
+      ${fld('assumptions.withdrawalTax', 'Tax on retirement withdrawals', 'pct', { cls: 's6', step: 1 })}
       ${fld('assumptions.stateTax', 'State and local income tax', 'pct', { cls: 's6' })}
-      ${fld('assumptions.payTaxRate', 'Taxes on pay', 'pct', { cls: 's6', ph: 'auto', info: TAX_INFO })}
+      ${fld('assumptions.payTaxRate', 'Taxes on pay', 'pct', { cls: 's6', ph: 'auto', info: TAX_INFO, step: 0 })}
     </div>
 `;
 
@@ -1087,6 +1096,13 @@ function convertToGross() {
 }
 inputsEl.addEventListener('click', e => {
   if (e.target.closest('[data-convert-gross]')) { convertToGross(); return; }
+  const stpBtn = e.target.closest('[data-stp]');
+  if (stpBtn) {
+    const el = document.getElementById(stpBtn.dataset.for), cur = parseFloat(String(el.value).replace(/,/g, '.'));
+    el.value = String(Math.max(0, Math.round(((Number.isFinite(cur) ? cur : 0) + +stpBtn.dataset.stp) * 100) / 100));
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    return;
+  }
   const info = e.target.closest('.info');
   if (info) { closeInfo(info); info.setAttribute('aria-expanded', String(info.getAttribute('aria-expanded') !== 'true')); return; }
   const add = e.target.closest('[data-add]');
@@ -1911,12 +1927,14 @@ async function shareMilestone() {
 }
 
 /* ---------- Play with it ---------- */
-const play = { retire: null, spend: 0, ret: 0 };
-function playActive() { return (play.retire !== null && play.retire !== n(state.people.p1.retireAge)) || play.spend !== 0 || play.ret !== 0; }
+const play = { retire: null, spend: 0, ret: 0, infl: null };
+function playActive() { return (play.retire !== null && play.retire !== n(state.people.p1.retireAge)) || play.spend !== 0 || play.ret !== 0 || (play.infl !== null && play.infl !== n(state.assumptions.inflation)); }
 function applyPlay(s) {
   // Moving retirement also moves partners and the end of each person's last salary (see shiftRetirement in model.js)
   const c = play.retire !== null ? shiftRetirement(s, play.retire - n(s.people.p1.retireAge)) : clone(s);
   if (play.spend) c.spending.forEach(x => { x.amount = Math.round(n(x.amount) * (1 + play.spend / 100) / 100) * 100; });
+  // Inflation: an investment mix is defined after inflation, so its returns follow (as in Assumptions); hand-set returns stay
+  if (play.infl !== null) { c.assumptions.inflation = play.infl; const mx = mixAssumptions(c.assumptions.mix, play.infl); if (mx) Object.assign(c.assumptions, mx); }
   if (play.ret) { c.assumptions.mix = 'custom'; c.assumptions.retReturn = +(n(c.assumptions.retReturn) + play.ret).toFixed(2); c.assumptions.nonReturn = +(n(c.assumptions.nonReturn) + play.ret).toFixed(2); }
   return c;
 }
@@ -1925,6 +1943,7 @@ function playName() {
   if (play.retire !== null && play.retire !== n(state.people.p1.retireAge)) bits.push(`Retire at ${play.retire}`);
   if (play.spend) bits.push(`spend ${play.spend > 0 ? '+' : '−'}${Math.abs(play.spend)}%`);
   if (play.ret) bits.push(`returns ${play.ret > 0 ? '+' : '−'}${Math.abs(play.ret)} pts`);
+  if (play.infl !== null && play.infl !== n(state.assumptions.inflation)) bits.push(`inflation ${play.infl}%`);
   const t = bits.join(', ');
   return t.charAt(0).toUpperCase() + t.slice(1);
 }
@@ -1940,8 +1959,11 @@ function syncPlay() {
   const pctTxt = play.spend ? ` (${play.spend > 0 ? '+' : '−'}${Math.abs(play.spend)}%)` : '';
   $('#plSpendOut').textContent = `${money(now * (1 + play.spend / 100))}/year${pctTxt}`;
   $('#plRet').value = play.ret;
-  const rNow = +(n(state.assumptions.retReturn) + play.ret).toFixed(1), pts = Math.abs(play.ret);
-  $('#plRetOut').textContent = `${rNow}%${play.ret ? ` (${play.ret > 0 ? '+' : '−'}${pts} ${pts === 1 ? 'pt' : 'pts'})` : ''}, ≈${pct1(realRate(rNow, state.assumptions.inflation))}% after inflation`;
+  const eff = applyPlay(state).assumptions, rNow = +n(eff.retReturn).toFixed(1), pts = Math.abs(play.ret);
+  $('#plRetOut').textContent = `${rNow}%${play.ret ? ` (${play.ret > 0 ? '+' : '−'}${pts} ${pts === 1 ? 'pt' : 'pts'})` : ''}, ≈${pct1(realRate(rNow, eff.inflation))}% after inflation`;
+  const baseInfl = n(state.assumptions.inflation), inf = play.infl === null ? baseInfl : play.infl, di = Math.round((inf - baseInfl) * 100) / 100;
+  $('#plInfl').value = inf;
+  $('#plInflOut').textContent = `${inf}%${di ? ` (${di > 0 ? '+' : '−'}${Math.abs(di)} pt${Math.abs(di) === 1 ? '' : 's'})` : ''}`;
   $('#play').hidden = current.empty;
 }
 let playTimer = null;
@@ -1951,7 +1973,7 @@ function computePlay() {
   playRes = project(ps); playRes.wo = workOptional(ps);
 }
 function refreshPlay() { computePlay(); renderPlayResult(); renderLegend(); renderChart(); syncPlay(); }
-function clearPlay() { play.retire = null; play.spend = 0; play.ret = 0; playRes = null; }
+function clearPlay() { play.retire = null; play.spend = 0; play.ret = 0; play.infl = null; playRes = null; }
 function renderPlayResult() {
   const el = $('#playResult');
   if (!playRes) { el.hidden = true; el.innerHTML = ''; return; }
@@ -1969,6 +1991,7 @@ function renderPlayResult() {
 $('#play').addEventListener('input', e => {
   const id = e.target.id;
   if (id === 'plRetire') play.retire = +e.target.value;
+  else if (id === 'plInfl') play.infl = +e.target.value;
   else if (id === 'plSpend') play.spend = +e.target.value;
   else if (id === 'plRet') play.ret = +e.target.value;
   else return;

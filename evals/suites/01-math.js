@@ -3,7 +3,7 @@
   These must always pass (severity: hard).
 */
 'use strict';
-const { M, flat, plan, retired, asset, spendAlways, approx, truthy } = require('../lib');
+const { M, NWPModel, CONFIG, YEAR, flat, plan, retired, asset, spendAlways, approx, truthy } = require('../lib');
 
 const ESTIMATE = (o) => M.estimateTaxes({ other: 0, benefits: 0, pretax: 0, stateRate: 0.05, ...o });
 
@@ -111,9 +111,23 @@ module.exports = [
     }
   },
   {
-    name: 'Taxes: benefits are half-counted, and no payroll tax on them',
-    why: 'Married, $60k Social Security only: half ($30k) is below the $32,200 deduction, so only state tax ($1,500).',
-    run() { return approx(M.estimateTaxes({ wages: [0], other: 0, benefits: 60000, pretax: 0, filing: 'joint', stateRate: 0.05 }), 1500, { abs: 0.01 }); }
+    name: 'Taxes: Social Security is half-counted federally, with no payroll tax and (by default) no state tax',
+    why: 'Married, $60k Social Security only: half ($30k) is below the $32,200 deduction, and most states don\'t tax Social Security, so $0.',
+    run() { return approx(M.estimateTaxes({ wages: [0], other: 0, benefits: 60000, pretax: 0, filing: 'joint', stateRate: 0.05 }), 0, { abs: 0.01 }); }
+  },
+  {
+    name: 'Taxes: owners in a state that taxes Social Security can switch it on in config.js',
+    why: 'Same household with taxes.stateTaxesSocialSecurity: true → 5% of the taxable half ($30k) = $1,500.',
+    run() {
+      const cfg = { ...CONFIG, taxes: { ...CONFIG.taxes, stateTaxesSocialSecurity: true } };
+      const M2 = NWPModel.create(cfg, { year: YEAR });
+      return approx(M2.estimateTaxes({ wages: [0], other: 0, benefits: 60000, pretax: 0, filing: 'joint', stateRate: 0.05 }), 1500, { abs: 0.01 });
+    }
+  },
+  {
+    name: 'Taxes: pensions and annuities are fully taxable, federal and state, with no payroll tax',
+    why: 'Single, $40k pension, 5% state: federal on $40k − $16,100 = $23,900 → $1,240 + 12% × $11,500 = $2,620; state $2,000; total $4,620.',
+    run() { return approx(M.estimateTaxes({ wages: [0], other: 0, benefits: 0, pensions: 40000, pretax: 0, filing: 'single', stateRate: 0.05 }), 4620, { abs: 0.01 }); }
   },
   {
     name: 'After inflation: 6% before inflation with 3% inflation leaves about 2.91%',

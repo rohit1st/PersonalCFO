@@ -51,6 +51,7 @@ function create(userConfig, opts) {
     // "What's new" note shown once to people who already use the planner, after an update. Newest first.
     // Add one for every release, with version matching VERSION in sw.js (the evals check this). Keep it short and friendly.
     whatsNew: [
+      { version: 'v12', note: "You asked, we fixed 🛠️ Try an Inflation slider, −/+ buttons for decimals, and no state tax on Social Security. Pensions can skip raises." },
       { version: 'v11', note: "Cleaner still 🧹 Your key numbers are back on top, the sliders are simpler, and quick start shows which step you're on." },
       { version: 'v10', note: "A tidier look ✨ Your chart comes first, and your work-optional age now sits with your key numbers underneath." },
       { version: 'v9', note: "Milestones on your chart 🏁, a Share button, and smoother updates. If the planner ever seems stuck, tap Refresh app at the bottom." },
@@ -91,7 +92,8 @@ function create(userConfig, opts) {
       medicareRate: 1.45,
       additionalMedicareRate: 0.9,
       additionalMedicareThreshold: { single: 200000, joint: 250000 },
-      taxableShareOfBenefits: 50        // share of Social Security and pension income counted as taxable
+      taxableShareOfBenefits: 50,       // share of Social Security counted as taxable (pensions and annuities are fully taxable)
+      stateTaxesSocialSecurity: false   // most states don't tax Social Security; set true if yours does
     },
   
     // Required minimum distributions (RMDs) from pre-tax retirement accounts. Roth accounts have none.
@@ -200,7 +202,7 @@ function create(userConfig, opts) {
   const OWNER = { you: 'p1', partner: 'p2', joint: 'joint' };
   const WHEN = { always: 'always', before_retirement: 'pre', in_retirement: 'ret', between_ages: 'ages' };
   const ASSET_KIND = { retirement: 'retirement', non_retirement: 'nonretirement', home_or_other: 'other' };
-  const INCOME_TYPE = { salary: 'salary', social_security: 'benefit', pension: 'benefit', other: 'other' };
+  const INCOME_TYPE = { salary: 'salary', social_security: 'benefit', pension: 'pension', other: 'other' };
   const EXAMPLE = () => {
     const e = CFG.example || {}, you = e.you || {}, pt = e.partner;
     const person = (x, def) => ({ name: x.name || '', age: cfgNum(x.age, def), retireAge: cfgNum(x.retireAge, 65), planToAge: cfgNum(x.planUntilAge, PLAN_TO) });
@@ -262,9 +264,11 @@ function create(userConfig, opts) {
   }
   // All amounts in today's dollars. wages: pay per person; other: other taxable income; benefits: Social Security and pensions;
   // pretax: retirement contributions taken from pay. Returns federal + Social Security/Medicare + state tax.
-  function estimateTaxes({ wages, other, benefits, pretax, filing, stateRate }) {
-    const w = wages.reduce((a, b) => a + b, 0);
-    const agi = Math.max(0, w + other + benefits * cfgNum(TX.taxableShareOfBenefits, 50) / 100 - pretax);
+  // benefits: Social Security (partly taxable federally; state tax only if config says so). pensions: fully taxable.
+  function estimateTaxes({ wages, other, benefits, pensions = 0, pretax, filing, stateRate }) {
+    const w = wages.reduce((a, b) => a + b, 0), ss = benefits * cfgNum(TX.taxableShareOfBenefits, 50) / 100;
+    const agi = Math.max(0, w + other + pensions + ss - pretax);
+    const stateBase = TX.stateTaxesSocialSecurity ? agi : Math.max(0, w + other + pensions - pretax);
     const std = (TX.standardDeduction && TX.standardDeduction[filing]) || 0;
     const fed = bracketTax(Math.max(0, agi - std), filing);
     const base = cfgNum(TX.socialSecurityWageBase, Infinity);
@@ -272,8 +276,11 @@ function create(userConfig, opts) {
     for (const x of wages) fica += Math.min(x, base) * cfgNum(TX.socialSecurityRate, 6.2) / 100 + x * cfgNum(TX.medicareRate, 1.45) / 100;
     const thr = (TX.additionalMedicareThreshold && TX.additionalMedicareThreshold[filing]) || Infinity;
     fica += Math.max(0, w - thr) * cfgNum(TX.additionalMedicareRate, 0.9) / 100;
-    return fed + fica + agi * stateRate;
+    return fed + fica + stateBase * stateRate;
   }
+  // Does this income rise with inflation each year? Social Security and other income do unless set otherwise;
+  // pensions and annuities don't (many have no cost-of-living raise) unless set.
+  const incomeGrows = i => (i.cola === true || i.cola === false ? i.cola : i.type !== 'pension');
 
   /* ---------- Required minimum distributions ---------- */
   const RMD = CFG.requiredWithdrawals || {};
@@ -377,11 +384,11 @@ function create(userConfig, opts) {
     const stateRate = n(A.stateTax) / 100, flatRate = has(A.payTaxRate) ? n(A.payTaxRate) / 100 : null;
     function money_in(t) {
       const f = Math.pow(1 + infl, t), wages = { p1: 0, p2: 0, joint: 0 };
-      let other = 0, ben = 0, you = 0, emp = 0, pre = 0, roth = 0, into2 = 0;
+      let other = 0, ben = 0, pens = 0, you = 0, emp = 0, pre = 0, roth = 0, into2 = 0;
       for (const i of s.income) {
         if (!incomeActive(i, t)) continue;
-        const amt = n(i.amount) * (i.type === 'salary' ? Math.pow(1 + eg, t) : f);
-        if (i.type === 'salary') wages[i.owner || 'p1'] += amt; else if (i.type === 'benefit') ben += amt; else other += amt;
+        const amt = n(i.amount) * (i.type === 'salary' ? Math.pow(1 + eg, t) : incomeGrows(i) ? f : 1);
+        if (i.type === 'salary') wages[i.owner || 'p1'] += amt; else if (i.type === 'benefit') ben += amt; else if (i.type === 'pension') pens += amt; else other += amt;
       }
       for (const a of s.assets) if (a.kind === 'retirement' && working(a.owner || 'p1', t)) {
         const mine = n(a.contribution) * f, theirs = n(a.employerContribution) * f;
@@ -389,11 +396,11 @@ function create(userConfig, opts) {
         if (a.taxType === 'roth') roth += mine + theirs;
         else { pre += mine; into2 += (mine + theirs) * share2(a.owner || 'p1'); }   // employer money never reduces your taxes
       }
-      const total = wages.p1 + wages.p2 + wages.joint + other + ben;
+      const total = wages.p1 + wages.p2 + wages.joint + other + ben + pens;
       let tx = 0;
       if (grossBasis && total > 0) {
-        if (flatRate !== null) tx = flatRate * (wages.p1 + wages.p2 + wages.joint + other + ben * cfgNum(TX.taxableShareOfBenefits, 50) / 100);
-        else tx = estimateTaxes({ wages: [wages.p1 / f, wages.p2 / f, wages.joint / f], other: other / f, benefits: ben / f, pretax: pre / f, filing, stateRate }) * f;
+        if (flatRate !== null) tx = flatRate * (wages.p1 + wages.p2 + wages.joint + other + pens + ben * cfgNum(TX.taxableShareOfBenefits, 50) / 100);
+        else tx = estimateTaxes({ wages: [wages.p1 / f, wages.p2 / f, wages.joint / f], other: other / f, benefits: ben / f, pensions: pens / f, pretax: pre / f, filing, stateRate }) * f;
       }
       return { total, tax: tx, you, emp, roth, into2 };
     }
@@ -594,7 +601,7 @@ function create(userConfig, opts) {
     ['dependents', 'Kids', 'Dependent', [['name', 'name', 'text'], ['age', 'age', 'age'], ['college', 'college', 'bool'], ['collegeCost', 'college cost per year', 'money'], ['collegeStartAge', 'college starts at', 'age'], ['collegeYears', 'years of college', 'int']]],
     ['assets', 'Assets', 'Asset', [['label', 'name', 'text'], ['kind', 'type', 'enum'], ['owner', 'whose', 'owner'], ['taxType', 'tax treatment', 'enum'], ['balance', 'balance', 'money'], ['contribution', 'you add per year', 'money'], ['employerContribution', 'employer adds per year', 'money']]],
     ['liabilities', 'Loans', 'Loan', [['label', 'name', 'text'], ['balance', 'balance', 'money'], ['rate', 'interest', 'pct'], ['monthlyPayment', 'monthly payment', 'money'], ['endYear', 'paid off by', 'year']]],
-    ['income', 'Income', 'Income', [['label', 'name', 'text'], ['type', 'type', 'enum'], ['owner', 'whose', 'owner'], ['amount', 'per year', 'money'], ['startAge', 'from age', 'age'], ['endAge', 'until age', 'age']]],
+    ['income', 'Income', 'Income', [['label', 'name', 'text'], ['type', 'type', 'enum'], ['owner', 'whose', 'owner'], ['amount', 'per year', 'money'], ['startAge', 'from age', 'age'], ['endAge', 'until age', 'age'], ['cola', 'rises with inflation', 'bool']]],
     ['spending', 'Spending', 'Spending', [['label', 'name', 'text'], ['category', 'category', 'enum'], ['when', 'when', 'enum'], ['amount', 'per year', 'money'], ['fromAge', 'from age', 'age'], ['toAge', 'until age', 'age']]],
     ['purchases', 'Big purchases', 'Purchase', [['label', 'name', 'text'], ['year', 'year', 'year'], ['amount', 'cost', 'money'], ['repeatEvery', 'repeats every (years)', 'int'], ['until', 'repeats until', 'year']]]
   ];
@@ -628,6 +635,7 @@ function create(userConfig, opts) {
         for (const [f, l, k] of fields) {
           if ((f === 'label' || f === 'name')) { cmp(section, `${nameIt(xa[i], i)}: renamed`, `${key}.${i}.${f}`, k, xa[i][f], xb[i][f]); continue; }
           if (f === 'taxType' && (xa[i].kind !== 'retirement' || xb[i].kind !== 'retirement')) continue;
+          if (f === 'cola') { if (xa[i].type !== 'salary' || xb[i].type !== 'salary') cmp(section, `${nameIt(xb[i], i)}: ${l}`, `${key}.${i}.${f}`, k, incomeGrows(xa[i]), incomeGrows(xb[i])); continue; }
           cmp(section, `${nameIt(xb[i], i)}: ${l}`, `${key}.${i}.${f}`, k, xa[i][f], xb[i][f]);
         }
       }
@@ -681,7 +689,7 @@ function create(userConfig, opts) {
 
   return {
     Y0, RUNS, CFG, BUILTIN_CONFIG, n, has, clone, nameOf, cfgNum, assumptionsFrom, DEFAULT_ASSUMPTIONS, QS, PLAN_TO,
-    EXAMPLE, BLANK, TX, realRate, nominalRate, MIXES, mixAssumptions, bracketTax, estimateTaxes, loanPayment, rmdStartAge, rmdShare, shiftRetirement, planDiff, keyResults, milestones, mulberry32, project, WO_TARGET, workOptional
+    EXAMPLE, BLANK, TX, realRate, nominalRate, MIXES, mixAssumptions, bracketTax, estimateTaxes, loanPayment, rmdStartAge, rmdShare, shiftRetirement, planDiff, keyResults, milestones, incomeGrows, mulberry32, project, WO_TARGET, workOptional
   };
 }
 

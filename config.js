@@ -38,6 +38,7 @@ window.PLANNER_CONFIG = {
   // "What's new" note shown once to people who already use the planner, after an update. Newest first.
   // Add one for every release, with version matching VERSION in sw.js (the evals check this). Keep it short and friendly.
   whatsNew: [
+    { version: 'v12', note: "You asked, we fixed 🛠️ Try an Inflation slider, −/+ buttons for decimals, and no state tax on Social Security. Pensions can skip raises." },
     { version: 'v11', note: "Cleaner still 🧹 Your key numbers are back on top, the sliders are simpler, and quick start shows which step you're on." },
     { version: 'v10', note: "A tidier look ✨ Your chart comes first, and your work-optional age now sits with your key numbers underneath." },
     { version: 'v9', note: "Milestones on your chart 🏁, a Share button, and smoother updates. If the planner ever seems stuck, tap Refresh app at the bottom." },
@@ -78,7 +79,8 @@ window.PLANNER_CONFIG = {
     medicareRate: 1.45,
     additionalMedicareRate: 0.9,
     additionalMedicareThreshold: { single: 200000, joint: 250000 },
-    taxableShareOfBenefits: 50        // share of Social Security and pension income counted as taxable
+    taxableShareOfBenefits: 50,       // share of Social Security counted as taxable (pensions and annuities are fully taxable)
+    stateTaxesSocialSecurity: false   // most states don't tax Social Security; set true if yours does
   },
 
   // Required minimum distributions (RMDs) from pre-tax retirement accounts. Roth accounts have none.
