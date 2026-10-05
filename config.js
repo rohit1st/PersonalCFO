@@ -73,6 +73,7 @@ window.PLANNER_CONFIG = {
   // "What's new" note shown once to people who already use the planner, after an update. Newest first.
   // Add one for every release, with version matching VERSION in sw.js (the evals check this). Keep it short and friendly.
   whatsNew: [
+    { version: 'v14', note: "Where did that come from? 🔍 Year by year now has a Required withdrawals column, so you can see RMDs come out of pre-tax accounts after retirement." },
     { version: 'v13', note: "Make it yours 🎨 Color themes in the new Settings drawer, and life ideas in Scenarios: try a new home, another kid or a move." },
     { version: 'v12', note: "You asked, we fixed 🛠️ Try an Inflation slider, −/+ buttons for decimals, and no state tax on Social Security. Pensions can skip raises." },
     { version: 'v11', note: "Cleaner still 🧹 Your key numbers are back on top, the sliders are simpler, and quick start shows which step you're on." },

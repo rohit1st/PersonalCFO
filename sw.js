@@ -1,7 +1,7 @@
 // Net Worth Planner service worker: makes the app work offline.
 // It only caches the app's own files. Your plan is never sent anywhere.
 // When you publish a change, bump VERSION so everyone gets the update.
-const VERSION = 'v13';
+const VERSION = 'v14';
 const CACHE = `net-worth-planner-${VERSION}`;
 const APP_FILES = [
   './',

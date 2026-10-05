@@ -1641,9 +1641,10 @@ function renderScenarios() {
 function renderTable() {
   const res = current, tb = $('#table');
   if (res.empty) { tb.innerHTML = ''; $('#tableHint').textContent = 'Your year-by-year projection will appear here.'; return; }
-  $('#tableHint').textContent = `Shown in ${mode === 'real' ? "today's dollars" : 'future dollars'}. Income is before tax; taxes are estimated. Spending, income and payments are the same in every case; only net worth varies with markets.`;
+  const hasRmd = !!(res.rmd && res.rmd.some(v => v > 0));
+  $('#tableHint').textContent = `Shown in ${mode === 'real' ? "today's dollars" : 'future dollars'}. Income is before tax; taxes are estimated. Spending, income and payments are the same in every case; only net worth${hasRmd ? ' and required withdrawals (mid case, taken from pre-tax accounts and taxed at your withdrawal rate) vary' : ' varies'} with markets.`;
   const D = (v, t) => disp(v, t, res);
-  let h = `<thead><tr><th>Year</th><th>${res.two ? 'Ages' : 'Age'}</th><th class="n">Income</th><th class="n">Taxes</th><th class="n">Spending</th><th class="n">Debt payments</th><th class="n">College and purchases</th><th class="n">Worst case</th><th class="n">Mid case</th><th class="n">Best case</th><th>Notes</th></tr></thead><tbody>`;
+  let h = `<thead><tr><th>Year</th><th>${res.two ? 'Ages' : 'Age'}</th><th class="n">Income</th>${hasRmd ? '<th class="n">Required withdrawals</th>' : ''}<th class="n">Taxes</th><th class="n">Spending</th><th class="n">Debt payments</th><th class="n">College and purchases</th><th class="n">Worst case</th><th class="n">Mid case</th><th class="n">Best case</th><th>Notes</th></tr></thead><tbody>`;
   for (let t = 0; t <= res.H; t++) {
     const cell = v => `<td class="n${v < -0.5 ? ' neg' : ''}">${money(v)}</td>`;
     const blank = '<td class="n">–</td>';
@@ -1651,7 +1652,7 @@ function renderTable() {
     h += `<tr class="${t === res.retireT && t > 0 ? 'ret' : ''}">
       <td>${t === 0 ? 'Now' : Y0 + t}</td>
       <td>${res.a1 + t}${res.two ? ' / ' + (res.a2 + t) : ''}</td>
-      ${t === 0 ? blank + blank + blank + blank + blank : cell(D(res.inc[t], t)) + cell(D(res.taxes[t], t)) + cell(D(res.spend[t], t)) + cell(D(res.debtPay[t], t)) + cell(D(res.special[t], t))}
+      ${t === 0 ? blank.repeat(hasRmd ? 6 : 5) : cell(D(res.inc[t], t)) + (hasRmd ? cell(D(res.rmd[t], t)) : '') + cell(D(res.taxes[t], t)) + cell(D(res.spend[t], t)) + cell(D(res.debtPay[t], t)) + cell(D(res.special[t], t))}
       ${cell(D(res.p10[t], t))}<td class="n mid${res.p50[t] < -0.5 ? ' neg' : ''}">${money(D(res.p50[t], t))}</td>${cell(D(res.p90[t], t))}
       <td class="notes">${[...res.events[t], outOfMoney ? 'Mid case savings used up' : ''].filter(Boolean).map(esc).join(', ')}</td></tr>`;
   }
@@ -1967,11 +1968,11 @@ $('#btnExport').addEventListener('click', async () => {
   const unit = mode === 'real' ? "today's dollars" : 'future dollars';
   const all = [current, ...scenarios.map(sc => sc.res)];
   const cats = SPEND_CATS.filter(([c]) => all.some(r => r.catSpend && r.catSpend[c]));
-  const rows = [['scenario', 'year', 'age_partner_1', 'age_partner_2', 'income', 'taxes', 'retirement_saving_from_pay', 'spending', ...cats.map(([, l]) => 'spending_' + l.toLowerCase().replace(/\W+/g, '_')), 'debt_payments', 'college_and_purchases', 'net_worth_worst', 'net_worth_mid', 'net_worth_best', 'savings_mid', 'notes', 'dollars']];
+  const rows = [['scenario', 'year', 'age_partner_1', 'age_partner_2', 'income', 'required_withdrawals_mid', 'taxes', 'retirement_saving_from_pay', 'spending', ...cats.map(([, l]) => 'spending_' + l.toLowerCase().replace(/\W+/g, '_')), 'debt_payments', 'college_and_purchases', 'net_worth_worst', 'net_worth_mid', 'net_worth_best', 'savings_mid', 'notes', 'dollars']];
   const add = (name, res) => {
     for (let t = 0; t <= res.H; t++) {
       const D = v => Math.round(disp(v, t, res));
-      rows.push([name, Y0 + t, res.a1 + t, res.two ? res.a2 + t : '', D(res.inc[t]), D(res.taxes[t]), D(res.youC ? res.youC[t] : 0), D(res.spend[t]), ...cats.map(([c]) => D(res.catSpend && res.catSpend[c] ? res.catSpend[c][t] : 0)), D(res.debtPay[t]), D(res.special[t]), D(res.p10[t]), D(res.p50[t]), D(res.p90[t]), D(res.liq50[t]), res.events[t].join('; '), unit]);
+      rows.push([name, Y0 + t, res.a1 + t, res.two ? res.a2 + t : '', D(res.inc[t]), D(res.rmd ? res.rmd[t] : 0), D(res.taxes[t]), D(res.youC ? res.youC[t] : 0), D(res.spend[t]), ...cats.map(([c]) => D(res.catSpend && res.catSpend[c] ? res.catSpend[c][t] : 0)), D(res.debtPay[t]), D(res.special[t]), D(res.p10[t]), D(res.p50[t]), D(res.p90[t]), D(res.liq50[t]), res.events[t].join('; '), unit]);
     }
   };
   add('Your plan', current);

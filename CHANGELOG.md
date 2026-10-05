@@ -2,6 +2,10 @@
 
 Bump `VERSION` in `sw.js` with each release.
 
+## v14 — required withdrawals in Year by year
+- Year by year has a Required withdrawals column next to Income (mid case; shown only when the plan has RMDs), so RMDs are visible each year rather than only in the notes. They stay separate from Income because they come out of your own pre-tax savings and vary with markets. The note above the table says so.
+- Export projections adds a `required_withdrawals_mid` column.
+
 ## v13 — themes, a Settings drawer and life ideas
 - Life ideas in Scenarios: Have another kid, Buy a new home, Move somewhere new, Take a career break, Downsize later, Help family, Windfall, Big purchase. Pick one and it opens as a plain sentence with suggested values (and where each comes from); edit any of them, see the effect live (work-optional age, chance savings last, net worth at plan end, and a line on the chart), then Save as scenario or Apply to my plan (with Undo). "+ Add another idea" stacks several into one scenario. Suggested values live in `config.js` (`lifeIdeas`).
 - Model: loans can start in a future year (`startYear`), and home or other assets can be bought later (`fromYear`) or sold (`sellYear`, the value moves into savings). The plan form shows these fields so applied ideas stay editable.
