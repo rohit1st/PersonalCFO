@@ -2,6 +2,17 @@
 
 Bump `VERSION` in `sw.js` with each release.
 
+## v15 — retirement taxes follow the tax rules, new themes, scenario summaries
+- Scenarios made from life ideas say what they do in plain words, e.g. "Give family $100k at age 50 (2036)" or "Buy a $750k home when Sam is 33 (2029): …". It shows as "In short" while you edit an idea, under the saved scenario's row and at the top of its details (`ideaSummary()` in model.js; kept in backups). Auto names now include an age ("Help family $12k/yr from 31").
+- Themes: Linen is the new default, alongside Harbor and two new ones, Rosewood (dusty rose) and Fjord (petrol blue-green). Lagoon and Graphite are retired; anyone on them moves to Linen. Settings now lists Your plan, This app, then Look and feel.
+- Fix: closing the life-idea composer while one of its fields had focus could throw an error.
+- Pre-tax withdrawals and RMDs are taxed with the year's other income through the federal brackets plus the state rate, instead of a flat 18%. Shortfall withdrawals take enough extra to cover their own tax. Roth and non-retirement withdrawals stay untaxed.
+- Social Security is taxed on the IRS provisional-income formula (0% to 85%), with thresholds fixed in law (not raised for inflation), replacing the flat 50%.
+- People 65 and older get the extra standard deduction ($2,050 single, $1,650 per person married) and, through 2028, the $6,000 senior deduction (minus 6% of income over $75k / $150k).
+- "Tax on withdrawals" under Assumptions is blank (auto) by default; enter a rate to use a flat one. Plans saved earlier drop the old 18% and use the estimate.
+- Year by year's Taxes include tax on withdrawals (mid case); the export splits `taxes_on_income` and `taxes_on_withdrawals_mid`. How the projection works has a new "Taxes in retirement" section.
+- Evals: new suite `11-retiree-taxes` (hand calculations, plus a 29-year retired couple matching an independent calculation to the dollar). Golden results updated: the example's mid case at retirement moves from $3.00M to $2.80M because withdrawals during working years are taxed at their real bracket; work-optional age stays 61.
+
 ## v14 — required withdrawals in Year by year
 - Year by year has a Required withdrawals column next to Income (mid case; shown only when the plan has RMDs), so RMDs are visible each year rather than only in the notes. They stay separate from Income because they come out of your own pre-tax savings and vary with markets. The note above the table says so.
 - Export projections adds a `required_withdrawals_mid` column.

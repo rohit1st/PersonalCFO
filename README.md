@@ -33,11 +33,11 @@ Everything you might want to adjust lives in **`config.js`**, with a comment nex
 - **Starting assumptions** for new plans and the example: returns on retirement and non-retirement accounts, inflation, salary growth, college inflation, taxes, market ups and downs.
 - **Investment mixes:** the Mostly stocks / Balanced / Conservative presets under Assumptions (return after inflation and market ups and downs for each), and the range outside which a return gets a gentle note.
 - **Life ideas:** the suggested values used when someone tries an idea in Scenarios (childcare cost, down payment, mortgage rate, moving cost and so on). People can change every one.
-- **Color themes:** the palettes people can pick in Settings (Lagoon, Harbor, Linen, Graphite). Edit or add one by copying an entry; `node evals/run.js` checks it stays readable, light and purple-free.
+- **Color themes:** the palettes people can pick in Settings (Linen, the default, Harbor, Rosewood, Fjord). Edit or add one by copying an entry; `node evals/run.js` checks it stays readable, light and purple-free.
 - **What's new notes:** one short, friendly line per release that people see once after updating. Add one each time you bump `VERSION` in `sw.js` (the evals check they match).
 - **Required withdrawals (RMDs):** start ages and the IRS Uniform Lifetime Table.
 - **Quick start guesses:** default retirement age, college cost, Social Security estimate, spending guess, mortgage rate.
-- **Tax tables:** federal brackets, standard deduction, Social Security wage base. Update these each year.
+- **Tax tables:** federal brackets, standard deduction, Social Security wage base, the extra deduction for people 65 and older, and the 2025–2028 senior deduction (its `lastYear`). Update these each year. The Social Security taxation thresholds ($25k/$34k, $32k/$44k) are fixed in law and don't change.
 - **The example household:** names, ages, accounts, income, spending, loans and purchases.
 - **The disclaimer and terms of use.**
 

@@ -19,7 +19,7 @@ window.PLANNER_CONFIG = {
     inflation: 2.5,
     salaryGrowth: 3.5,            // yearly raise on salaries
     collegeInflation: 4.5,        // yearly rise in college costs
-    retirementWithdrawalTax: 18,  // tax on money taken out of retirement accounts
+    retirementWithdrawalTax: null, // null = estimate the tax on pre-tax withdrawals and RMDs with the year's other income; or a flat rate like 18
     stateIncomeTax: 5,            // state and local income tax, as a share of taxable pay
     taxesOnPay: null,             // null = estimate taxes automatically; or a number like 28 for a flat overall rate
     marketUpsAndDowns: 12         // volatility; drives the gap between best and worst case
@@ -52,27 +52,28 @@ window.PLANNER_CONFIG = {
   // Pastel and light; never purple. Green, coral and amber are reserved for good / bad / caution,
   // so a theme changes only the neutrals and the main accent. The evals check contrast and hue.
   themes: [
-    { id: 'lagoon', name: 'Lagoon', note: 'Calm sea teal, the original',
-      colors: { bg: '#F3F6F7', surface: '#FFFFFF', well: '#F6F9FA', line: '#E1E8EB', ink: '#26333A', muted: '#66757D',
-                accent: '#7FB8CC', accentSoft: '#D3EAF2', accentDeep: '#2B6B7E', accentHover: '#225767', accentSofter: '#EEF7FA', accentSoftHover: '#C3E1EC',
-                heroA: '#DDEFF5', heroB: '#E3F4EA' } },
-    { id: 'harbor', name: 'Harbor', note: 'Clear sky and deep-water blue',
-      colors: { bg: '#F2F5F9', surface: '#FFFFFF', well: '#F5F8FB', line: '#DFE6EE', ink: '#243142', muted: '#5F6D7E',
-                accent: '#8DB0D8', accentSoft: '#DCE8F6', accentDeep: '#2B5C8F', accentHover: '#234C77', accentSofter: '#EEF4FB', accentSoftHover: '#C6D9EF',
-                heroA: '#DCE8F6', heroB: '#E4F2EC' } },
     { id: 'linen', name: 'Linen', note: 'Warm paper and espresso',
       colors: { bg: '#F6F2EC', surface: '#FFFDF9', well: '#FAF6F0', line: '#E8E0D5', ink: '#33302B', muted: '#6B635A',
                 accent: '#C9B49A', accentSoft: '#EFE6DA', accentDeep: '#6B5137', accentHover: '#57412C', accentSofter: '#F7F1E9', accentSoftHover: '#E4D6C4',
                 heroA: '#F1E7DA', heroB: '#E8F1E4' } },
-    { id: 'graphite', name: 'Graphite', note: 'Quiet slate, all business',
-      colors: { bg: '#F3F4F5', surface: '#FFFFFF', well: '#F7F8F9', line: '#E2E5E8', ink: '#22272B', muted: '#5F6870',
-                accent: '#9AA6B1', accentSoft: '#E3E7EB', accentDeep: '#34404A', accentHover: '#27313A', accentSofter: '#F1F3F5', accentSoftHover: '#D3D9DF',
-                heroA: '#E5E9ED', heroB: '#E3F2EA' } }
+    { id: 'harbor', name: 'Harbor', note: 'Clear sky and deep-water blue',
+      colors: { bg: '#F2F5F9', surface: '#FFFFFF', well: '#F5F8FB', line: '#DFE6EE', ink: '#243142', muted: '#5F6D7E',
+                accent: '#8DB0D8', accentSoft: '#DCE8F6', accentDeep: '#2B5C8F', accentHover: '#234C77', accentSofter: '#EEF4FB', accentSoftHover: '#C6D9EF',
+                heroA: '#DCE8F6', heroB: '#E4F2EC' } },
+    { id: 'rosewood', name: 'Rosewood', note: 'Dusty rose and deep berry-brown',
+      colors: { bg: '#F8F3F3', surface: '#FFFFFF', well: '#FBF7F7', line: '#EBE1E2', ink: '#33292B', muted: '#6E5F62',
+                accent: '#D9A7AF', accentSoft: '#F3E0E3', accentDeep: '#8C4A55', accentHover: '#743B45', accentSofter: '#FAF0F2', accentSoftHover: '#EBCFD4',
+                heroA: '#F3E0E3', heroB: '#E6F2EA' } },
+    { id: 'fjord', name: 'Fjord', note: 'Cool petrol blue-green and deep ink',
+      colors: { bg: '#F1F5F6', surface: '#FFFFFF', well: '#F5F8F9', line: '#DEE6E8', ink: '#22313A', muted: '#5C6B72',
+                accent: '#84A9B3', accentSoft: '#D6E6EA', accentDeep: '#1F4E5A', accentHover: '#173E48', accentSofter: '#EDF4F6', accentSoftHover: '#C4DBE1',
+                heroA: '#D6E6EA', heroB: '#E3F2EA' } }
   ],
 
   // "What's new" note shown once to people who already use the planner, after an update. Newest first.
   // Add one for every release, with version matching VERSION in sw.js (the evals check this). Keep it short and friendly.
   whatsNew: [
+    { version: 'v15', note: "Smarter retirement taxes 🧾 RMDs and withdrawals now go through the tax brackets. Plus new themes, and scenarios that say what they do in plain words." },
     { version: 'v14', note: "Where did that come from? 🔍 Year by year now has a Required withdrawals column, so you can see RMDs come out of pre-tax accounts after retirement." },
     { version: 'v13', note: "Make it yours 🎨 Color themes in the new Settings drawer, and life ideas in Scenarios: try a new home, another kid or a move." },
     { version: 'v12', note: "You asked, we fixed 🛠️ Try an Inflation slider, −/+ buttons for decimals, and no state tax on Social Security. Pensions can skip raises." },
@@ -116,7 +117,12 @@ window.PLANNER_CONFIG = {
     medicareRate: 1.45,
     additionalMedicareRate: 0.9,
     additionalMedicareThreshold: { single: 200000, joint: 250000 },
-    taxableShareOfBenefits: 50,       // share of Social Security counted as taxable (pensions and annuities are fully taxable)
+    // Social Security: up to 50% is taxable above the first amount of "provisional income" (other income + half of
+    // benefits), up to 85% above the second. These are fixed in law (not raised for inflation). Pensions are fully taxable.
+    benefitThresholds: { single: [25000, 34000], joint: [32000, 44000] },
+    extraDeduction65: { single: 2050, joint: 1650 },   // extra standard deduction per person 65 or older
+    // Senior deduction (2025–2028): per person 65 or older, minus 6% of income over the threshold
+    seniorDeduction: { perPerson: 6000, lastYear: 2028, phaseOutFrom: { single: 75000, joint: 150000 }, phaseOutPct: 6 },
     stateTaxesSocialSecurity: false   // most states don't tax Social Security; set true if yours does
   },
 

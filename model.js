@@ -32,7 +32,7 @@ function create(userConfig, opts) {
       inflation: 2.5,
       salaryGrowth: 3.5,            // yearly raise on salaries
       collegeInflation: 4.5,        // yearly rise in college costs
-      retirementWithdrawalTax: 18,  // tax on money taken out of retirement accounts
+      retirementWithdrawalTax: null, // null = estimate the tax on pre-tax withdrawals and RMDs with the year's other income; or a flat rate like 18
       stateIncomeTax: 5,            // state and local income tax, as a share of taxable pay
       taxesOnPay: null,             // null = estimate taxes automatically; or a number like 28 for a flat overall rate
       marketUpsAndDowns: 12         // volatility; drives the gap between best and worst case
@@ -65,27 +65,28 @@ function create(userConfig, opts) {
     // Pastel and light; never purple. Green, coral and amber are reserved for good / bad / caution,
     // so a theme changes only the neutrals and the main accent. The evals check contrast and hue.
     themes: [
-      { id: 'lagoon', name: 'Lagoon', note: 'Calm sea teal, the original',
-        colors: { bg: '#F3F6F7', surface: '#FFFFFF', well: '#F6F9FA', line: '#E1E8EB', ink: '#26333A', muted: '#66757D',
-                  accent: '#7FB8CC', accentSoft: '#D3EAF2', accentDeep: '#2B6B7E', accentHover: '#225767', accentSofter: '#EEF7FA', accentSoftHover: '#C3E1EC',
-                  heroA: '#DDEFF5', heroB: '#E3F4EA' } },
-      { id: 'harbor', name: 'Harbor', note: 'Clear sky and deep-water blue',
-        colors: { bg: '#F2F5F9', surface: '#FFFFFF', well: '#F5F8FB', line: '#DFE6EE', ink: '#243142', muted: '#5F6D7E',
-                  accent: '#8DB0D8', accentSoft: '#DCE8F6', accentDeep: '#2B5C8F', accentHover: '#234C77', accentSofter: '#EEF4FB', accentSoftHover: '#C6D9EF',
-                  heroA: '#DCE8F6', heroB: '#E4F2EC' } },
       { id: 'linen', name: 'Linen', note: 'Warm paper and espresso',
         colors: { bg: '#F6F2EC', surface: '#FFFDF9', well: '#FAF6F0', line: '#E8E0D5', ink: '#33302B', muted: '#6B635A',
                   accent: '#C9B49A', accentSoft: '#EFE6DA', accentDeep: '#6B5137', accentHover: '#57412C', accentSofter: '#F7F1E9', accentSoftHover: '#E4D6C4',
                   heroA: '#F1E7DA', heroB: '#E8F1E4' } },
-      { id: 'graphite', name: 'Graphite', note: 'Quiet slate, all business',
-        colors: { bg: '#F3F4F5', surface: '#FFFFFF', well: '#F7F8F9', line: '#E2E5E8', ink: '#22272B', muted: '#5F6870',
-                  accent: '#9AA6B1', accentSoft: '#E3E7EB', accentDeep: '#34404A', accentHover: '#27313A', accentSofter: '#F1F3F5', accentSoftHover: '#D3D9DF',
-                  heroA: '#E5E9ED', heroB: '#E3F2EA' } }
+      { id: 'harbor', name: 'Harbor', note: 'Clear sky and deep-water blue',
+        colors: { bg: '#F2F5F9', surface: '#FFFFFF', well: '#F5F8FB', line: '#DFE6EE', ink: '#243142', muted: '#5F6D7E',
+                  accent: '#8DB0D8', accentSoft: '#DCE8F6', accentDeep: '#2B5C8F', accentHover: '#234C77', accentSofter: '#EEF4FB', accentSoftHover: '#C6D9EF',
+                  heroA: '#DCE8F6', heroB: '#E4F2EC' } },
+      { id: 'rosewood', name: 'Rosewood', note: 'Dusty rose and deep berry-brown',
+        colors: { bg: '#F8F3F3', surface: '#FFFFFF', well: '#FBF7F7', line: '#EBE1E2', ink: '#33292B', muted: '#6E5F62',
+                  accent: '#D9A7AF', accentSoft: '#F3E0E3', accentDeep: '#8C4A55', accentHover: '#743B45', accentSofter: '#FAF0F2', accentSoftHover: '#EBCFD4',
+                  heroA: '#F3E0E3', heroB: '#E6F2EA' } },
+      { id: 'fjord', name: 'Fjord', note: 'Cool petrol blue-green and deep ink',
+        colors: { bg: '#F1F5F6', surface: '#FFFFFF', well: '#F5F8F9', line: '#DEE6E8', ink: '#22313A', muted: '#5C6B72',
+                  accent: '#84A9B3', accentSoft: '#D6E6EA', accentDeep: '#1F4E5A', accentHover: '#173E48', accentSofter: '#EDF4F6', accentSoftHover: '#C4DBE1',
+                  heroA: '#D6E6EA', heroB: '#E3F2EA' } }
     ],
   
     // "What's new" note shown once to people who already use the planner, after an update. Newest first.
     // Add one for every release, with version matching VERSION in sw.js (the evals check this). Keep it short and friendly.
     whatsNew: [
+      { version: 'v15', note: "Smarter retirement taxes 🧾 RMDs and withdrawals now go through the tax brackets. Plus new themes, and scenarios that say what they do in plain words." },
       { version: 'v14', note: "Where did that come from? 🔍 Year by year now has a Required withdrawals column, so you can see RMDs come out of pre-tax accounts after retirement." },
       { version: 'v13', note: "Make it yours 🎨 Color themes in the new Settings drawer, and life ideas in Scenarios: try a new home, another kid or a move." },
       { version: 'v12', note: "You asked, we fixed 🛠️ Try an Inflation slider, −/+ buttons for decimals, and no state tax on Social Security. Pensions can skip raises." },
@@ -129,7 +130,12 @@ function create(userConfig, opts) {
       medicareRate: 1.45,
       additionalMedicareRate: 0.9,
       additionalMedicareThreshold: { single: 200000, joint: 250000 },
-      taxableShareOfBenefits: 50,       // share of Social Security counted as taxable (pensions and annuities are fully taxable)
+      // Social Security: up to 50% is taxable above the first amount of "provisional income" (other income + half of
+      // benefits), up to 85% above the second. These are fixed in law (not raised for inflation). Pensions are fully taxable.
+      benefitThresholds: { single: [25000, 34000], joint: [32000, 44000] },
+      extraDeduction65: { single: 2050, joint: 1650 },   // extra standard deduction per person 65 or older
+      // Senior deduction (2025–2028): per person 65 or older, minus 6% of income over the threshold
+      seniorDeduction: { perPerson: 6000, lastYear: 2028, phaseOutFrom: { single: 75000, joint: 150000 }, phaseOutPct: 6 },
       stateTaxesSocialSecurity: false   // most states don't tax Social Security; set true if yours does
     },
   
@@ -228,7 +234,7 @@ function create(userConfig, opts) {
     return {
       retReturn: cfgNum(a.retirementReturn, 6), nonReturn: cfgNum(a.nonRetirementReturn, 5), otherGrowth: cfgNum(a.homeAndOtherGrowth, 3),
       inflation: cfgNum(a.inflation, 2.5), earningsGrowth: cfgNum(a.salaryGrowth, 3), eduInflation: cfgNum(a.collegeInflation, 4.5),
-      withdrawalTax: cfgNum(a.retirementWithdrawalTax, 15), stateTax: cfgNum(a.stateIncomeTax, 5),
+      withdrawalTaxRate: (a.retirementWithdrawalTax === null || a.retirementWithdrawalTax === undefined || a.retirementWithdrawalTax === '') ? null : cfgNum(a.retirementWithdrawalTax, null), stateTax: cfgNum(a.stateIncomeTax, 5),
       payTaxRate: (a.taxesOnPay === null || a.taxesOnPay === undefined || a.taxesOnPay === '') ? null : cfgNum(a.taxesOnPay, null),
       volatility: cfgNum(a.marketUpsAndDowns, 12)
     };
@@ -299,21 +305,44 @@ function create(userConfig, opts) {
     }
     return tax;
   }
-  // All amounts in today's dollars. wages: pay per person; other: other taxable income; benefits: Social Security and pensions;
-  // pretax: retirement contributions taken from pay. Returns federal + Social Security/Medicare + state tax.
-  // benefits: Social Security (partly taxable federally; state tax only if config says so). pensions: fully taxable.
-  function estimateTaxes({ wages, other, benefits, pensions = 0, pretax, filing, stateRate }) {
-    const w = wages.reduce((a, b) => a + b, 0), ss = benefits * cfgNum(TX.taxableShareOfBenefits, 50) / 100;
-    const agi = Math.max(0, w + other + pensions + ss - pretax);
-    const stateBase = TX.stateTaxesSocialSecurity ? agi : Math.max(0, w + other + pensions - pretax);
-    const std = (TX.standardDeduction && TX.standardDeduction[filing]) || 0;
-    const fed = bracketTax(Math.max(0, agi - std), filing);
+  // Amounts the law fixes in dollars (not raised for inflation) are worth less each year in today's dollars:
+  // price = how much prices have risen since this year (1 now).
+  const pair = (o, filing, d) => (o && o[filing] !== undefined ? o[filing] : d);
+  // Taxable part of Social Security (IRS provisional income): other = all other income counted for tax.
+  function taxableBenefits(ss, other, filing, price = 1) {
+    if (!(ss > 0)) return 0;
+    const th = pair(TX.benefitThresholds, filing, filing === 'joint' ? [32000, 44000] : [25000, 34000]);
+    const b1 = th[0] / price, b2 = th[1] / price, pi = Math.max(0, other) + ss / 2;
+    if (pi <= b1) return 0;
+    if (pi <= b2) return Math.min(0.5 * ss, 0.5 * (pi - b1));
+    return Math.min(0.85 * ss, 0.85 * (pi - b2) + Math.min(0.5 * ss, 0.5 * (b2 - b1)));
+  }
+  // Federal and state income tax (no payroll tax), in today's dollars. ord: income other than Social Security,
+  // after pre-tax contributions; ss: Social Security; over65: people 65 or older that year.
+  function incomeTax(ord, ss, filing, stateRate, over65, year, price) {
+    ord = Math.max(0, ord);
+    const agi = ord + taxableBenefits(ss, ord, filing, price);
+    let ded = pair(TX.standardDeduction, filing, 0) + over65 * pair(TX.extraDeduction65, filing, 0);
+    const sd = TX.seniorDeduction;
+    if (over65 && sd && year <= cfgNum(sd.lastYear, 0)) {
+      const each = cfgNum(sd.perPerson, 0) / price - cfgNum(sd.phaseOutPct, 6) / 100 * Math.max(0, agi - pair(sd.phaseOutFrom, filing, Infinity) / price);
+      ded += over65 * Math.max(0, each);
+    }
+    return bracketTax(Math.max(0, agi - ded), filing) + (TX.stateTaxesSocialSecurity ? agi : ord) * stateRate;
+  }
+  // All amounts in today's dollars. wages: pay per person; other: other taxable income; benefits: Social Security
+  // (taxed on the IRS formula; state tax only if config says so); pensions: fully taxable; pretax: retirement
+  // contributions taken from pay; withdrawals: money out of pre-tax accounts (RMDs and others).
+  // year: calendar year (the senior deduction ends after 2028); price: how much prices have risen since this year.
+  // Returns federal + Social Security/Medicare + state tax.
+  function estimateTaxes({ wages, other = 0, benefits = 0, pensions = 0, pretax = 0, withdrawals = 0, filing, stateRate = 0, over65 = 0, year = Y0, price = 1 }) {
+    const w = wages.reduce((a, b) => a + b, 0);
     const base = cfgNum(TX.socialSecurityWageBase, Infinity);
     let fica = 0;
     for (const x of wages) fica += Math.min(x, base) * cfgNum(TX.socialSecurityRate, 6.2) / 100 + x * cfgNum(TX.medicareRate, 1.45) / 100;
     const thr = (TX.additionalMedicareThreshold && TX.additionalMedicareThreshold[filing]) || Infinity;
     fica += Math.max(0, w - thr) * cfgNum(TX.additionalMedicareRate, 0.9) / 100;
-    return fed + fica + stateBase * stateRate;
+    return incomeTax(w + other + pensions + withdrawals - pretax, benefits, filing, stateRate, over65, year, price) + fica;
   }
   // Does this income rise with inflation each year? Social Security and other income do unless set otherwise;
   // pensions and annuities don't (many have no cost-of-living raise) unless set.
@@ -430,6 +459,11 @@ function create(userConfig, opts) {
     // Pay, contributions and estimated taxes for year t (t = 0 is this year, as entered)
     const grossBasis = (s.incomeBasis || 'gross') === 'gross', filing = two ? 'joint' : 'single';
     const stateRate = n(A.stateTax) / 100, flatRate = has(A.payTaxRate) ? n(A.payTaxRate) / 100 : null;
+    // People 65 or older in year t (and still in the plan): extra standard deduction
+    const over65At = t => (a1 + t >= 65 && a1 + t <= n(p1.planToAge) ? 1 : 0) + (two && a2 + t >= 65 && a2 + t <= n(p2.planToAge) ? 1 : 0);
+    // Per year, in today's dollars: income other than Social Security (after pre-tax contributions) and Social Security,
+    // so withdrawals can be taxed on top of them (wdOrd, wdSS, set by money_in)
+    const wdOrd = new Float64Array(W), wdSS = new Float64Array(W);
     function money_in(t) {
       const f = Math.pow(1 + infl, t), wages = { p1: 0, p2: 0, joint: 0 };
       let other = 0, ben = 0, pens = 0, you = 0, emp = 0, pre = 0, roth = 0, into2 = 0;
@@ -444,11 +478,12 @@ function create(userConfig, opts) {
         if (a.taxType === 'roth') roth += mine + theirs;
         else { pre += mine; into2 += (mine + theirs) * share2(a.owner || 'p1'); }   // employer money never reduces your taxes
       }
-      const total = wages.p1 + wages.p2 + wages.joint + other + ben + pens;
+      const total = wages.p1 + wages.p2 + wages.joint + other + ben + pens, w = wages.p1 + wages.p2 + wages.joint;
+      wdOrd[t] = (w + other + pens - (grossBasis ? pre : 0)) / f; wdSS[t] = ben / f;
       let tx = 0;
       if (grossBasis && total > 0) {
-        if (flatRate !== null) tx = flatRate * (wages.p1 + wages.p2 + wages.joint + other + pens + ben * cfgNum(TX.taxableShareOfBenefits, 50) / 100);
-        else tx = estimateTaxes({ wages: [wages.p1 / f, wages.p2 / f, wages.joint / f], other: other / f, benefits: ben / f, pensions: pens / f, pretax: pre / f, filing, stateRate }) * f;
+        if (flatRate !== null) tx = flatRate * (w + other + pens + taxableBenefits(ben / f, (w + other + pens - pre) / f, filing, f) * f);
+        else tx = estimateTaxes({ wages: [wages.p1 / f, wages.p2 / f, wages.joint / f], other: other / f, benefits: ben / f, pensions: pens / f, pretax: pre / f, filing, stateRate, over65: over65At(t), year: Y0 + t, price: f }) * f;
       }
       return { total, tax: tx, you, emp, roth, into2 };
     }
@@ -524,7 +559,29 @@ function create(userConfig, opts) {
     if (hasPre1 && tm1 >= 1 && tm1 <= H && a1 + tm1 <= n(p1.planToAge)) events[tm1].push(`${nameOf(s, 'p1')}'s required withdrawals start`);
     if (two && hasPre2 && tm2 >= 1 && tm2 <= H && a2 + tm2 <= n(p2.planToAge)) events[tm2].push(`${nameOf(s, 'p2')}'s required withdrawals start`);
     const rr = n(A.retReturn) / 100, rn = n(A.nonReturn) / 100, og = n(A.otherGrowth) / 100,
-      vol = Math.max(0, n(A.volatility)) / 100, tax = Math.min(0.9, Math.max(0, n(A.withdrawalTax) / 100));
+      vol = Math.max(0, n(A.volatility)) / 100, wRate = has(A.withdrawalTaxRate) ? Math.min(0.9, Math.max(0, n(A.withdrawalTaxRate) / 100)) : null;
+    // Tax on taking W (this year's dollars) out of pre-tax accounts in year t: a flat override, or the extra
+    // income tax from adding W to the year's other income (which can make more Social Security taxable too)
+    const wBase = new Float64Array(W), wOver = new Float64Array(W), wPrice = new Float64Array(W);
+    for (let t = 1; t < W; t++) { wPrice[t] = Math.pow(1 + infl, t); wOver[t] = over65At(t); wBase[t] = incomeTax(wdOrd[t], wdSS[t], filing, stateRate, wOver[t], Y0 + t, wPrice[t]); }
+    const wTax = (t, x) => x <= 0 ? 0 : wRate !== null ? x * wRate
+      : (incomeTax(wdOrd[t] + x / wPrice[t], wdSS[t], filing, stateRate, wOver[t], Y0 + t, wPrice[t]) - wBase[t]) * wPrice[t];
+    // How much to take out (x ≤ max) so that, after the extra tax, need is left over; r0 already comes out this year (RMDs)
+    function grossUp(t, r0, need, max) {
+      if (wRate !== null) return Math.min(max, need / (1 - wRate));
+      const t0 = wTax(t, r0), net = x => x - (wTax(t, r0 + x) - t0);
+      let lo = need, hi = max, x = need;
+      for (let i = 0; i < 100; i++) {
+        const g = net(x) - need;
+        if (Math.abs(g) < 1e-4) return x;
+        if (g < 0) lo = x; else hi = x;
+        const slope = 1 - (wTax(t, r0 + x + 1) - wTax(t, r0 + x));   // tax is piecewise linear, so Newton steps land quickly
+        let nx = x - g / Math.max(slope, 0.05);
+        if (!(nx > lo && nx < hi)) nx = (lo + hi) / 2;
+        x = nx;
+      }
+      return x;
+    }
     const muR = Math.log(Math.max(0.01, 1 + rr)), muN = Math.log(Math.max(0.01, 1 + rn));
     // Home and other assets bought later (fromYear: today's-dollar price, inflated to that year) or sold
     // (sellYear: its grown value moves into non-retirement savings). Home values aren't random, so these are exact.
@@ -550,7 +607,7 @@ function create(userConfig, opts) {
       return m * Math.cos(2 * Math.PI * v);
     };
 
-    const nw = new Float64Array(NR * W), liq = new Float64Array(NR * W), depl = new Float64Array(NR), rmdAll = new Float64Array(rmdOn ? NR * W : 0);
+    const nw = new Float64Array(NR * W), liq = new Float64Array(NR * W), depl = new Float64Array(NR), rmdAll = new Float64Array(rmdOn ? NR * W : 0), wtAll = new Float64Array(NR * W);
     for (let r = 0; r < NR; r++) {
       let R1 = R10, R2 = R20, Q = Q0, N = N0, O = O0, dep = Infinity;
       // (oAdd/oSell: homes bought or sold later, worked out below the growth rates)
@@ -567,23 +624,25 @@ function create(userConfig, opts) {
         let rmd = 0;
         if (rmdOn) { const x1 = Math.min(m1, R1), x2 = Math.min(m2, R2); R1 -= x1; R2 -= x2; rmd = x1 + x2; rmdAll[b + t] = rmd; }
         R1 += contrib[t] - contrib2[t]; R2 += contrib2[t]; Q += rothC[t];
-        // They pay for the year first (after withdrawal tax); anything left over is saved
-        const net = inc[t] - taxes[t] - youC[t] - spend[t] - debtPay[t] - special[t] + rmd * (1 - tax);
+        // They pay for the year first (after tax on the RMD); anything left over is saved
+        let wt = rmd > 0 ? wTax(t, rmd) : 0;
+        const net = inc[t] - taxes[t] - youC[t] - spend[t] - debtPay[t] - special[t] + rmd - wt;
         if (net >= 0) N += net;
         else {
           let need = -net;
           const fromN = Math.min(Math.max(N, 0), need); N -= fromN; need -= fromN;
           if (need > 0) {
-            // Pre-tax accounts next (taxed on the way out, from both partners in proportion), then Roth (tax-free)
-            const gross = need / (1 - tax), R = R1 + R2;
-            if (R >= gross) { const k = 1 - gross / R; R1 *= k; R2 *= k; need = 0; }
-            else { need -= R * (1 - tax); R1 = R2 = 0; }
+            // Pre-tax accounts next (taxed on the way out with the year's other income, from both partners in proportion), then Roth (tax-free)
+            const R = R1 + R2, all = R > 0 ? wTax(t, rmd + R) : wt;
+            if (R > 0 && R - (all - wt) >= need) { const x = grossUp(t, rmd, need, R), k = 1 - x / R; R1 *= k; R2 *= k; wt = wTax(t, rmd + x); need = 0; }
+            else { need -= Math.max(0, R - (all - wt)); wt = all; R1 = R2 = 0; }
             if (need > 0) {
               if (Q >= need) Q -= need;
               else { Q = 0; if (dep === Infinity) dep = t; }
             }
           }
         }
+        wtAll[b + t] = wt;
         nw[b + t] = R1 + R2 + Q + N + O - debtBal[t]; liq[b + t] = R1 + R2 + Q + N;
       }
       depl[r] = dep;
@@ -595,13 +654,15 @@ function create(userConfig, opts) {
     // Loan payments over the next 12 months, in today's dollars (college and big purchases are treated as withdrawals from savings)
     const outNext = W > 1 ? debtPay[1] / (1 + infl) : 0;
 
-    const p10 = new Float64Array(W), p50 = new Float64Array(W), p90 = new Float64Array(W), liq50 = new Float64Array(W), rmd50 = new Float64Array(W);
+    const p10 = new Float64Array(W), p50 = new Float64Array(W), p90 = new Float64Array(W), liq50 = new Float64Array(W), rmd50 = new Float64Array(W), wt50 = new Float64Array(W);
     const col = new Float64Array(NR), i10 = Math.floor(0.1 * (NR - 1)), i50 = Math.round(0.5 * (NR - 1)), i90 = Math.ceil(0.9 * (NR - 1));
     for (let t = 0; t < W; t++) {
       for (let r = 0; r < NR; r++) col[r] = nw[r * W + t];
       col.sort(); p10[t] = col[i10]; p50[t] = col[i50]; p90[t] = col[i90];
       for (let r = 0; r < NR; r++) col[r] = liq[r * W + t];
       col.sort(); liq50[t] = col[i50];
+      for (let r = 0; r < NR; r++) col[r] = wtAll[r * W + t];
+      col.sort(); wt50[t] = col[i50];
       if (rmdOn && (rs1[t] || rs2[t])) { for (let r = 0; r < NR; r++) col[r] = rmdAll[r * W + t]; col.sort(); rmd50[t] = col[i50]; }
     }
     let ok = 0; for (let r = 0; r < NR; r++) if (depl[r] === Infinity) ok++;
@@ -611,7 +672,7 @@ function create(userConfig, opts) {
       H, infl, two, a1, a2, retireT,
       names: [nameOf(s, 'p1'), nameOf(s, 'p2')],
       inc, spend, debtPay, special, debtBal, events,
-      p10, p50, p90, liq50, rmd: rmd50, rmdAges: [rmdAge1, two ? rmdAge2 : null],
+      p10, p50, p90, liq50, rmd: rmd50, wtax: wt50, rmdAges: [rmdAge1, two ? rmdAge2 : null],
       success: ok / NR, deplMid: ds[i50], deplWorst: ds[i10],
       empty: s.assets.length === 0 && s.income.length === 0,
       retire1: tr1, retire2: tr2, contrib, rothC, ms, incNow, taxNow, youNow, empNow, outNext, grossBasis, taxes, youC, spendNow, spendRet, catSpend
@@ -658,7 +719,7 @@ function create(userConfig, opts) {
   const ASSUMPTION_LABELS = {
     mix: 'Investment mix', retReturn: 'Retirement account return', nonReturn: 'Non-retirement return', otherGrowth: 'Home and other growth',
     volatility: 'Market ups and downs', inflation: 'Inflation', earningsGrowth: 'Salary growth', eduInflation: 'College cost inflation',
-    withdrawalTax: 'Tax on retirement withdrawals', stateTax: 'State and local income tax', payTaxRate: 'Taxes on pay'
+    withdrawalTaxRate: 'Tax on retirement withdrawals', stateTax: 'State and local income tax', payTaxRate: 'Taxes on pay'
   };
   const PERSON_FIELDS = [['name', 'name', 'text'], ['age', 'age', 'age'], ['retireAge', 'retirement age', 'age'], ['planToAge', 'plan until age', 'age']];
   const LISTS = [
@@ -853,17 +914,67 @@ function create(userConfig, opts) {
     }
     return c;
   }
-  // A short name for a scenario built from ideas, e.g. "New $1.2M home in 3 yrs + Another kid in 1 yr"
-  function ideaLabel(id, prm) {
-    const N = Math.max(1, Math.round(n(prm.inYears) || 1));
-    return ({ kid: `Another kid in ${yrs(N)}`, home: `${short$(n(prm.price))} home in ${yrs(N)}`, move: `Move in ${yrs(N)}`, break: `Career break (${yrs(Math.max(1, n(prm.years)))})`,
-      downsize: `Downsize at ${Math.round(n(prm.atAge))}`, family: `Help family for ${yrs(Math.max(1, n(prm.years)))}`, windfall: `${short$(Math.abs(n(prm.amount)))} windfall`,
-      purchase: `${prm.label || 'Big purchase'} in ${yrs(N)}` })[id] || id;
+  // Dollar amounts for summaries: $950, $12k, $42.5k, $1.25M
+  const amt$ = v => { v = Math.abs(n(v)); return v >= 1e6 ? `$${+(v / 1e6).toFixed(2)}M` : v >= 1e3 ? `$${+(v / 1e3).toFixed(1)}k` : `$${Math.round(v)}`; };
+  const pctTxt = v => `${+n(v).toFixed(2)}%`;
+  // When something happens t years from now, by Partner 1's age (or another person's): "at age 45 (2031)" / "when Sam is 45 (2031)"
+  function whenTxt(p, t, who = 'p1') {
+    const age = n(p.people[who].age) + t, two = !!p.people.p2.enabled;
+    return two ? `when ${nameOf(p, who)} is ${age} (${Y0 + t})` : `at age ${age} (${Y0 + t})`;
+  }
+  // A short name for a scenario built from ideas, e.g. "$750k home at 33 + Another kid at 31" (ages are Partner 1's)
+  function ideaLabel(id, prm, p) {
+    const N = Math.max(1, Math.round(n(prm.inYears) || 1)), Y = Math.max(1, n(prm.years) || 1);
+    const at = t => (p ? `at ${n(p.people.p1.age) + t}` : `in ${yrs(t)}`);
+    const whoBreak = p && prm.who === 'p2' && p.people.p2.enabled ? 'p2' : 'p1';
+    return ({ kid: `Another kid ${at(N)}`, home: `${short$(n(prm.price))} home ${at(N)}`, move: `Move ${at(N)}`,
+      break: p ? `Career break at ${n(p.people[whoBreak].age) + N} (${yrs(Y)})` : `Career break (${yrs(Y)})`,
+      downsize: `Downsize at ${Math.round(n(prm.atAge))}`,
+      family: Y === 1 ? `Give family ${amt$(prm.perYear)} ${at(N)}` : `Help family ${amt$(prm.perYear)}/yr ${p ? 'from ' + (n(p.people.p1.age) + N) : 'for ' + yrs(Y)}`,
+      windfall: `${amt$(prm.amount)} windfall ${at(N)}`,
+      purchase: `${prm.label || 'Big purchase'} ${at(N)}` })[id] || id;
+  }
+  // What an idea does, in one plain sentence (today's dollars), e.g. "Give family $100k at age 50 (2036)".
+  // p is the plan the idea is applied to (with any earlier ideas in the stack), so "selling your current home" is only said when there is one.
+  function ideaSummary(p, id, prm) {
+    const N = Math.max(1, Math.round(n(prm.inYears) || 1)), Y = Math.max(1, Math.round(n(prm.years) || 1)), when = whenTxt(p, N);
+    if (id === 'kid') {
+      const bits = [];
+      if (n(prm.childcare) > 0) bits.push(`childcare ${amt$(prm.childcare)} a year until they're ${n(prm.childcareUntil)}`);
+      if (n(prm.extra) > 0) bits.push(`everyday costs ${amt$(prm.extra)} a year until ${n(prm.extraUntil)}`);
+      if (prm.college) bits.push(`college ${amt$(prm.collegeCost)} a year`);
+      return `A new kid ${when}${bits.length ? ': ' + bits.join(', ') : ''}`;
+    }
+    if (id === 'home') {
+      const price = n(prm.price), down = Math.min(100, Math.max(0, n(prm.downPct))), sells = prm.sellCurrent && homeOf(p, Y0 + N);
+      const loan = down < 100 ? `, and a ${amt$(price * (100 - down) / 100)} mortgage at ${pctTxt(prm.rate)} for ${n(prm.years)} years` : ', no mortgage';
+      return `Buy a ${amt$(price)} home ${when}: ${amt$(price * down / 100)} down plus ${amt$(price * n(prm.costsPct) / 100)} in costs${loan}${sells ? ', selling your current home' : ''}`;
+    }
+    if (id === 'move') {
+      const change = rnd(spendingNow(p) * n(prm.livingPct) / 100, 100);
+      const bits = [change ? `living costs ${change > 0 ? 'up' : 'down'} ${amt$(change)} a year (${change > 0 ? '+' : ''}${pctTxt(prm.livingPct)})` : '', n(prm.movingCost) > 0 ? `moving costs ${amt$(prm.movingCost)}` : '',
+        has(prm.stateTax) && n(prm.stateTax) !== n(p.assumptions.stateTax) ? `state tax ${pctTxt(prm.stateTax)} instead of ${pctTxt(p.assumptions.stateTax)}` : ''].filter(Boolean);
+      return `Move ${when}${bits.length ? ': ' + bits.join(', ') : ''}`;
+    }
+    if (id === 'break') {
+      const who = prm.who === 'p2' && p.people.p2.enabled ? 'p2' : 'p1';
+      return `${nameOf(p, who)} takes a ${Y}-year career break at ${n(p.people[who].age) + N} (${Y0 + N}), then pay picks up again`;
+    }
+    if (id === 'downsize') {
+      const t = Math.max(1, Math.round(n(prm.atAge)) - n(p.people.p1.age)), w = whenTxt(p, t);
+      if (!homeOf(p, Y0 + t)) return `Downsize ${w} (there's no home in the plan to sell yet)`;
+      return n(prm.price) > 0 ? `Sell the home ${w} and buy a ${amt$(prm.price)} one (plus ${pctTxt(prm.costsPct)} in costs); the rest goes into savings`
+        : `Sell the home ${w}; the money goes into savings`;
+    }
+    if (id === 'family') return Y === 1 ? `Give family ${amt$(prm.perYear)} ${when}` : `Give family ${amt$(prm.perYear)} a year for ${Y} years, starting ${when}: ${amt$(n(prm.perYear) * Y)} in all`;
+    if (id === 'windfall') return `Receive ${amt$(prm.amount)} ${when}, not taxed`;
+    if (id === 'purchase') return `Spend ${amt$(prm.amount)} on ${prm.label || 'a big purchase'} ${when}${has(prm.repeatEvery) && n(prm.repeatEvery) > 0 ? `, then every ${n(prm.repeatEvery)} years` : ''}`;
+    return ideaLabel(id, prm, p);
   }
 
   return {
     Y0, RUNS, CFG, BUILTIN_CONFIG, n, has, clone, nameOf, cfgNum, assumptionsFrom, DEFAULT_ASSUMPTIONS, QS, PLAN_TO,
-    EXAMPLE, BLANK, TX, realRate, nominalRate, MIXES, mixAssumptions, bracketTax, estimateTaxes, loanPayment, rmdStartAge, rmdShare, shiftRetirement, planDiff, keyResults, milestones, incomeGrows, IDEAS, ideaDefaults, applyIdea, ideaLabel, mulberry32, project, WO_TARGET, workOptional
+    EXAMPLE, BLANK, TX, realRate, nominalRate, MIXES, mixAssumptions, bracketTax, estimateTaxes, taxableBenefits, loanPayment, rmdStartAge, rmdShare, shiftRetirement, planDiff, keyResults, milestones, incomeGrows, IDEAS, ideaDefaults, applyIdea, ideaLabel, ideaSummary, mulberry32, project, WO_TARGET, workOptional
   };
 }
 

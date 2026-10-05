@@ -1,6 +1,6 @@
 /*
   6. Whole-projection check: an independent, plain year-by-year calculation of a
-  detailed household (no market ups and downs, flat tax rate on pay) must match
+  detailed household (no market ups and downs, flat tax rates on pay and withdrawals) must match
   model.js in every year of the plan. It re-states the rules from CLAUDE.md in the
   simplest possible code, so a change anywhere in project() that breaks one of
   them shows up here even if no targeted eval covers it.
@@ -38,14 +38,17 @@ const household = () => flat({
     { label: 'Travel', category: 'travel', when: 'ages', amount: 10000, fromAge: 64, toAge: 70 }
   ],
   purchases: [{ label: 'Car', year: YEAR + 3, amount: 30000, repeatEvery: 10, until: YEAR + 25 }],
-  assumptions: { retReturn: 5, nonReturn: 6, otherGrowth: 3, inflation: 2.5, earningsGrowth: 3, eduInflation: 4, withdrawalTax: 20, payTaxRate: 25 }
+  assumptions: { retReturn: 5, nonReturn: 6, otherGrowth: 3, inflation: 2.5, earningsGrowth: 3, eduInflation: 4, withdrawalTaxRate: 20, payTaxRate: 25 }
 });
+
+// Pre-tax contributions taken from pay (the Roth one isn't)
+const youC0 = (w1, w2, f) => (w1 ? 20000 * f : 0) + (w2 ? 10000 * f : 0);
 
 // The rules, written out plainly
 function reference(s) {
   const A = s.assumptions, p1 = s.people.p1, p2 = s.people.p2;
   const H = Math.max(p1.planToAge - p1.age, p2.planToAge - p2.age);
-  const infl = A.inflation / 100, eg = A.earningsGrowth / 100, edu = A.eduInflation / 100, wt = A.withdrawalTax / 100, pt = A.payTaxRate / 100;
+  const infl = A.inflation / 100, eg = A.earningsGrowth / 100, edu = A.eduInflation / 100, wt = A.withdrawalTaxRate / 100, pt = A.payTaxRate / 100;
   const rmdAge = age => (YEAR - age >= 1960 ? 75 : 73);
   const rows = [];
   let R1 = 800000, R2 = 300000, Q = 100000, N = 150000, O = 500000, loan = 100000;
@@ -63,7 +66,10 @@ function reference(s) {
     // Pay and benefits (benefits stop after the owner's plan-until age)
     const wages = (w1 ? 150000 * Math.pow(1 + eg, t) : 0) + (w2 ? 90000 * Math.pow(1 + eg, t) : 0);
     const ben = (A1 >= 67 && A1 <= p1.planToAge ? 30000 * f : 0) + (A2 >= 67 && A2 <= p2.planToAge ? 20000 * f : 0);
-    const tax = pt * (wages + 0.5 * ben);
+    // Flat rate on pay plus the taxable part of Social Security (IRS formula; the $32k/$44k thresholds aren't raised for inflation)
+    const pi = (wages - youC0(w1, w2, f)) / f + ben / f / 2, b1 = 32000 / f, b2 = 44000 / f, ssR = ben / f;
+    const tss = pi <= b1 ? 0 : pi <= b2 ? Math.min(0.5 * ssR, 0.5 * (pi - b1)) : Math.min(0.85 * ssR, 0.85 * (pi - b2) + Math.min(0.5 * ssR, 0.5 * (b2 - b1)));
+    const tax = pt * (wages + tss * f);
     // Contributions while the owner works (joint Roth: while either works)
     let youC = 0;
     if (w1) { R1 += 25000 * f; youC += 20000 * f; }

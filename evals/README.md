@@ -29,6 +29,7 @@ A report is written to `evals/reports/latest.md` (and `sensitivity-*.md/.csv`).
 | `08-offline` | Runs the real `sw.js` against a stand-in browser: new versions download fresh files, a version never mixes with newer files, works offline, old caches are deleted; and the page applies waiting updates | Hard |
 | `09-themes` | Every color theme in config.js has all its colors, passes WCAG AA contrast for text and buttons, keeps backgrounds light, and uses no purple | Hard |
 | `10-life-ideas` | Future loans, homes bought or sold later, and each life idea (kid, new home, career break, windfall, stacking): right items, right years, original plan untouched, every idea works on every test household | Hard |
+| `11-retiree-taxes` | Social Security taxed on the IRS formula (0–85%, thresholds not raised for inflation), 65+ and 2025–2028 senior deductions with phase-out, pre-tax withdrawals and RMDs taxed through the brackets with other income, Roth/brokerage untaxed, flat override, old plans switch to the estimate, and a 29-year retired couple matching an independent calculation to the dollar | Hard |
 
 **Hard** evals must pass; the run exits with an error otherwise. **Soft** evals print warnings: they flag results worth a second look, not necessarily bugs.
 

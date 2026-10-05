@@ -88,7 +88,7 @@ module.exports = [
     name: 'Withdrawal tax: needing $51,250 at a 20% tax takes $64,062.50 from a pre-tax account',
     why: 'Gross-up = need / (1 − tax).',
     run() {
-      const s = flat({ people: retired(70, 80), assets: [asset('retirement', 1e6)], spending: [spendAlways(50000)], assumptions: { retReturn: 0, inflation: 2.5, withdrawalTax: 20 } });
+      const s = flat({ people: retired(70, 80), assets: [asset('retirement', 1e6)], spending: [spendAlways(50000)], assumptions: { retReturn: 0, inflation: 2.5, withdrawalTaxRate: 20 } });
       return approx(1e6 - M.project(s, 20).p50[1], 50000 * 1.025 / 0.8, { rel: 1e-9 });
     }
   },
@@ -111,18 +111,9 @@ module.exports = [
     }
   },
   {
-    name: 'Taxes: Social Security is half-counted federally, with no payroll tax and (by default) no state tax',
-    why: 'Married, $60k Social Security only: half ($30k) is below the $32,200 deduction, and most states don\'t tax Social Security, so $0.',
+    name: 'Taxes: Social Security alone below the IRS threshold is untaxed, with no payroll tax and (by default) no state tax',
+    why: 'Married, $60k Social Security only: provisional income is half ($30k), under the $32k threshold, so none is taxable; most states don\'t tax it either, so $0.',
     run() { return approx(M.estimateTaxes({ wages: [0], other: 0, benefits: 60000, pretax: 0, filing: 'joint', stateRate: 0.05 }), 0, { abs: 0.01 }); }
-  },
-  {
-    name: 'Taxes: owners in a state that taxes Social Security can switch it on in config.js',
-    why: 'Same household with taxes.stateTaxesSocialSecurity: true → 5% of the taxable half ($30k) = $1,500.',
-    run() {
-      const cfg = { ...CONFIG, taxes: { ...CONFIG.taxes, stateTaxesSocialSecurity: true } };
-      const M2 = NWPModel.create(cfg, { year: YEAR });
-      return approx(M2.estimateTaxes({ wages: [0], other: 0, benefits: 60000, pretax: 0, filing: 'joint', stateRate: 0.05 }), 1500, { abs: 0.01 });
-    }
   },
   {
     name: 'Taxes: pensions and annuities are fully taxable, federal and state, with no payroll tax',

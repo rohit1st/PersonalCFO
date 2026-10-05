@@ -132,7 +132,7 @@ module.exports = [
         people: { p1: { name: 'A', age: 70, retireAge: 60, planToAge: 80 } },
         assets: [asset('nonretirement', 150000), asset('retirement', 100000), asset('retirement', 100000, { taxType: 'roth' })],
         spending: [spendAlways(100000)],
-        assumptions: { retReturn: 0, nonReturn: 0, inflation: 0, withdrawalTax: 20 }
+        assumptions: { retReturn: 0, nonReturn: 0, inflation: 0, withdrawalTaxRate: 20 }
       });
       const r = M.project(s, 20);
       return [approx(r.liq50[1], 250000, { abs: 0.5 }), approx(r.liq50[2], 137500, { abs: 0.5 }), approx(r.liq50[3], 30000, { abs: 0.5 }), approx(r.deplMid, 4, { abs: 0 })];
@@ -209,6 +209,6 @@ function rmdPlan(age, assets) {
   return flat({
     people: { p1: { name: 'A', age, retireAge: 60, planToAge: 95 } },
     assets,
-    assumptions: { retReturn: 0, nonReturn: 0, inflation: 0, withdrawalTax: 20 }
+    assumptions: { retReturn: 0, nonReturn: 0, inflation: 0, withdrawalTaxRate: 20 }
   });
 }

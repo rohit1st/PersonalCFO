@@ -191,5 +191,37 @@ module.exports = [
       return [approx(r.liq50[5] - r0.liq50[5], 100000 * Math.pow(1.02, 5)), approx(r.taxes[5], 0, { abs: 0 }),
         truthy(both.purchases.length === 2 && both.purchases.some(x => /Boat/.test(x.label)), 'stacking lost an idea')];
     }
+  },
+  {
+    name: 'Scenario summaries: each idea reads as a plain action with amount, age and year',
+    why: 'Saved scenarios say what they do, e.g. "Give family $100k at age 50 (2036)", so nobody has to decode the changes list.',
+    run() {
+      const single = base(), couple = flat({ people: { p1: { name: 'Sam', age: 30, retireAge: 62, planToAge: 95 }, p2: { enabled: true, name: 'Jo', age: 31, retireAge: 62, planToAge: 95 } },
+        assets: [asset('other', 500000, { label: 'Home', owner: 'joint' })], income: [{ label: "Jo's salary", type: 'salary', owner: 'p2', amount: 90000 }] });
+      const S = M.ideaSummary;
+      return [
+        truthy(S(single, 'family', { inYears: 10, years: 1, perYear: 100000 }) === `Give family $100k at age 50 (${YEAR + 10})`, S(single, 'family', { inYears: 10, years: 1, perYear: 100000 }), 'one-off gift'),
+        truthy(S(couple, 'family', { inYears: 1, years: 5, perYear: 12000 }) === `Give family $12k a year for 5 years, starting when Sam is 31 (${YEAR + 1}): $60k in all`, S(couple, 'family', { inYears: 1, years: 5, perYear: 12000 }), 'yearly help'),
+        truthy(S(single, 'windfall', { inYears: 5, amount: 100000 }) === `Receive $100k at age 45 (${YEAR + 5}), not taxed`, S(single, 'windfall', { inYears: 5, amount: 100000 }), 'windfall'),
+        truthy(S(single, 'purchase', { inYears: 2, amount: 42500, label: 'New car', repeatEvery: 8 }) === `Spend $42.5k on New car at age 42 (${YEAR + 2}), then every 8 years`, S(single, 'purchase', { inYears: 2, amount: 42500, label: 'New car', repeatEvery: 8 }), 'purchase'),
+        truthy(/^Jo takes a 2-year career break at 32 \(\d{4}\), then pay picks up again$/.test(S(couple, 'break', { who: 'p2', inYears: 1, years: 2 })), S(couple, 'break', { who: 'p2', inYears: 1, years: 2 }), 'break uses the right person'),
+        truthy(/selling your current home/.test(S(couple, 'home', { inYears: 3, price: 750000, downPct: 20, costsPct: 5, rate: 6.5, years: 30, sellCurrent: true })), S(couple, 'home', { inYears: 3, price: 750000, downPct: 20, costsPct: 5, rate: 6.5, years: 30, sellCurrent: true }), 'home sale mentioned'),
+        truthy(!/selling/.test(S(single, 'home', { inYears: 3, price: 750000, downPct: 20, costsPct: 5, rate: 6.5, years: 30, sellCurrent: true })), 'mentions selling a home the plan doesn\'t have', 'no home, no sale'),
+        truthy(/^Sell the home when Sam is 70 \(\d{4}\) and buy a \$300k one/.test(S(couple, 'downsize', { atAge: 70, price: 300000, costsPct: 6 })), S(couple, 'downsize', { atAge: 70, price: 300000, costsPct: 6 }), 'downsize')
+      ];
+    }
+  },
+  {
+    name: 'Scenario summaries and names work for every idea on every test household',
+    why: 'No blanks, NaN or "undefined", and the short name carries an age so two versions of an idea are easy to tell apart.',
+    run() {
+      const out = [];
+      for (const idea of M.IDEAS) for (const [k, f] of Object.entries(personas)) {
+        const p = f(), d = M.ideaDefaults(p, idea.id), s = M.ideaSummary(p, idea.id, d.params), l = M.ideaLabel(idea.id, d.params, p);
+        if (!s || /NaN|undefined|null/.test(s + l)) out.push({ pass: false, detail: `${idea.id} on ${k}: "${s}" / "${l}"` });
+        if (!/\d/.test(l)) out.push({ pass: false, detail: `${idea.id} label has no age: "${l}"` });
+      }
+      return out.length ? out : truthy(true, '', `${M.IDEAS.length} ideas × ${Object.keys(personas).length} households`);
+    }
   }
 ];

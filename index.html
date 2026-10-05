@@ -6,7 +6,7 @@
 <title>Net Worth Planner</title>
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'none'; font-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="description" content="A private net worth and retirement planner that runs entirely on your device.">
-<meta name="theme-color" content="#2B6B7E">
+<meta name="theme-color" content="#6B5137">
 <script>try { var tv = localStorage.getItem('netWorthPlanner.themeVars'); if (tv) document.documentElement.setAttribute('style', tv); } catch (e) {}</script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -18,10 +18,10 @@
 <style>
 :root{
   color-scheme: light;
-  --bg:#F3F6F7; --surface:#FFFFFF; --well:#F6F9FA;
-  --ink:#26333A; --muted:#66757D; --line:#E1E8EB;
-  --teal:#7FB8CC; --teal-soft:#D3EAF2; --teal-deep:#2B6B7E;   /* the accent family; Settings themes replace these */
-  --teal-hover:#225767; --teal-softer:#EEF7FA; --teal-soft-hover:#C3E1EC; --hero-a:#DDEFF5; --hero-b:#E3F4EA;
+  --bg:#F6F2EC; --surface:#FFFDF9; --well:#FAF6F0;
+  --ink:#33302B; --muted:#6B635A; --line:#E8E0D5;
+  --teal:#C9B49A; --teal-soft:#EFE6DA; --teal-deep:#6B5137;   /* the accent family; Settings themes replace these */
+  --teal-hover:#57412C; --teal-softer:#F7F1E9; --teal-soft-hover:#E4D6C4; --hero-a:#F1E7DA; --hero-b:#E8F1E4;
   --green:#6FCF97; --green-soft:#D5F1E0; --green-deep:#22704A;
   --coral:#EB5757; --coral-soft:#FADCD9; --coral-deep:#A63A3A;
   --amber:#F6E3A1; --amber-deep:#7A5C0E;
@@ -516,6 +516,8 @@ html.theming *,html.theming *::before,html.theming *::after{transition:backgroun
 .cmp-chip .x{border:0;background:none;color:var(--muted);font-size:1rem;line-height:1;width:22px;height:22px;border-radius:50%;cursor:pointer}
 .cmp-chip .x:hover{background:var(--coral-soft);color:var(--coral-deep)}
 .cmp-sentence{font-size:1.08rem;line-height:2.15;margin:0;color:var(--ink);text-wrap:pretty}
+.cmp-sum{margin:8px 0 0;font-size:.86rem;color:var(--muted);text-wrap:pretty}
+.cmp-sum b{color:var(--ink);font-weight:600}
 .cmp-sentence .in{display:inline-flex;align-items:baseline;gap:2px;margin:0 2px;padding:0 6px;border-bottom:2px solid var(--teal);background:var(--surface);border-radius:6px 6px 2px 2px}
 .cmp-sentence .in:focus-within{border-color:var(--teal-deep);box-shadow:0 0 0 3px var(--teal-soft)}
 .cmp-sentence input,.cmp-sentence select{border:0;background:transparent;font:650 1.02rem/1.6 var(--font);color:var(--teal-deep);width:5.2ch;padding:0;text-align:center;font-variant-numeric:tabular-nums}
@@ -550,6 +552,10 @@ html.theming *,html.theming *::before,html.theming *::after{transition:backgroun
 .sc-open:hover .nm{text-decoration:underline;text-decoration-color:var(--teal)}
 .sc-table tr.sc-detail td{background:var(--well);white-space:normal;padding:12px 14px}
 .sc-d h4{margin:0 0 6px;font-size:.8rem;color:var(--muted);font-weight:600}
+.sc-table tr.has-about td{border-bottom:0;padding-bottom:2px}
+.sc-table tr.sc-about-row td{white-space:normal;padding:0 10px 10px 40px;font-size:.8rem;line-height:1.4;color:var(--muted);text-wrap:pretty}
+.sc-d ul.sc-does{margin-bottom:12px}
+.sc-d ul.sc-does li{color:var(--ink)}
 .sc-d ul{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:4px}
 .sc-d li{font-size:.85rem}
 .sc-d li .sec{display:inline-block;min-width:88px;color:var(--muted);font-size:.76rem}
@@ -561,6 +567,9 @@ html.theming *,html.theming *::before,html.theming *::after{transition:backgroun
 .sc-d .delta.good{color:var(--green-deep)}.sc-d .delta.bad{color:var(--coral-deep)}
 @media (max-width:600px){
   .sc-table tr.sc-detail{display:block;padding:0}
+  .sc-table tr.has-about{border-bottom:0;padding-bottom:6px}
+  .sc-table tr.sc-about-row{display:block;padding:0 14px 12px}
+  .sc-table tr.sc-about-row td{padding:0}
   .sc-table tr.sc-detail td{display:block}
   .sc-d .res{grid-template-columns:repeat(2,minmax(0,1fr))}
   .sc-d li .sec{display:block;min-width:0}
@@ -678,11 +687,12 @@ html.theming *,html.theming *::before,html.theming *::after{transition:backgroun
       <summary>How the projection works</summary>
       <p>The first row is today. Each row after that is a full year: account balances grow by that year's return, then the year's money in and out is added or taken at year end. Salaries grow at your salary growth rate and stop at retirement age (an end age can only stop them sooner). Everything else you enter in today's dollars (spending, benefits, purchases) rises with inflation, and college costs rise with college cost inflation.</p>
       <p>Income is entered before taxes. Each year the planner estimates taxes on pay (federal brackets and standard deduction, Social Security and Medicare, and your state rate), subtracts them along with what you put into retirement accounts, and uses the rest for spending and saving. Contributions to pre-tax accounts lower the tax estimate; Roth contributions don't, because they're made with after-tax money. "Total saving" under Income adds up what goes into retirement accounts from your pay, what your employer adds, and what's left of take-home pay after spending and loan payments. College and big purchases are left out of that figure because they're paid from savings when they happen. The tax rules live in config.js and are simplified: no itemized deductions, credits or local quirks. You can replace the estimate with one overall rate under Assumptions.</p>
-      <p>Retirement contributions go into retirement accounts while their owner is working. Whatever is left over after spending, debt payments, college and purchases is added to non-retirement savings. When there's a shortfall, it comes out of non-retirement savings first, then pre-tax retirement accounts (with your withdrawal tax rate added on top), then Roth accounts, which are tax-free. Home and other assets grow but are never sold to cover spending.</p>
-      <p><b>Required withdrawals (RMDs).</b> From age 73 (75 if born in 1960 or later), the IRS requires a minimum to come out of pre-tax retirement accounts every year: last year-end's balance divided by a factor from the IRS Uniform Lifetime Table, about 3.8% at 73 and rising with age. The planner takes it each year for each person, taxes it at your withdrawal rate, uses it for that year's spending first and adds anything left over to non-retirement savings. If one partner's plan ends first, the other takes over their accounts. Roth accounts have no required withdrawals. It's simplified: withdrawals don't push the tax estimate into higher brackets, and there's no still-working exception.</p>
+      <p>Retirement contributions go into retirement accounts while their owner is working. Whatever is left over after spending, debt payments, college and purchases is added to non-retirement savings. When there's a shortfall, it comes out of non-retirement savings first, then pre-tax retirement accounts (taking out enough extra to pay the tax on it), then Roth accounts, which are tax-free. Home and other assets grow but are never sold to cover spending.</p>
+      <p><b>Required withdrawals (RMDs).</b> From age 73 (75 if born in 1960 or later), the IRS requires a minimum to come out of pre-tax retirement accounts every year: last year-end's balance divided by a factor from the IRS Uniform Lifetime Table, about 3.8% at 73 and rising with age. The planner takes it each year for each person, taxes it along with that year's other income, uses it for that year's spending first and adds anything left over to non-retirement savings. If one partner's plan ends first, the other takes over their accounts. Roth accounts have no required withdrawals. It's simplified: there's no still-working exception.</p>
+      <p><b>Taxes in retirement.</b> Each year, money taken out of pre-tax accounts (RMDs and any other withdrawals) is added to that year's other income and taxed through the federal brackets, plus your state rate. Social Security is taxed on the IRS formula: none of it if your other income is low, up to 85% as it rises. Those IRS thresholds have never been raised for inflation, so over a long plan more of it becomes taxable. People 65 and older get the larger standard deduction, and through 2028 the extra senior deduction (smaller at higher incomes). Withdrawals from Roth accounts and non-retirement savings aren't taxed (capital gains aren't modeled). Enter a Tax on withdrawals under Assumptions to use one flat rate instead.</p>
       <p>Loans are paid down month by month: each month interest is added at the yearly rate divided by 12, then the monthly payment is taken off, so payoff dates match a normal amortization schedule. If you give a paid-off year without a payment, the planner calculates the payment that clears the loan that year.</p>
       <p>To get best, mid and worst cases, the planner simulates 1,000 market paths every time an input changes. In each path, every year gets a random return drawn around your typical return, spread out by the market ups and downs you set (the same draw applies to retirement and non-retirement accounts, since they're in the same market). For each year it then ranks the 1,000 net worths: the best case is the 90th percentile, the mid case is the median, and the worst case is the 10th percentile. The random numbers use a fixed seed, so the same inputs always give the same answer, which keeps scenario comparisons fair.<span id="runNote"></span> "Savings last in X% of markets" is the share of the 1,000 paths in which savings never run out.</p>
-      <p><b>What changes between best, mid and worst?</b> Only market returns. Inflation, Social Security, pensions, spending and taxes follow your assumptions the same way in every simulated market, so the worst case means poor investment years, not high inflation. To see higher inflation, use the Inflation slider in Play with it or change it under Assumptions. Social Security rises with inflation every year, like its cost-of-living raise; pensions and annuities only rise if you tick "Rises with inflation". Half of Social Security counts for federal tax, and it isn't charged state tax, since most states don't tax it.</p>
+      <p><b>What changes between best, mid and worst?</b> Only market returns. Inflation, Social Security, pensions, spending and taxes on income follow your assumptions the same way in every simulated market, so the worst case means poor investment years, not high inflation. To see higher inflation, use the Inflation slider in Play with it or change it under Assumptions. Social Security rises with inflation every year, like its cost-of-living raise; pensions and annuities only rise if you tick "Rises with inflation". Up to 85% of Social Security counts for federal tax, depending on your other income; it isn't charged state tax, since most states don't tax it. Taxes on withdrawals do change between cases, because how much you take out depends on markets.</p>
       <p><b>Privacy.</b> Your plan is saved automatically in this browser's storage on this device, and nowhere else. The page carries a security rule that tells the browser to block any attempt to send data over the network, so even the planner itself couldn't upload your numbers if it tried. Use Save a copy to keep a backup file or move your plan to another device.</p>
       <p><b>Work-optional age</b> is the earliest age at which your savings would last the whole plan in at least 85 of 100 simulated markets, if you stopped working then (partners shift by the same number of years, and so does the end of each person's last salary, like a lower-paying job before retiring). Items marked Estimated are starting guesses from quick start; edit them to make them yours. The Social Security guess is very rough (a share of your pay, within set limits), so look up your real estimate at ssa.gov.</p>
       <p>"Savings last" means there was always enough in savings and retirement accounts to cover the year. This is a simplified model for planning conversations, not tax or investment advice.</p>
@@ -697,7 +707,6 @@ html.theming *,html.theming *::before,html.theming *::after{transition:backgroun
 </footer>
 <dialog class="drawer" id="settings" aria-labelledby="settingsTitle">
   <div class="dr-head"><h2 id="settingsTitle">Settings</h2><button type="button" class="dr-x" id="settingsClose" aria-label="Close settings">×</button></div>
-  <section class="dr-sec" aria-labelledby="drLook"><h3 id="drLook">Look and feel</h3><div class="themes" role="radiogroup" aria-labelledby="drLook" id="themePicker"></div></section>
   <section class="dr-sec" aria-labelledby="drPlan"><h3 id="drPlan">Your plan</h3>
     <button type="button" class="dr-row" data-act="save"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v10.5M7.8 10.3 12 14.5l4.2-4.2M4.5 15.5v4h15v-4"/></svg></span><span><b>Save a copy</b><small>Download a backup file. Open it later on any device.</small></span></button>
     <button type="button" class="dr-row" data-act="open"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7V18a1.5 1.5 0 0 0 1.5 1.5h14a1.5 1.5 0 0 0 1.5-1.5V9.5A1.5 1.5 0 0 0 19 8h-7l-2-2.5H5A1.5 1.5 0 0 0 3.5 7z"/><path d="M12 16.5v-5M9.8 13.5 12 11.3l2.2 2.2"/></svg></span><span><b>Load a backup</b><small>Open a copy you saved before. Replaces what's on screen.</small></span></button>
@@ -711,6 +720,7 @@ html.theming *,html.theming *::before,html.theming *::after{transition:backgroun
     <p class="dr-note" id="shareNote" hidden></p>
     <button type="button" class="dr-row" data-act="refresh"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.8 12a7.2 7.2 0 1 0 2.1-5.1M4.8 4.6v3.7h3.7"/></svg></span><span><b>Refresh app</b><small id="refreshSub">Load the latest version. Your plan stays put.</small></span></button>
   </section>
+  <section class="dr-sec" aria-labelledby="drLook"><h3 id="drLook">Look and feel</h3><div class="themes" role="radiogroup" aria-labelledby="drLook" id="themePicker"></div></section>
   <p class="dr-foot">🤫 Everything you enter stays on this device. Nothing is sent anywhere.</p>
 </dialog>
 <div class="modal" id="shareDlg" hidden>
@@ -782,7 +792,7 @@ html.theming *,html.theming *::before,html.theming *::after{transition:backgroun
 
 // The projection model (math only, no page code) lives in model.js, so it can be tested on its own (see evals/).
 const M = NWPModel.create(window.PLANNER_CONFIG, { year: new Date().getFullYear() });
-const { Y0, RUNS, CFG, n, has, clone, nameOf, cfgNum, DEFAULT_ASSUMPTIONS, QS, PLAN_TO, EXAMPLE, BLANK, TX, estimateTaxes, loanPayment, project, WO_TARGET, workOptional, shiftRetirement, realRate, MIXES, mixAssumptions, planDiff, keyResults, milestones, incomeGrows, IDEAS, ideaDefaults, applyIdea, ideaLabel } = M;
+const { Y0, RUNS, CFG, n, has, clone, nameOf, cfgNum, DEFAULT_ASSUMPTIONS, QS, PLAN_TO, EXAMPLE, BLANK, TX, estimateTaxes, loanPayment, project, WO_TARGET, workOptional, shiftRetirement, realRate, MIXES, mixAssumptions, planDiff, keyResults, milestones, incomeGrows, IDEAS, ideaDefaults, applyIdea, ideaLabel, ideaSummary } = M;
 const SC_COLORS = ['#5E7A8A', '#C0902A', '#3F8F86', '#9A7B63'];
 const PLAY_COLOR = '#B86E1F';
 
@@ -880,7 +890,8 @@ function renameEverywhere(oldName, newName) {
   inputsEl.querySelectorAll('input[data-path$=".label"]').forEach(el => { el.value = getPath(state, el.dataset.path) || ''; });
 }
 const payPh = l => (!(has(l.monthlyPayment) && n(l.monthlyPayment) > 0) && has(l.endYear) && n(l.balance) > 0) ? `${Math.round(loanPayment({ ...l, monthlyPayment: null })).toLocaleString('en-US')} calculated` : '';
-const TAX_INFO = `<p>Leave blank to estimate automatically: ${esc(String(cfgNum((CFG.taxes || {}).taxYear, '')))} federal brackets and standard deduction, Social Security and Medicare, plus your state rate. Pre-tax retirement contributions lower the estimate. Half of Social Security counts for federal tax${TX.stateTaxesSocialSecurity ? ' and state tax' : ', and it isn\'t charged state tax (most states don\'t)'}; pensions and annuities count in full.</p><p>Or enter one overall rate that covers all taxes on your pay.</p>`;
+const TAX_INFO = `<p>Leave blank to estimate automatically: ${esc(String(cfgNum((CFG.taxes || {}).taxYear, '')))} federal brackets and standard deduction, Social Security and Medicare, plus your state rate. Pre-tax retirement contributions lower the estimate. Social Security counts for federal tax on the IRS formula (none to 85%, depending on your other income)${TX.stateTaxesSocialSecurity ? ' and for state tax' : ', and it isn\'t charged state tax (most states don\'t)'}; pensions and annuities count in full. People 65 and older get the larger standard deduction.</p><p>Or enter one overall rate that covers all taxes on your pay.</p>`;
+const WD_INFO = `<p>Leave blank to estimate automatically: each year, money taken out of pre-tax retirement accounts (RMDs and other withdrawals) is added to that year's other income and taxed through the federal brackets plus your state rate. That can also make more of your Social Security taxable.</p><p>Or enter one flat rate for all pre-tax withdrawals. Roth and non-retirement withdrawals aren't taxed.</p>`;
 const SS_ROUGH = `Rough guess: about ${cfgNum(QS.socialSecurityPercentOfPay, 40)}% of pay, kept between ${'$' + cfgNum(QS.socialSecurityMin, 12000).toLocaleString('en-US')} and ${'$' + cfgNum(QS.socialSecurityMax, 45000).toLocaleString('en-US')} a year. Your real benefit depends on your whole work history; look up your estimate at ssa.gov and enter it here.`;
 // "≈ 2.9% after inflation" under each return, with a gentle note when a market return looks unusual
 const REAL_NOTE = CFG.returnAfterInflationNote || {};
@@ -1060,7 +1071,7 @@ function renderInputs() {
       ${fld('assumptions.inflation', 'Inflation', 'pct', { cls: 's6' })}
       ${fld('assumptions.earningsGrowth', 'Salary growth', 'pct', { cls: 's6' })}
       ${fld('assumptions.eduInflation', 'College cost inflation', 'pct', { cls: 's6' })}
-      ${fld('assumptions.withdrawalTax', 'Tax on retirement withdrawals', 'pct', { cls: 's6', step: 1 })}
+      ${fld('assumptions.withdrawalTaxRate', 'Tax on withdrawals', 'pct', { cls: 's6', ph: 'auto', info: WD_INFO, step: 0 })}
       ${fld('assumptions.stateTax', 'State and local income tax', 'pct', { cls: 's6' })}
       ${fld('assumptions.payTaxRate', 'Taxes on pay', 'pct', { cls: 's6', ph: 'auto', info: TAX_INFO, step: 0 })}
     </div>
@@ -1126,7 +1137,7 @@ function rmdNote(s, res) {
     : who.map(([p, a, now]) => `${now >= a ? 'already' : `from age ${a}`} for ${esc(nm(p))}`).join(' and ');
   const t = res.rmd.findIndex((v, i) => i > 0 && v > 0);
   const first = t > 0 ? ` In the mid case the first one is about <b>${money(res.rmd[t] / Math.pow(1 + res.infl, t))}</b> in today's dollars.` : '';
-  return `<b>Required withdrawals (RMDs):</b> ${when}, the planner takes the IRS minimum out of pre-tax retirement accounts each year. It's taxed at your withdrawal rate, and anything not spent goes into non-retirement savings. Roth accounts have none.${first}`;
+  return `<b>Required withdrawals (RMDs):</b> ${when}, the planner takes the IRS minimum out of pre-tax retirement accounts each year. It's taxed along with your other income that year, and anything not spent goes into non-retirement savings. Roth accounts have none.${first}`;
 }
 
 function refreshNames() {
@@ -1418,13 +1429,14 @@ function onHover(e) {
 const ICON_EYE = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
 const ICON_EYE_OFF = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M2 12s3.6-7 10-7c2 0 3.8.7 5.2 1.6M22 12s-3.6 7-10 7c-2 0-3.8-.7-5.2-1.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M4 4l16 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
 const ICON_TRASH = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 7h16M9 7V4.8h6V7M6.5 7l.9 12.2h9.2L17.5 7M10 10.5v5.5M14 10.5v5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-function scenarioRow(name, res, color, actions, hidden, i) {
+function scenarioRow(name, res, color, actions, hidden, i, about) {
+  const tr = about && about.length ? '<tr class="has-about">' : '<tr>';
   const dot = `<i class="dot${hidden ? ' off' : ''}" style="--c:${color}"></i>`;
   const nameCell = i === undefined ? `<td class="sc-n"><span class="sc-name">${dot}${esc(name)}</span></td>`
     : `<td class="sc-n"><button type="button" class="sc-open" data-sc="details" data-i="${i}" aria-expanded="${openScenario === i}" title="See what changed"><span class="car" aria-hidden="true">▶</span>${dot}<span class="nm">${esc(name)}</span></button></td>`;
-  if (res.empty) return `<tr>${nameCell}<td data-l="Retired">–</td><td class="n" data-l="At retirement">–</td><td class="n" data-l="At end">–</td><td data-l="Savings last">–</td><td class="acts">${actions}</td></tr>`;
+  if (res.empty) return `${tr}${nameCell}<td data-l="Retired">–</td><td class="n" data-l="At retirement">–</td><td class="n" data-l="At end">–</td><td data-l="Savings last">–</td><td class="acts">${actions}</td></tr>`;
   const rt = res.retireT === null ? res.H : res.retireT;
-  return `<tr>${nameCell}
+  return `${tr}${nameCell}
     <td data-l="Retired">${res.retireT === null ? 'After plan' : rt === 0 ? 'Now' : Y0 + rt}</td>
     <td class="n" data-l="Net worth at retirement">${money(disp(res.p50[rt], rt, res))}</td>
     <td class="n" data-l="Net worth at end">${money(disp(res.p50[res.H], res.H, res))}</td>
@@ -1466,7 +1478,8 @@ function scenarioDetails(sc) {
       ${cell('Net worth at plan end', endA, endB, money, true)}
       ${cell('Worst case runs out', ka && ka.worstRunOutAge, kb && kb.worstRunOutAge, v => 'at ' + v, true, 'Lasts', v => `${v} yr${v === 1 ? '' : 's'}`)}
     </div>`;
-  return `<div class="sc-d"><h4>What's different from your plan</h4><ul>${items || '<li>Same inputs as your plan.</li>'}${more}</ul>
+  const does = sc.about && sc.about.length ? `<h4>What this scenario does (today's dollars)</h4><ul class="sc-does">${sc.about.map(t => `<li>${esc(t)}</li>`).join('')}</ul>` : '';
+  return `<div class="sc-d">${does}<h4>What's different from your plan</h4><ul>${items || '<li>Same inputs as your plan.</li>'}${more}</ul>
     <h4>How it compares (your plan → ${esc(sc.name)}, mid case, ${mode === 'real' ? "today's" : 'future'} dollars)</h4>${results}</div>`;
 }
 // ---------- Life ideas: pick → adjust a plain sentence → preview → save as a scenario or apply ----------
@@ -1493,6 +1506,12 @@ const IDEA_FORM = {
 const IDEA_FIELD_NAMES = { childcare: 'Childcare', extra: 'Everyday costs', collegeCost: 'College', price: 'Price', costsPct: 'Costs', upkeepPct: 'Upkeep', rate: 'Rate', livingPct: 'Living costs', stateTax: 'State tax', years: 'Break', perYear: 'Help', amount: 'Amount' };
 const draft = { ideas: [], active: -1, name: '', nameTouched: false };
 let ideaTimer = null;
+// One plain sentence per idea in the stack, each read against the plan with the ideas before it applied
+function draftSummaries() {
+  let p = clone(state);
+  return draft.ideas.map(it => { const t = ideaSummary(p, it.id, it.params); p = applyIdea(p, it.id, it.params); return t; });
+}
+function renderCmpSummary() { const el = $('#cmpSum'); if (el) el.textContent = draftSummaries()[draft.active] || ''; }
 function draftPlan() { return draft.ideas.reduce((p, it) => applyIdea(p, it.id, it.params), clone(state)); }
 function renderIdeas() {
   $('#ideas').innerHTML = IDEAS.map(i => `<button type="button" class="idea" data-idea="${i.id}"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true">${IDEA_ICON[i.id] || ''}</svg></span><span>${esc(i.name)}</span></button>`).join('');
@@ -1533,9 +1552,10 @@ function renderComposer(focusFirst) {
   const sentence = form.filter(t => !(Array.isArray(t) && t[0] === 'sellCurrent' && !hasHome)).map(t => (Array.isArray(t) ? ideaInput(t, it.params) : esc(t))).join(' ').replace(/ \./g, '.').replace(/ ,/g, ',').replace(/(<span class="in">[\s\S]*?<\/span>)([.,])/g, '<span class="nw">$1$2</span>');   // keep punctuation with its value
   const notes = Object.entries(it.notes || {}).map(([k, v]) => `<li><b>${esc(IDEA_FIELD_NAMES[k] || k)}:</b> ${esc(v)}</li>`).join('');
   const warn = it.id === 'break' && !state.income.some(i => i.type === 'salary') ? 'There\'s no salary in your plan to pause yet.' : it.id === 'downsize' && !hasHome ? 'Add your home under Assets first; there\'s nothing to sell yet.' : '';
-  if (!draft.nameTouched) draft.name = draft.ideas.map(x => ideaLabel(x.id, x.params)).join(' + ');
-  el.innerHTML = `<div class="cmp-stack" aria-label="Ideas in this scenario">${draft.ideas.map((x, i) => `<span class="cmp-chip" role="button" tabindex="0" data-ci="${i}" aria-current="${i === draft.active}">${esc(ideaLabel(x.id, x.params))}<button type="button" class="x" data-cx="${i}" aria-label="Remove ${esc(ideaLabel(x.id, x.params))}">×</button></span>`).join('')}</div>
+  if (!draft.nameTouched) draft.name = draft.ideas.map(x => ideaLabel(x.id, x.params, state)).join(' + ');
+  el.innerHTML = `<div class="cmp-stack" aria-label="Ideas in this scenario">${draft.ideas.map((x, i) => `<span class="cmp-chip" role="button" tabindex="0" data-ci="${i}" aria-current="${i === draft.active}">${esc(ideaLabel(x.id, x.params, state))}<button type="button" class="x" data-cx="${i}" aria-label="Remove ${esc(ideaLabel(x.id, x.params, state))}">×</button></span>`).join('')}</div>
     <p class="cmp-sentence">${sentence}</p>
+    <p class="cmp-sum"><b>In short:</b> <span id="cmpSum"></span></p>
     ${notes ? `<ul class="cmp-notes">${notes}</ul>` : ''}${warn ? `<p class="cmp-warn">${warn}</p>` : ''}
     <div class="cmp-result" id="cmpResult" aria-live="polite"></div>
     <div class="cmp-actions">
@@ -1547,6 +1567,7 @@ function renderComposer(focusFirst) {
       <button type="button" class="link" id="cmpCancel">Cancel</button>
     </div>`;
   el.hidden = false;
+  renderCmpSummary();
   document.querySelectorAll('#ideas .idea').forEach(b => b.setAttribute('aria-pressed', String(draft.ideas.some(x => x.id === b.dataset.idea))));
   if (focusFirst) { const f = el.querySelector('.cmp-sentence input, .cmp-sentence select'); if (f) f.focus({ preventScroll: true }); el.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'nearest' }); }
   renderIdeaResult();
@@ -1580,8 +1601,9 @@ function readIdeaInput(el) {
   if (kind === 'int' && /inYears|years/.test(k)) v = Math.max(1, Math.min(60, v));
   it.params[k] = v;
   const chip = document.querySelector(`.cmp-chip[data-ci="${draft.active}"]`);
-  if (chip && chip.firstChild) chip.firstChild.textContent = ideaLabel(it.id, it.params);
-  if (!draft.nameTouched) { draft.name = draft.ideas.map(x => ideaLabel(x.id, x.params)).join(' + '); const nmEl = $('#cmpName'); if (nmEl) nmEl.value = draft.name; }
+  if (chip && chip.firstChild) chip.firstChild.textContent = ideaLabel(it.id, it.params, state);
+  if (!draft.nameTouched) { draft.name = draft.ideas.map(x => ideaLabel(x.id, x.params, state)).join(' + '); const nmEl = $('#cmpName'); if (nmEl) nmEl.value = draft.name; }
+  renderCmpSummary();
   previewIdeas();
 }
 $('#ideas').addEventListener('click', e => { const b = e.target.closest('[data-idea]'); if (b) addIdea(b.dataset.idea); });
@@ -1592,7 +1614,8 @@ $('#composer').addEventListener('input', e => {
 $('#composer').addEventListener('change', e => { if (e.target.dataset.ik && e.target.tagName === 'SELECT') readIdeaInput(e.target); });
 $('#composer').addEventListener('focusout', e => {
   const el = e.target; if (!el.dataset || !el.dataset.ik) return;
-  const v = draft.ideas[draft.active].params[el.dataset.ik], kind = el.dataset.kind;
+  const it = draft.ideas[draft.active]; if (!it) return;   // the composer just closed
+  const v = it.params[el.dataset.ik], kind = el.dataset.kind;
   if (kind === 'money') el.value = `$${Math.round(n(v)).toLocaleString('en-US')}`; else if (kind === 'pct') el.value = `${v}%`;
 });
 $('#composer').addEventListener('keydown', e => { const c = e.target.closest('.cmp-chip'); if (c && (e.key === 'Enter' || e.key === ' ') && e.target === c) { e.preventDefault(); c.click(); } });
@@ -1607,7 +1630,7 @@ $('#composer').addEventListener('click', e => {
   if (id === 'cmpSave') {
     const p = draftPlan(); let name = (draft.name || 'Life idea').trim(); const base = name; let k = 2;
     while (scenarios.some(sc => sc.name === name)) name = `${base} (${k++})`;
-    scenarios.push({ name, state: p, show: true, res: project(p) });
+    scenarios.push({ name, state: p, show: true, res: project(p), about: draftSummaries() });
     openScenario = scenarios.length - 1; dirty = true;
     closeComposer(); document.querySelectorAll('#ideas .idea').forEach(b => b.setAttribute('aria-pressed', 'false'));
     renderResults();
@@ -1616,7 +1639,7 @@ $('#composer').addEventListener('click', e => {
     return;
   }
   if (id === 'cmpApply') {
-    const before = clone(state), names = draft.ideas.map(x => ideaLabel(x.id, x.params)).join(' + ');
+    const before = clone(state), names = draft.ideas.map(x => ideaLabel(x.id, x.params, state)).join(' + ');
     state = draftPlan(); closeComposer(); document.querySelectorAll('#ideas .idea').forEach(b => b.setAttribute('aria-pressed', 'false'));
     renderInputs(); recompute();
     notify(`Added to your plan: ${names}.`, false, ['Undo', () => { state = before; renderInputs(); recompute(); notify('Undone.'); }], 12000);
@@ -1632,7 +1655,8 @@ function renderScenarios() {
   scenarios.forEach((sc, i) => {
     const lab = sc.show ? `Hide ${sc.name} from chart` : `Show ${sc.name} on chart`;
     const acts = `<button type="button" class="icon-btn" data-sc="show" data-i="${i}" aria-pressed="${sc.show}" aria-label="${esc(lab)}" title="${sc.show ? 'Shown on chart' : 'Hidden from chart'}">${sc.show ? ICON_EYE : ICON_EYE_OFF}</button><button type="button" class="icon-btn danger" data-sc="delete" data-i="${i}" aria-label="${esc('Delete ' + sc.name)}" title="Delete">${ICON_TRASH}</button>`;
-    rows += scenarioRow(sc.name, sc.res, SC_COLORS[i % 4], acts, !sc.show, i);
+    rows += scenarioRow(sc.name, sc.res, SC_COLORS[i % 4], acts, !sc.show, i, sc.about);
+    if (sc.about && sc.about.length) rows += `<tr class="sc-about-row"><td colspan="6">${esc(sc.about.join('; '))}</td></tr>`;
     if (openScenario === i) rows += `<tr class="sc-detail"><td colspan="6">${scenarioDetails(sc)}</td></tr>`;
   });
   wrap.innerHTML = `<table class="sc-table"><caption>Mid case, in ${mode === 'real' ? "today's" : 'future'} dollars</caption><thead><tr><th>Scenario</th><th>Retired</th><th class="n">Net worth at retirement</th><th class="n">Net worth at end</th><th>Savings last</th><th><span class="sr">Actions</span></th></tr></thead><tbody>${rows}</tbody></table>`;
@@ -1642,7 +1666,7 @@ function renderTable() {
   const res = current, tb = $('#table');
   if (res.empty) { tb.innerHTML = ''; $('#tableHint').textContent = 'Your year-by-year projection will appear here.'; return; }
   const hasRmd = !!(res.rmd && res.rmd.some(v => v > 0));
-  $('#tableHint').textContent = `Shown in ${mode === 'real' ? "today's dollars" : 'future dollars'}. Income is before tax; taxes are estimated. Spending, income and payments are the same in every case; only net worth${hasRmd ? ' and required withdrawals (mid case, taken from pre-tax accounts and taxed at your withdrawal rate) vary' : ' varies'} with markets.`;
+  $('#tableHint').textContent = `Shown in ${mode === 'real' ? "today's dollars" : 'future dollars'}. Income is before tax; taxes are estimated. Spending, income and payments are the same in every case; only net worth, taxes on withdrawals${hasRmd ? ' and required withdrawals' : ''} vary with markets (mid case shown). Taxes include tax on money taken out of pre-tax accounts.`;
   const D = (v, t) => disp(v, t, res);
   let h = `<thead><tr><th>Year</th><th>${res.two ? 'Ages' : 'Age'}</th><th class="n">Income</th>${hasRmd ? '<th class="n">Required withdrawals</th>' : ''}<th class="n">Taxes</th><th class="n">Spending</th><th class="n">Debt payments</th><th class="n">College and purchases</th><th class="n">Worst case</th><th class="n">Mid case</th><th class="n">Best case</th><th>Notes</th></tr></thead><tbody>`;
   for (let t = 0; t <= res.H; t++) {
@@ -1652,7 +1676,7 @@ function renderTable() {
     h += `<tr class="${t === res.retireT && t > 0 ? 'ret' : ''}">
       <td>${t === 0 ? 'Now' : Y0 + t}</td>
       <td>${res.a1 + t}${res.two ? ' / ' + (res.a2 + t) : ''}</td>
-      ${t === 0 ? blank.repeat(hasRmd ? 6 : 5) : cell(D(res.inc[t], t)) + (hasRmd ? cell(D(res.rmd[t], t)) : '') + cell(D(res.taxes[t], t)) + cell(D(res.spend[t], t)) + cell(D(res.debtPay[t], t)) + cell(D(res.special[t], t))}
+      ${t === 0 ? blank.repeat(hasRmd ? 6 : 5) : cell(D(res.inc[t], t)) + (hasRmd ? cell(D(res.rmd[t], t)) : '') + cell(D(res.taxes[t] + (res.wtax ? res.wtax[t] : 0), t)) + cell(D(res.spend[t], t)) + cell(D(res.debtPay[t], t)) + cell(D(res.special[t], t))}
       ${cell(D(res.p10[t], t))}<td class="n mid${res.p50[t] < -0.5 ? ' neg' : ''}">${money(D(res.p50[t], t))}</td>${cell(D(res.p90[t], t))}
       <td class="notes">${[...res.events[t], outOfMoney ? 'Mid case savings used up' : ''].filter(Boolean).map(esc).join(', ')}</td></tr>`;
   }
@@ -1820,7 +1844,7 @@ function normalize(x) {
     income: arr(x.income, NEW.income),
     spending: Array.isArray(x.spending) ? arr(x.spending, NEW.spending) : legacySpending(x.spending),
     purchases: arr(x.purchases, NEW.purchases),
-    assumptions: { ...b.assumptions, ...x.assumptions }
+    assumptions: (({ withdrawalTax, ...a }) => ({ ...b.assumptions, ...a }))(x.assumptions || {})   // old flat withdrawal rate dropped: estimated now
   };
 }
 function download(name, text) {
@@ -1877,7 +1901,7 @@ let fileName = null, storageOk = true, canPersist = false, celebrated = false;
 function persist() {
   if (!canPersist) return;
   try {
-    localStorage.setItem(SAVE_KEY, JSON.stringify({ v: 2, state, scenarios: scenarios.map(sc => ({ name: sc.name, state: sc.state, show: sc.show })), isExample, fileName, celebrated, savedAt: new Date().toISOString() }));
+    localStorage.setItem(SAVE_KEY, JSON.stringify({ v: 2, state, scenarios: scenarios.map(sc => ({ name: sc.name, state: sc.state, show: sc.show, ...(sc.about ? { about: sc.about } : {}) })), isExample, fileName, celebrated, savedAt: new Date().toISOString() }));
     storageOk = true; dirty = false;
   } catch (e) { storageOk = false; }
 }
@@ -1886,7 +1910,7 @@ function restoreSaved() {
     const o = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
     if (o && o.v === 2 && o.state) {
       state = normalize(o.state);
-      scenarios = (o.scenarios || []).map(x => { const st = normalize(x.state); return { name: String(x.name || 'Scenario'), state: st, show: x.show !== false, res: project(st) }; });
+      scenarios = (o.scenarios || []).map(x => { const st = normalize(x.state); return { name: String(x.name || 'Scenario'), state: st, show: x.show !== false, res: project(st), ...(Array.isArray(x.about) ? { about: x.about.map(String) } : {}) }; });
       isExample = !!o.isExample; fileName = o.fileName || null; celebrated = !!o.celebrated;
       if (isExample) state = EXAMPLE(); // always show the example as currently set in config.js
       return true;
@@ -1906,7 +1930,7 @@ const CURRENT = '(current inputs)';
 function backupText() {
   const rows = [['scenario', 'field', 'value'], ['_meta', 'format', 'simple-retirement-planner'], ['_meta', 'version', '2'], ['_meta', 'saved', new Date().toISOString()]];
   for (const [f, v] of flatten(state)) rows.push([CURRENT, f, v]);
-  for (const sc of scenarios) { rows.push([sc.name, '_show', String(sc.show)]); for (const [f, v] of flatten(sc.state)) rows.push([sc.name, f, v]); }
+  for (const sc of scenarios) { rows.push([sc.name, '_show', String(sc.show)]); for (const t of sc.about || []) rows.push([sc.name, '_about', t]); for (const [f, v] of flatten(sc.state)) rows.push([sc.name, f, v]); }
   return toCSV(rows);
 }
 $('#btnSave').addEventListener('click', async () => {
@@ -1943,8 +1967,9 @@ function loadBackupText(text) {
     for (const [name, pairs] of groups) {
       if (name === CURRENT) continue;
       const show = pairs.find(p => p[0] === '_show');
-      const st = normalize(unflatten(pairs.filter(p => p[0] !== '_show')));
-      scenarios.push({ name, state: st, show: show ? show[1] === 'true' : true, res: project(st) });
+      const about = pairs.filter(p => p[0] === '_about').map(p => String(p[1]));
+      const st = normalize(unflatten(pairs.filter(p => p[0] !== '_show' && p[0] !== '_about')));
+      scenarios.push({ name, state: st, show: show ? show[1] === 'true' : true, res: project(st), ...(about.length ? { about } : {}) });
     }
     dirty = false; isExample = false;
     renderInputs(); recompute();
@@ -1968,11 +1993,11 @@ $('#btnExport').addEventListener('click', async () => {
   const unit = mode === 'real' ? "today's dollars" : 'future dollars';
   const all = [current, ...scenarios.map(sc => sc.res)];
   const cats = SPEND_CATS.filter(([c]) => all.some(r => r.catSpend && r.catSpend[c]));
-  const rows = [['scenario', 'year', 'age_partner_1', 'age_partner_2', 'income', 'required_withdrawals_mid', 'taxes', 'retirement_saving_from_pay', 'spending', ...cats.map(([, l]) => 'spending_' + l.toLowerCase().replace(/\W+/g, '_')), 'debt_payments', 'college_and_purchases', 'net_worth_worst', 'net_worth_mid', 'net_worth_best', 'savings_mid', 'notes', 'dollars']];
+  const rows = [['scenario', 'year', 'age_partner_1', 'age_partner_2', 'income', 'required_withdrawals_mid', 'taxes_on_income', 'taxes_on_withdrawals_mid', 'retirement_saving_from_pay', 'spending', ...cats.map(([, l]) => 'spending_' + l.toLowerCase().replace(/\W+/g, '_')), 'debt_payments', 'college_and_purchases', 'net_worth_worst', 'net_worth_mid', 'net_worth_best', 'savings_mid', 'notes', 'dollars']];
   const add = (name, res) => {
     for (let t = 0; t <= res.H; t++) {
       const D = v => Math.round(disp(v, t, res));
-      rows.push([name, Y0 + t, res.a1 + t, res.two ? res.a2 + t : '', D(res.inc[t]), D(res.rmd ? res.rmd[t] : 0), D(res.taxes[t]), D(res.youC ? res.youC[t] : 0), D(res.spend[t]), ...cats.map(([c]) => D(res.catSpend && res.catSpend[c] ? res.catSpend[c][t] : 0)), D(res.debtPay[t]), D(res.special[t]), D(res.p10[t]), D(res.p50[t]), D(res.p90[t]), D(res.liq50[t]), res.events[t].join('; '), unit]);
+      rows.push([name, Y0 + t, res.a1 + t, res.two ? res.a2 + t : '', D(res.inc[t]), D(res.rmd ? res.rmd[t] : 0), D(res.taxes[t]), D(res.wtax ? res.wtax[t] : 0), D(res.youC ? res.youC[t] : 0), D(res.spend[t]), ...cats.map(([c]) => D(res.catSpend && res.catSpend[c] ? res.catSpend[c][t] : 0)), D(res.debtPay[t]), D(res.special[t]), D(res.p10[t]), D(res.p50[t]), D(res.p90[t]), D(res.liq50[t]), res.events[t].join('; '), unit]);
     }
   };
   add('Your plan', current);
